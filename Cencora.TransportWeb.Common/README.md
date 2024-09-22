@@ -1,0 +1,2 @@
+# Cencora.TransportWeb.Common
+`Cencora.TransportWeb.Common` contains source code designed to be shared across various projects within the `Cencora.TransportWeb` ecosystem. This approach promotes code reuse throughout the repository, ensuring a clear and organized structure.

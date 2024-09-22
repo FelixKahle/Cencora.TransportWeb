@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <WarningsAsErrors>Nullable</WarningsAsErrors>
+        <PublishTrimmed>true</PublishTrimmed>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+        <TrimMode>full</TrimMode>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="src\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.OrTools" Version="9.10.4067" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+      <PackageReference Include="UnitsNet" Version="6.0.0-pre012" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Cencora.TransportWeb.Common\Cencora.TransportWeb.Common.csproj" />
+    </ItemGroup>
+
+</Project>
