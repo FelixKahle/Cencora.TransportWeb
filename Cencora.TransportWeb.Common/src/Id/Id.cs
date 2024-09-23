@@ -13,7 +13,7 @@ public readonly struct Id : IEquatable<Id>, IComparable<Id>
     /// Gets the value of the identifier.
     /// </summary>
     public string Value { get; }
-
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="Id"/> struct.
     /// </summary>

@@ -14,6 +14,14 @@ public sealed class LocationBuilder : FlaggedBuilder
 {
     private Id _id;
     private long? _maximalVehicleCapacity;
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocationBuilder"/> class.
+    /// </summary>
+    public LocationBuilder()
+    {
+        _id = Id.New();
+    }
 
     /// <summary>
     /// Sets the ID of the location.

@@ -16,6 +16,14 @@ public sealed class DriverBuilder : FlaggedBuilder
     private long? _fixedCost;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="DriverBuilder"/> class.
+    /// </summary>
+    public DriverBuilder()
+    {
+        _id = Id.New();
+    }
+
+    /// <summary>
     /// Adds an id to the driver.
     /// </summary>
     /// <param name="id">The id to add.</param>

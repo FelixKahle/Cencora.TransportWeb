@@ -18,6 +18,14 @@ public sealed class ShipUnitBuilder
     private long? _length;
 
     /// <summary>
+    /// Creates a new instance of the <see cref="ShipUnitBuilder"/>.
+    /// </summary>
+    public ShipUnitBuilder()
+    {
+        _id = Id.New();
+    }
+
+    /// <summary>
     /// Adds an id to the ship unit.
     /// </summary>
     /// <param name="id">The id of the ship unit.</param>

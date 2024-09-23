@@ -22,6 +22,14 @@ public sealed class VehicleBuilder : FlaggedBuilder
     private long? _costPerWeightDistance;
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="VehicleBuilder"/> class.
+    /// </summary>
+    public VehicleBuilder()
+    {
+        _id = Id.New();
+    }
+
+    /// <summary>
     /// Adds a id to the vehicle.
     /// </summary>
     /// <param name="id">The id to add.</param>
