@@ -376,6 +376,8 @@ public sealed class ShipmentBuilder : FlaggedBuilder
     /// <returns>The shipment.</returns>
     public Shipment Build()
     {
-        return new Shipment(_id, _shipUnits, _pickupLocation, _deliveryLocation, _pickupDropPenalty, _deliveryDropPenalty, _pickupHandlingTime, _pickupTimeWindow, _deliveryHandlingTime, _deliveryTimeWindow);
+        return new Shipment(_id, _shipUnits, _pickupLocation, _deliveryLocation, _pickupDropPenalty,
+            _deliveryDropPenalty, _pickupHandlingTime, _pickupTimeWindow, _deliveryHandlingTime, _deliveryTimeWindow,
+            BuildFlags());
     }
 }

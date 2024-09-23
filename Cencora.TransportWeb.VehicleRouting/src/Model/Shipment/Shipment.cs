@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.Common.Flags;
 using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
@@ -64,6 +65,11 @@ public sealed class Shipment : IEquatable<Shipment>
     public ValueRange? DeliveryTimeWindow { get; set; }
 
     /// <summary>
+    /// Gets the flags of the shipment.
+    /// </summary>
+    public IReadOnlyFlagContainer Flags { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Shipment"/> class.
     /// </summary>
     /// <param name="id">The id of the shipment.</param>
@@ -71,6 +77,7 @@ public sealed class Shipment : IEquatable<Shipment>
     {
         Id = id;
         ShipUnits = new HashSet<ShipUnit>();
+        Flags = new FlagContainer();
     }
 
     /// <summary>
@@ -86,7 +93,10 @@ public sealed class Shipment : IEquatable<Shipment>
     /// <param name="pickupTimeWindow">The time window for the pickup of the shipment.</param>
     /// <param name="deliveryHandlingTime">The delivery handling time of the shipment.</param>
     /// <param name="deliveryTimeWindow">The time window for the delivery of the shipment.</param>
-    public Shipment(Id id, IReadOnlySet<ShipUnit>? shipUnits, Location? pickupLocation, Location? deliveryLocation, long? pickupDropPenalty, long? deliveryDropPenalty, long? pickupHandlingTime, ValueRange? pickupTimeWindow, long? deliveryHandlingTime, ValueRange? deliveryTimeWindow)
+    /// <param name="flags">The flags of the shipment.</param>
+    public Shipment(Id id, IReadOnlySet<ShipUnit>? shipUnits, Location? pickupLocation, Location? deliveryLocation,
+        long? pickupDropPenalty, long? deliveryDropPenalty, long? pickupHandlingTime, ValueRange? pickupTimeWindow,
+        long? deliveryHandlingTime, ValueRange? deliveryTimeWindow, IReadOnlyFlagContainer? flags)
     {
         Id = id;
         ShipUnits = shipUnits ?? new HashSet<ShipUnit>();
@@ -98,6 +108,7 @@ public sealed class Shipment : IEquatable<Shipment>
         PickupTimeWindow = pickupTimeWindow;
         DeliveryHandlingTime = deliveryHandlingTime;
         DeliveryTimeWindow = deliveryTimeWindow;
+        Flags = flags ?? new FlagContainer();
     }
 
     /// <inheritdoc/>
