@@ -53,6 +53,15 @@ public readonly struct ValueRange : IEquatable<ValueRange>, IFormattable, ICompa
     /// <summary>
     /// Initializes a new instance of the <see cref="ValueRange"/> struct.
     /// </summary>
+    public ValueRange()
+    {
+        Min = 0;
+        Max = 0;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ValueRange"/> struct.
+    /// </summary>
     /// <param name="min">The minimum value of the range.</param>
     /// <param name="max">The maximum value of the range.</param>
     public ValueRange(long min, long max)

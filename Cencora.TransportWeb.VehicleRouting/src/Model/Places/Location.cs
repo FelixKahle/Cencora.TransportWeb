@@ -130,7 +130,7 @@ public sealed class Location : IEquatable<Location>, IComparable<Location>
     /// </summary>
     /// <param name="location">The <see cref="Location"/> to convert.</param>
     /// <returns>The <see cref="Id"/> of the <see cref="Location"/>.</returns>
-    public static implicit operator Id(Location location)
+    public static explicit operator Id(Location location)
     {
         return location.Id;
     }

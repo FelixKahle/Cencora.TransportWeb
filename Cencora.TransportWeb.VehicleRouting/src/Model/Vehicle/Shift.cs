@@ -3,6 +3,7 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Common;
+using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
 namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicle;
 
@@ -17,32 +18,40 @@ public sealed class Shift : IEquatable<Shift>
     public ValueRange ShiftTimeWindow { get; }
 
     /// <summary>
+    /// Gets the driver of the shift.
+    /// </summary>
+    public Driver? Driver { get; }
+
+    /// <summary>
     /// Gets the breaks for the shift.
     /// </summary>
     public IReadOnlySet<Break> Breaks { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="Shift"/> class.
+    /// Gets the start location of the shift.
     /// </summary>
-    /// <param name="shiftTimeWindow">The time window of the shift.</param>
-    public Shift(ValueRange shiftTimeWindow)
-    {
-        ShiftTimeWindow = shiftTimeWindow;
-        Breaks = new HashSet<Break>();
-    }
+    public Location? StartLocation { get; }
+
+    /// <summary>
+    /// Gets the end location of the shift.
+    /// </summary>
+    public Location? EndLocation { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Shift"/> class.
     /// </summary>
     /// <param name="shiftTimeWindow">The time window of the shift.</param>
+    /// <param name="driver">The driver of the shift.</param>
     /// <param name="breaks">The breaks for the shift.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="breaks"/> is <see langword="null"/>.</exception>
-    public Shift(ValueRange shiftTimeWindow, IEnumerable<Break> breaks)
+    /// <param name="startLocation">The start location of the shift.</param>
+    /// <param name="endLocation">The end location of the shift.</param>
+    public Shift(ValueRange shiftTimeWindow, Driver? driver, IEnumerable<Break>? breaks, Location? startLocation, Location? endLocation)
     {
-        ArgumentNullException.ThrowIfNull(breaks, nameof(breaks));
-
         ShiftTimeWindow = shiftTimeWindow;
-        Breaks = InitializeBreaks(shiftTimeWindow, breaks);
+        Driver = driver;
+        Breaks = InitializeBreaks(shiftTimeWindow, breaks ?? Enumerable.Empty<Break>());
+        StartLocation = startLocation;
+        EndLocation = endLocation;
     }
 
     /// <inheritdoc/>
@@ -58,7 +67,9 @@ public sealed class Shift : IEquatable<Shift>
             return true;
         }
 
-        return ShiftTimeWindow.Equals(other.ShiftTimeWindow) && Breaks.SetEquals(other.Breaks);
+        return ShiftTimeWindow.Equals(other.ShiftTimeWindow)
+               && (Driver is null ? other.Driver is null : Driver.Equals(other.Driver))
+               && Breaks.SetEquals(other.Breaks);
     }
 
     /// <inheritdoc/>

@@ -14,7 +14,7 @@ public abstract class FlaggedBuilder
     /// <summary>
     /// The flags of the object being built.
     /// </summary>
-    protected FlagContainer Flags { get; } = new();
+    private FlagContainer Flags { get; } = new();
 
     /// <summary>
     /// Adds a flag to the object being built.
@@ -60,5 +60,14 @@ public abstract class FlaggedBuilder
 
         Flags.RemoveFlags(flags);
         return this;
+    }
+
+    /// <summary>
+    /// Builds the flags of the object.
+    /// </summary>
+    /// <returns>The flags of the object.</returns>
+    public FlagContainer BuildFlags()
+    {
+        return Flags;
     }
 }

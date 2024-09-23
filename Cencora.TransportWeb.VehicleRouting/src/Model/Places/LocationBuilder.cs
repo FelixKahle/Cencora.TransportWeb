@@ -63,6 +63,6 @@ public sealed class LocationBuilder : FlaggedBuilder
     /// <returns>An instance of the <see cref="Location"/> class.</returns>
     public Location Build()
     {
-        return new Location(_id, _maximalVehicleCapacity, Flags);
+        return new Location(_id, _maximalVehicleCapacity, BuildFlags());
     }
 }
