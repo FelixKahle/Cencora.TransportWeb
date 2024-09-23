@@ -116,7 +116,14 @@ public sealed class Location : IEquatable<Location>, IComparable<Location>
     /// <inheritdoc/>
     public int CompareTo(Location? other)
     {
-        return MaximalVehicleCapacity?.CompareTo(other?.MaximalVehicleCapacity) ?? 0;
+        // If a location has no maximal vehicle capacity, it is considered to have an infinite maximal vehicle capacity.
+        // As we cannot compare infinite values, we need to adjust the maximal vehicle
+        // capacity to the maximum value of the data type.
+        // This way, we can compare the maximal vehicle capacities of the locations.
+        var adjustedMaximalVehicleCapacity = MaximalVehicleCapacity ?? long.MaxValue;
+        var otherAdjustedMaximalVehicleCapacity = other?.MaximalVehicleCapacity ?? long.MaxValue;
+
+        return adjustedMaximalVehicleCapacity.CompareTo(otherAdjustedMaximalVehicleCapacity);
     }
 
     /// <summary>
