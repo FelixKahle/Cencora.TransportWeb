@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.Common.Flags;
 using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
@@ -33,6 +34,11 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// Returns the Id of the vehicle.
     /// </summary>
     internal Id Id => Vehicle.Id;
+
+    /// <summary>
+    /// Returns the flags of the vehicle.
+    /// </summary>
+    internal IReadOnlyFlagContainer Flags => Vehicle.Flags;
 
     /// <summary>
     /// The start node of the vehicle.
