@@ -27,4 +27,10 @@ public sealed class Solution
 
         VehiclePlans = vehiclePlans;
     }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"Solution with {VehiclePlans.Count} vehicle plans";
+    }
 }
