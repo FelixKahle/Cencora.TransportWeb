@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
@@ -22,6 +23,11 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// The vehicle.
     /// </summary>
     internal Vehicle Vehicle { get; }
+
+    /// <summary>
+    /// Returns the Id of the vehicle.
+    /// </summary>
+    internal Id Id => Vehicle.Id;
 
     /// <summary>
     /// The start node of the vehicle.
