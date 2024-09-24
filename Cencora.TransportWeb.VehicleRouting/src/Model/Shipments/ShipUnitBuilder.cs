@@ -4,7 +4,7 @@
 
 using Cencora.TransportWeb.Common.Id;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Shipment;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 
 /// <summary>
 /// A builder for the <see cref="ShipUnit"/>.
@@ -136,5 +136,11 @@ public sealed class ShipUnitBuilder
     public ShipUnit Build()
     {
         return new ShipUnit(_id, _weight, _width, _height, _length);
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return "ShipUnitBuilder";
     }
 }

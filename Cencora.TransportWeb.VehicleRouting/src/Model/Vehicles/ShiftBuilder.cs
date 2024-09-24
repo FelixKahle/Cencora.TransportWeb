@@ -5,7 +5,7 @@
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicle;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
 /// A builder for creating a shift.
@@ -161,5 +161,11 @@ public sealed class ShiftBuilder
     public Shift Build()
     {
         return new Shift(_shiftTimeWindow, _driver, _breaks, _startLocation, _endLocation);
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return "ShiftBuilder";
     }
 }

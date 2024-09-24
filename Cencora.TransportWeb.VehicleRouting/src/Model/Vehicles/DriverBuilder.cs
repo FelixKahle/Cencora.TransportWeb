@@ -5,7 +5,7 @@
 using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicle;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
 /// Builder for <see cref="Driver"/>.
@@ -68,5 +68,11 @@ public sealed class DriverBuilder : FlaggedBuilder
     public Driver Build()
     {
         return new Driver(_id, _fixedCost, BuildFlags());
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return "DriverBuilder";
     }
 }

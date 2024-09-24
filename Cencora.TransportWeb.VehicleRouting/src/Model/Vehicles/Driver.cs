@@ -5,7 +5,7 @@
 using Cencora.TransportWeb.Common.Flags;
 using Cencora.TransportWeb.Common.Id;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicle;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
 /// Represents a driver.

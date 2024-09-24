@@ -5,7 +5,7 @@
 using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicle;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
 /// Builder for a vehicle.
@@ -280,5 +280,11 @@ public sealed class VehicleBuilder : FlaggedBuilder
     public Vehicle Build()
     {
         return new Vehicle(_id, _shifts, _fixedCost, _baseCost, _distanceCost, _timeCost, _weightCost, _costPerWeightDistance, BuildFlags());
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return "VehicleBuilder";
     }
 }

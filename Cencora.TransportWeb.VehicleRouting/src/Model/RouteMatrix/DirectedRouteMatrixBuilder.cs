@@ -62,7 +62,7 @@ public sealed class DirectedRouteMatrixBuilder
 
         return WithEdge(pair.From, pair.To, edge);
     }
-    
+
     /// <summary>
     /// Removes an edge from the route matrix.
     /// </summary>
@@ -96,5 +96,11 @@ public sealed class DirectedRouteMatrixBuilder
     public DirectedRouteMatrix Build()
     {
         return new DirectedRouteMatrix(_edges);
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return "DirectedRouteMatrixBuilder";
     }
 }

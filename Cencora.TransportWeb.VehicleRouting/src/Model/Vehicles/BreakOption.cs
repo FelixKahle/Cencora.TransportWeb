@@ -2,7 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicle;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
 /// Enumerates the options for a break.

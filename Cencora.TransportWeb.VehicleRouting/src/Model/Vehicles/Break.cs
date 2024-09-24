@@ -4,7 +4,7 @@
 
 using Cencora.TransportWeb.VehicleRouting.Common;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicle;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
 /// Represents a break that can be taken during a route.

@@ -6,7 +6,7 @@ using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Shipment;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 
 /// <summary>
 /// A builder for the <see cref="Shipment"/> class.
@@ -379,5 +379,11 @@ public sealed class ShipmentBuilder : FlaggedBuilder
         return new Shipment(_id, _shipUnits, _pickupLocation, _deliveryLocation, _pickupDropPenalty,
             _deliveryDropPenalty, _pickupHandlingTime, _pickupTimeWindow, _deliveryHandlingTime, _deliveryTimeWindow,
             BuildFlags());
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return "ShipmentBuilder";
     }
 }

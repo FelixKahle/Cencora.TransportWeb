@@ -4,7 +4,7 @@
 
 using Cencora.TransportWeb.Common.Id;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Shipment;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 
 /// <summary>
 /// Represents a ship unit.

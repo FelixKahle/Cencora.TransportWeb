@@ -7,7 +7,7 @@ using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
-namespace Cencora.TransportWeb.VehicleRouting.Model.Shipment;
+namespace Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 
 /// <summary>
 /// Represents a shipment.

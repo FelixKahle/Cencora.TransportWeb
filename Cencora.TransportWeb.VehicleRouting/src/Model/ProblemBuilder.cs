@@ -392,7 +392,7 @@ public sealed class ProblemBuilder
     public Problem Build()
     {
         var matrix = _routeMatrix ?? new DirectedRouteMatrix();
-        return new Problem(_locations, _vehicles, _shipments, matrix);
+        return new Problem(_locations, _vehicles, _shipments, matrix, _maxVehicleWaitingTime);
     }
 
     /// <inheritdoc/>

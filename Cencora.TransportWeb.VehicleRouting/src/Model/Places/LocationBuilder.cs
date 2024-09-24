@@ -14,7 +14,7 @@ public sealed class LocationBuilder : FlaggedBuilder
 {
     private Id _id;
     private long? _maximalVehicleCapacity;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="LocationBuilder"/> class.
     /// </summary>
@@ -72,5 +72,11 @@ public sealed class LocationBuilder : FlaggedBuilder
     public Location Build()
     {
         return new Location(_id, _maximalVehicleCapacity, BuildFlags());
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return "LocationBuilder";
     }
 }
