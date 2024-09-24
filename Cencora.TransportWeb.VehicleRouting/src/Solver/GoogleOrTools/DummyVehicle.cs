@@ -25,6 +25,11 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     internal Vehicle Vehicle { get; }
 
     /// <summary>
+    /// The shift this dummy vehicle represents.
+    /// </summary>
+    internal Shift Shift { get; }
+
+    /// <summary>
     /// Returns the Id of the vehicle.
     /// </summary>
     internal Id Id => Vehicle.Id;
@@ -99,6 +104,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// </summary>
     /// <param name="index">The index of the vehicle.</param>
     /// <param name="vehicle">The vehicle.</param>
+    /// <param name="shift">The shift this dummy vehicle represents.</param>
     /// <param name="startNode">The start node of the vehicle.</param>
     /// <param name="endNode">The end node of the vehicle.</param>
     /// <param name="availableTimeWindow">The time window in which the vehicle is available.</param>
@@ -110,15 +116,17 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="costPerWeightDistance">The weight per distance cost of the vehicle.</param>
     /// <exception cref="ArgumentOutOfRangeException">The index is negative.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/>, <paramref name="startNode"/> or <paramref name="endNode"/> is <see langword="null"/>.</exception>
-    internal DummyVehicle(int index, Vehicle vehicle, Node startNode, Node endNode, ValueRange? availableTimeWindow, long fixedCost, long baseCost, long distanceCost, long timeCost, long weightCost, long costPerWeightDistance)
+    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, Node startNode, Node endNode, ValueRange? availableTimeWindow, long fixedCost, long baseCost, long distanceCost, long timeCost, long weightCost, long costPerWeightDistance)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
+        ArgumentNullException.ThrowIfNull(shift, nameof(shift));
         ArgumentNullException.ThrowIfNull(startNode, nameof(startNode));
         ArgumentNullException.ThrowIfNull(endNode, nameof(endNode));
 
         Index = index;
         Vehicle = vehicle;
+        Shift = shift;
         StartNode = startNode;
         EndNode = endNode;
         AvailableTimeWindow = availableTimeWindow;
