@@ -4,7 +4,7 @@
 
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 
 /// <summary>
 /// Represents a node in the vehicle routing problem that has a location.
@@ -31,7 +31,7 @@ internal abstract class LocatedNode : Node
     }
 
     /// <inheritdoc/>
-    internal override Location? GetLocation()
+    internal override Location GetLocation()
     {
         return Location;
     }

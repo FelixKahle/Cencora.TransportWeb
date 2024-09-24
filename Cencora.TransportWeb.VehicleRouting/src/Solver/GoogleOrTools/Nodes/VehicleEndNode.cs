@@ -9,27 +9,27 @@ using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 
 /// <summary>
-/// Represents a start node for a vehicle in the vehicle routing problem.
+/// Represents an end node for a vehicle in the vehicle routing problem.
 /// </summary>
-internal sealed class VehicleStartNode : Node
+internal sealed class VehicleEndNode : Node
 {
     /// <summary>
-    /// The vehicle that starts at this node.
+    /// The vehicle that ends at this node.
     /// </summary>
     internal DummyVehicle Vehicle { get; }
 
     /// <summary>
-    /// The location where the vehicle starts.
+    /// The location where the vehicle ends.
     /// </summary>
-    internal Location? StartLocation { get; }
+    internal Location? EndLocation { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="VehicleStartNode"/> class.
+    /// Initializes a new instance of the <see cref="VehicleEndNode"/> class.
     /// </summary>
     /// <param name="index">The index of the node in the list of nodes of the solver.</param>
-    /// <param name="vehicle">The vehicle that starts at this node.</param>
+    /// <param name="vehicle">The vehicle that ends at this node.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/> is <see langword="null"/>.</exception>
-    internal VehicleStartNode(int index, DummyVehicle vehicle)
+    internal VehicleEndNode(int index, DummyVehicle vehicle)
         : base(index)
     {
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
@@ -38,25 +38,25 @@ internal sealed class VehicleStartNode : Node
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="VehicleStartNode"/> class.
+    /// Initializes a new instance of the <see cref="VehicleEndNode"/> class.
     /// </summary>
     /// <param name="index">The index of the node in the list of nodes of the solver.</param>
-    /// <param name="vehicle">The vehicle that starts at this node.</param>
-    /// <param name="startLocation">The location where the vehicle starts.</param>
+    /// <param name="vehicle">The vehicle that ends at this node.</param>
+    /// <param name="endLocation">The location where the vehicle ends.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/> is <see langword="null"/>.</exception>
-    internal VehicleStartNode(int index, DummyVehicle vehicle, Location startLocation)
+    internal VehicleEndNode(int index, DummyVehicle vehicle, Location endLocation)
         : base(index)
     {
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
 
         Vehicle = vehicle;
-        StartLocation = startLocation;
+        EndLocation = endLocation;
     }
 
     /// <inheritdoc/>
     internal override Location? GetLocation()
     {
-        return StartLocation;
+        return EndLocation;
     }
 
     /// <inheritdoc/>
@@ -92,8 +92,8 @@ internal sealed class VehicleStartNode : Node
     /// <inheritdoc/>
     public override string ToString()
     {
-        return StartLocation is null
-            ? $"Arbitrary start node for vehicle {Vehicle}"
-            : $"Start node for vehicle {Vehicle} at {StartLocation}";
+        return EndLocation is null
+            ? $"Arbitrary end node for vehicle {Vehicle}"
+            : $"End node for vehicle {Vehicle} at {EndLocation}";
     }
 }

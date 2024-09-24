@@ -9,10 +9,10 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// <summary>
 /// Solver implementation using Google OR-Tools.
 /// </summary>
-public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase
+public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
 {
     /// <inheritdoc/>
-    public override SolverOutput Solve(Problem problem)
+    public SolverOutput Solve(Problem problem)
     {
         throw new NotImplementedException();
     }

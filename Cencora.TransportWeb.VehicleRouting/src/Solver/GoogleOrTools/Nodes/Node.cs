@@ -6,7 +6,7 @@ using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 
 /// <summary>
 /// Represents a node in the vehicle routing problem.
