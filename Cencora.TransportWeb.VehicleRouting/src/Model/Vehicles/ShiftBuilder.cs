@@ -17,6 +17,8 @@ public sealed class ShiftBuilder
     private HashSet<Break> _breaks = new HashSet<Break>();
     private Location? _startLocation;
     private Location? _endLocation;
+    private long? _maxDuration;
+    private long? _maxDistance;
 
     /// <summary>
     /// Adds a time window to the shift.
@@ -155,12 +157,54 @@ public sealed class ShiftBuilder
     }
 
     /// <summary>
+    /// Adds a maximum duration to the shift.
+    /// </summary>
+    /// <param name="maxDuration">The maximum duration to add.</param>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithMaxDuration(long maxDuration)
+    {
+        _maxDuration = maxDuration;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the maximum duration from the shift.
+    /// </summary>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithoutMaxDuration()
+    {
+        _maxDuration = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a maximum distance to the shift.
+    /// </summary>
+    /// <param name="maxDistance">The maximum distance to add.</param>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithMaxDistance(long maxDistance)
+    {
+        _maxDistance = maxDistance;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the maximum distance from the shift.
+    /// </summary>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithoutMaxDistance()
+    {
+        _maxDistance = null;
+        return this;
+    }
+
+    /// <summary>
     /// Builds the shift.
     /// </summary>
     /// <returns>The shift.</returns>
     public Shift Build()
     {
-        return new Shift(_shiftTimeWindow, _driver, _breaks, _startLocation, _endLocation);
+        return new Shift(_shiftTimeWindow, _driver, _breaks, _startLocation, _endLocation, _maxDuration, _maxDistance);
     }
 
     /// <inheritdoc/>

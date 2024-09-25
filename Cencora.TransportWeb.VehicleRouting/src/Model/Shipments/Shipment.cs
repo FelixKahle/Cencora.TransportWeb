@@ -146,6 +146,16 @@ public sealed class Shipment : IEquatable<Shipment>
     }
 
     /// <summary>
+    /// Converts a <see cref="Shipment"/> to an <see cref="Id"/>.
+    /// </summary>
+    /// <param name="shipment">The <see cref="Shipment"/> to convert.</param>
+    /// <returns>The <see cref="Id"/> of the <see cref="Shipment"/>.</returns>
+    public static implicit operator Id(Shipment shipment)
+    {
+        return shipment.Id;
+    }
+
+    /// <summary>
     /// Determines whether two specified instances of <see cref="Shipment"/> are equal.
     /// </summary>
     /// <param name="left">The first <see cref="Shipment"/> to compare.</param>

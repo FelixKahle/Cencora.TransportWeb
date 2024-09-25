@@ -78,6 +78,21 @@ public sealed class Vehicle : IEquatable<Vehicle>
     public long? CostPerWeightDistance { get; }
 
     /// <summary>
+    /// Gets the maximum weight the vehicle can carry.
+    /// </summary>
+    public long? MaxWeight { get; }
+
+    /// <summary>
+    /// Gets the maximum duration the vehicle can be used.
+    /// </summary>
+    public long? MaxDuration { get; }
+
+    /// <summary>
+    /// Gets the maximum distance the vehicle can travel.
+    /// </summary>
+    public long? MaxDistance { get; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Vehicle"/> class.
     /// </summary>
     /// <param name="id">The id of the vehicle.</param>
@@ -99,8 +114,11 @@ public sealed class Vehicle : IEquatable<Vehicle>
     /// <param name="timeCost">The time cost of the vehicle.</param>
     /// <param name="weightCost">The weight cost of the vehicle.</param>
     /// <param name="costPerWeightDistance">The weight per distance cost of the vehicle.</param>
+    /// <param name="maxWeight">The maximum weight the vehicle can carry.</param>
+    /// <param name="maxDuration">The maximum duration the vehicle can be used.</param>
+    /// <param name="maxDistance">The maximum distance the vehicle can travel.</param>
     /// <param name="flags">The flags of the vehicle.</param>
-    public Vehicle(Id id, IReadOnlySet<Shift>? shifts, long? fixedCost, long? baseCost, long? distanceCost, long? timeCost, long? weightCost, long? costPerWeightDistance, IReadOnlyFlagContainer? flags)
+    public Vehicle(Id id, IReadOnlySet<Shift>? shifts, long? fixedCost, long? baseCost, long? distanceCost, long? timeCost, long? weightCost, long? costPerWeightDistance, long? maxWeight, long? maxDuration, long? maxDistance, IReadOnlyFlagContainer? flags)
     {
         Id = id;
         Shifts = shifts ?? new HashSet<Shift>();
@@ -111,6 +129,9 @@ public sealed class Vehicle : IEquatable<Vehicle>
         TimeCost = timeCost;
         WeightCost = weightCost;
         CostPerWeightDistance = costPerWeightDistance;
+        MaxWeight = maxWeight;
+        MaxDuration = maxDuration;
+        MaxDistance = maxDistance;
     }
 
     /// <inheritdoc/>
@@ -145,6 +166,16 @@ public sealed class Vehicle : IEquatable<Vehicle>
     public override string ToString()
     {
         return $"Vehicle: {Id}";
+    }
+
+    /// <summary>
+    /// Converts a <see cref="Vehicle"/> to an <see cref="Id"/>.
+    /// </summary>
+    /// <param name="vehicle">The vehicle to convert.</param>
+    /// <returns>The id of the vehicle.</returns>
+    public static implicit operator Id(Vehicle vehicle)
+    {
+        return vehicle.Id;
     }
 
     /// <summary>

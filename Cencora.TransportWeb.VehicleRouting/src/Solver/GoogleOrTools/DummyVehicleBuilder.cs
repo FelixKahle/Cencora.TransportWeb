@@ -2,9 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 
@@ -12,8 +10,8 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// Builder for a dummy vehicle.
 /// </summary>
 /// <remarks>
-/// Note that you need to call <see cref="WithIndex"/>, <see cref="WithVehicle"/>, <see cref="WithShift"/>,
-/// <see cref="WithStartNode"/> and <see cref="WithEndNode"/> before calling <see cref="Build"/>.
+/// Note that you need to call <see cref="WithIndex"/>, <see cref="WithVehicle"/> and <see cref="WithShift"/>,
+/// before calling <see cref="Build"/>.
 /// You can also use the constructor to set the index, vehicle, shift, start node and end node.
 /// </remarks>
 internal sealed class DummyVehicleBuilder
@@ -21,15 +19,15 @@ internal sealed class DummyVehicleBuilder
     private int _index = -1;
     private Vehicle? _vehicle;
     private Shift? _shift;
-    private Node? _startNode;
-    private Node? _endNode;
     private long _fixedCost;
     private long _baseCost;
     private long _distanceCost;
     private long _timeCost;
     private long _weightCost;
     private long _costPerWeightDistance;
-    private ValueRange? _availableTimeWindow;
+    private long _maxWeight;
+    private long _maxDuration;
+    private long _maxDistance;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DummyVehicleBuilder"/> class.
@@ -44,15 +42,11 @@ internal sealed class DummyVehicleBuilder
     /// <param name="index">The index.</param>
     /// <param name="vehicle">The vehicle.</param>
     /// <param name="shift">The shift.</param>
-    /// <param name="startNode">The start node.</param>
-    /// <param name="endNode">The end node.</param>
-    internal DummyVehicleBuilder(int index, Vehicle vehicle, Shift shift, Node startNode, Node endNode)
+    internal DummyVehicleBuilder(int index, Vehicle vehicle, Shift shift)
     {
         _index = index;
         _vehicle = vehicle;
         _shift = shift;
-        _startNode = startNode;
-        _endNode = endNode;
     }
 
     /// <summary>
@@ -85,28 +79,6 @@ internal sealed class DummyVehicleBuilder
     internal DummyVehicleBuilder WithShift(Shift shift)
     {
         _shift = shift;
-        return this;
-    }
-
-    /// <summary>
-    /// Adds the start node.
-    /// </summary>
-    /// <param name="startNode">The start node.</param>
-    /// <returns>The builder.</returns>
-    internal DummyVehicleBuilder WithStartNode(Node startNode)
-    {
-        _startNode = startNode;
-        return this;
-    }
-
-    /// <summary>
-    /// Adds the end node.
-    /// </summary>
-    /// <param name="endNode">The end node.</param>
-    /// <returns>The builder.</returns>
-    internal DummyVehicleBuilder WithEndNode(Node endNode)
-    {
-        _endNode = endNode;
         return this;
     }
 
@@ -177,23 +149,35 @@ internal sealed class DummyVehicleBuilder
     }
 
     /// <summary>
-    /// Adds an available time window to the vehicle.
+    /// Adds the max weight.
     /// </summary>
-    /// <param name="availableTimeWindow">The available time window.</param>
+    /// <param name="maxWeight">The max weight.</param>
     /// <returns>The builder.</returns>
-    internal DummyVehicleBuilder WithAvailableTimeWindow(ValueRange availableTimeWindow)
+    internal DummyVehicleBuilder WithMaxWeight(long maxWeight)
     {
-        _availableTimeWindow = availableTimeWindow;
+        _maxWeight = maxWeight;
         return this;
     }
 
     /// <summary>
-    /// Removes the available time window.
+    /// Adds the max duration.
     /// </summary>
+    /// <param name="maxDuration">The max duration.</param>
     /// <returns>The builder.</returns>
-    internal DummyVehicleBuilder WithoutAvailableTimeWindow()
+    internal DummyVehicleBuilder WithMaxDuration(long maxDuration)
     {
-        _availableTimeWindow = null;
+        _maxDuration = maxDuration;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds the max distance.
+    /// </summary>
+    /// <param name="maxDistance">The max distance.</param>
+    /// <returns>The builder.</returns>
+    internal DummyVehicleBuilder WithMaxDistance(long maxDistance)
+    {
+        _maxDistance = maxDistance;
         return this;
     }
 
@@ -207,9 +191,8 @@ internal sealed class DummyVehicleBuilder
         var index = _index >= 0 ? _index : throw new InvalidOperationException("Index must be set.");
         var vehicle = _vehicle ?? throw new InvalidOperationException("Vehicle must be set.");
         var shift = _shift ?? throw new InvalidOperationException("Shift must be set.");
-        var startNode = _startNode ?? throw new InvalidOperationException("Start node must be set.");
-        var endNode = _endNode ?? throw new InvalidOperationException("End node must be set.");
 
-        return new DummyVehicle(index, vehicle, shift, startNode, endNode, _availableTimeWindow, _fixedCost, _baseCost, _distanceCost, _timeCost, _weightCost, _costPerWeightDistance);
+        return new DummyVehicle(index, vehicle, shift, shift.ShiftTimeWindow, _fixedCost, _baseCost, _distanceCost,
+            _timeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxDuration, _maxDistance);
     }
 }

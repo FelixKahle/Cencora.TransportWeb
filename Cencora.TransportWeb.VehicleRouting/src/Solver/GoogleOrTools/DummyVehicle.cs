@@ -6,7 +6,6 @@ using Cencora.TransportWeb.Common.Flags;
 using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 
@@ -39,16 +38,6 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// Returns the flags of the vehicle.
     /// </summary>
     internal IReadOnlyFlagContainer Flags => Vehicle.Flags;
-
-    /// <summary>
-    /// The start node of the vehicle.
-    /// </summary>
-    internal Node StartNode { get; }
-
-    /// <summary>
-    /// The end node of the vehicle.
-    /// </summary>
-    internal Node EndNode { get; }
 
     /// <summary>
     /// Gets the time window in which the vehicle is available.
@@ -106,13 +95,26 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     public long CostPerWeightDistance { get; }
 
     /// <summary>
+    /// Gets the maximum weight the vehicle can carry.
+    /// </summary>
+    public long MaxWeight { get; set; }
+
+    /// <summary>
+    /// Gets the maximum duration the vehicle can drive.
+    /// </summary>
+    public long MaxDuration { get; set; }
+
+    /// <summary>
+    /// Gets the maximum distance the vehicle can drive.
+    /// </summary>
+    public long MaxDistance { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DummyVehicle"/> class.
     /// </summary>
     /// <param name="index">The index of the vehicle.</param>
     /// <param name="vehicle">The vehicle.</param>
     /// <param name="shift">The shift this dummy vehicle represents.</param>
-    /// <param name="startNode">The start node of the vehicle.</param>
-    /// <param name="endNode">The end node of the vehicle.</param>
     /// <param name="availableTimeWindow">The time window in which the vehicle is available.</param>
     /// <param name="fixedCost">The fixed cost of the vehicle.</param>
     /// <param name="baseCost">The base cost of the vehicle.</param>
@@ -120,21 +122,20 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="timeCost">The time cost of the vehicle.</param>
     /// <param name="weightCost">The weight cost of the vehicle.</param>
     /// <param name="costPerWeightDistance">The weight per distance cost of the vehicle.</param>
+    /// <param name="maxWeight">The maximum weight the vehicle can carry.</param>
+    /// <param name="maxDuration">The maximum duration the vehicle can drive.</param>
+    /// <param name="maxDistance">The maximum distance the vehicle can drive.</param>
     /// <exception cref="ArgumentOutOfRangeException">The index is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/>, <paramref name="startNode"/> or <paramref name="endNode"/> is <see langword="null"/>.</exception>
-    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, Node startNode, Node endNode, ValueRange? availableTimeWindow, long fixedCost, long baseCost, long distanceCost, long timeCost, long weightCost, long costPerWeightDistance)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="vehicle"/> or <paramref name="shift"/> is <see langword="null"/>.</exception>
+    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, ValueRange? availableTimeWindow, long fixedCost, long baseCost, long distanceCost, long timeCost, long weightCost, long costPerWeightDistance, long maxWeight, long maxDuration, long maxDistance)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
         ArgumentNullException.ThrowIfNull(shift, nameof(shift));
-        ArgumentNullException.ThrowIfNull(startNode, nameof(startNode));
-        ArgumentNullException.ThrowIfNull(endNode, nameof(endNode));
 
         Index = index;
         Vehicle = vehicle;
         Shift = shift;
-        StartNode = startNode;
-        EndNode = endNode;
         AvailableTimeWindow = availableTimeWindow;
         FixedCost = fixedCost;
         BaseCost = baseCost;
@@ -142,6 +143,9 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
         TimeCost = timeCost;
         WeightCost = weightCost;
         CostPerWeightDistance = costPerWeightDistance;
+        MaxWeight = maxWeight;
+        MaxDuration = maxDuration;
+        MaxDistance = maxDistance;
     }
 
     /// <inheritdoc />

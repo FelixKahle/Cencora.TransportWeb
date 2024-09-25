@@ -75,7 +75,7 @@ internal sealed class VehicleNode : Node
     }
 
     /// <inheritdoc/>
-    internal override DummyVehicle? GetDummyVehicle()
+    internal override DummyVehicle GetDummyVehicle()
     {
         return Vehicle;
     }

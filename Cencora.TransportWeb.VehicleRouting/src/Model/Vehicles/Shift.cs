@@ -38,6 +38,16 @@ public sealed class Shift : IEquatable<Shift>
     public Location? EndLocation { get; }
 
     /// <summary>
+    /// Gets the maximum duration of the shift.
+    /// </summary>
+    public long? MaxDuration { get; }
+
+    /// <summary>
+    /// Gets the maximum distance of the shift.
+    /// </summary>
+    public long? MaxDistance { get; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Shift"/> class.
     /// </summary>
     /// <param name="shiftTimeWindow">The time window of the shift.</param>
@@ -45,13 +55,17 @@ public sealed class Shift : IEquatable<Shift>
     /// <param name="breaks">The breaks for the shift.</param>
     /// <param name="startLocation">The start location of the shift.</param>
     /// <param name="endLocation">The end location of the shift.</param>
-    public Shift(ValueRange shiftTimeWindow, Driver? driver, IEnumerable<Break>? breaks, Location? startLocation, Location? endLocation)
+    /// <param name="maxDuration">The maximum duration of the shift.</param>
+    /// <param name="maxDistance">The maximum distance of the shift.</param>
+    public Shift(ValueRange shiftTimeWindow, Driver? driver, IEnumerable<Break>? breaks, Location? startLocation, Location? endLocation, long? maxDuration, long? maxDistance)
     {
         ShiftTimeWindow = shiftTimeWindow;
         Driver = driver;
         Breaks = InitializeBreaks(shiftTimeWindow, breaks ?? Enumerable.Empty<Break>());
         StartLocation = startLocation;
         EndLocation = endLocation;
+        MaxDuration = maxDuration;
+        MaxDistance = maxDistance;
     }
 
     /// <inheritdoc/>
