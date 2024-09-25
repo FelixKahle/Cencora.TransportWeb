@@ -17,6 +17,7 @@ public sealed class ShipmentBuilder : FlaggedBuilder
     private HashSet<ShipUnit> _shipUnits = new();
     private Location? _pickupLocation;
     private Location? _deliveryLocation;
+    private long? _shipmentWeight;
     private long? _pickupDropPenalty;
     private long? _deliveryDropPenalty;
     private long? _pickupHandlingTime;
@@ -255,6 +256,27 @@ public sealed class ShipmentBuilder : FlaggedBuilder
     }
 
     /// <summary>
+    /// Adds a shipment weight to the shipment.
+    /// </summary>
+    /// <param name="weight">The shipment weight to add.</param>
+    /// <returns>The current instance of the <see cref="ShipmentBuilder"/> class.</returns>
+    public ShipmentBuilder WithWeight(long weight)
+    {
+        _shipmentWeight = weight;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the shipment weight from the shipment.
+    /// </summary>
+    /// <returns>The current instance of the <see cref="ShipmentBuilder"/> class.</returns>
+    public ShipmentBuilder WithoutWeight()
+    {
+        _shipmentWeight = null;
+        return this;
+    }
+
+    /// <summary>
     /// Adds a pickup drop penalty to the shipment.
     /// </summary>
     /// <param name="penalty">The pickup drop penalty to add.</param>
@@ -376,7 +398,7 @@ public sealed class ShipmentBuilder : FlaggedBuilder
     /// <returns>The shipment.</returns>
     public Shipment Build()
     {
-        return new Shipment(_id, _shipUnits, _pickupLocation, _deliveryLocation, _pickupDropPenalty,
+        return new Shipment(_id, _shipUnits, _pickupLocation, _deliveryLocation, _shipmentWeight, _pickupDropPenalty,
             _deliveryDropPenalty, _pickupHandlingTime, _pickupTimeWindow, _deliveryHandlingTime, _deliveryTimeWindow,
             BuildFlags());
     }

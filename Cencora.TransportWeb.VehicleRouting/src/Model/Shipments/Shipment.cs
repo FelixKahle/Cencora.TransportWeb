@@ -47,27 +47,32 @@ public sealed class Shipment : IEquatable<Shipment>
     /// <summary>
     /// Gets the pickup handling time of the shipment.
     /// </summary>
-    public long? PickupHandlingTime { get; set; }
+    public long? PickupHandlingTime { get; }
 
     /// <summary>
     /// Gets the time window for the pickup of the shipment.
     /// </summary>
-    public ValueRange? PickupTimeWindow { get; set; }
+    public ValueRange? PickupTimeWindow { get; }
 
     /// <summary>
     /// Gets the delivery handling time of the shipment.
     /// </summary>
-    public long? DeliveryHandlingTime { get; set; }
+    public long? DeliveryHandlingTime { get; }
+
+    /// <summary>
+    /// Gets the weight of the shipment.
+    /// </summary>
+    public long? ShipmentWeight { get; }
 
     /// <summary>
     /// Gets the time window for the delivery of the shipment.
     /// </summary>
-    public ValueRange? DeliveryTimeWindow { get; set; }
+    public ValueRange? DeliveryTimeWindow { get; }
 
     /// <summary>
     /// Gets the flags of the shipment.
     /// </summary>
-    public IReadOnlyFlagContainer Flags { get; set; }
+    public IReadOnlyFlagContainer Flags { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Shipment"/> class.
@@ -87,6 +92,7 @@ public sealed class Shipment : IEquatable<Shipment>
     /// <param name="shipUnits">The ship units of the shipment.</param>
     /// <param name="pickupLocation">The pickup location of the shipment.</param>
     /// <param name="deliveryLocation">The delivery location of the shipment.</param>
+    /// <param name="shipmentWeight">The weight of the shipment.</param>
     /// <param name="pickupDropPenalty">The penalty for not picking up the shipment.</param>
     /// <param name="deliveryDropPenalty">The penalty for not delivering the shipment.</param>
     /// <param name="pickupHandlingTime">The pickup handling time of the shipment.</param>
@@ -94,7 +100,7 @@ public sealed class Shipment : IEquatable<Shipment>
     /// <param name="deliveryHandlingTime">The delivery handling time of the shipment.</param>
     /// <param name="deliveryTimeWindow">The time window for the delivery of the shipment.</param>
     /// <param name="flags">The flags of the shipment.</param>
-    public Shipment(Id id, IReadOnlySet<ShipUnit>? shipUnits, Location? pickupLocation, Location? deliveryLocation,
+    public Shipment(Id id, IReadOnlySet<ShipUnit>? shipUnits, Location? pickupLocation, Location? deliveryLocation, long? shipmentWeight,
         long? pickupDropPenalty, long? deliveryDropPenalty, long? pickupHandlingTime, ValueRange? pickupTimeWindow,
         long? deliveryHandlingTime, ValueRange? deliveryTimeWindow, IReadOnlyFlagContainer? flags)
     {
@@ -102,6 +108,7 @@ public sealed class Shipment : IEquatable<Shipment>
         ShipUnits = shipUnits ?? new HashSet<ShipUnit>();
         PickupLocation = pickupLocation;
         DeliveryLocation = deliveryLocation;
+        ShipmentWeight = shipmentWeight is null ? null : Math.Max(0, shipmentWeight.Value);
         PickupDropPenalty = pickupDropPenalty;
         DeliveryDropPenalty = deliveryDropPenalty;
         PickupHandlingTime = pickupHandlingTime;

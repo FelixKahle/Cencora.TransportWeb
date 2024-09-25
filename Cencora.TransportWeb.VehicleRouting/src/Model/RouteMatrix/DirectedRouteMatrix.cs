@@ -123,4 +123,12 @@ public sealed class DirectedRouteMatrix : IDirectedRouteMatrix
     {
         return _edges.ContainsKey(new LocationPair(fromLocation, toLocation));
     }
+
+    /// <summary>
+    /// Removes the edge between two locations from the route matrix.
+    /// </summary>
+    public void Clear()
+    {
+        _edges.Clear();
+    }
 }

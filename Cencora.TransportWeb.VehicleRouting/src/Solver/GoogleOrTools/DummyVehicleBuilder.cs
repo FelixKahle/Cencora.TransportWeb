@@ -192,7 +192,7 @@ internal sealed class DummyVehicleBuilder
         var vehicle = _vehicle ?? throw new InvalidOperationException("Vehicle must be set.");
         var shift = _shift ?? throw new InvalidOperationException("Shift must be set.");
 
-        return new DummyVehicle(index, vehicle, shift, shift.ShiftTimeWindow, _fixedCost, _baseCost, _distanceCost,
+        return new DummyVehicle(index, vehicle, shift, _fixedCost, _baseCost, _distanceCost,
             _timeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxDuration, _maxDistance);
     }
 }

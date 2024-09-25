@@ -42,7 +42,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <summary>
     /// Gets the time window in which the vehicle is available.
     /// </summary>
-    public ValueRange? AvailableTimeWindow { get; set; }
+    public ValueRange? AvailableTimeWindow => Shift.ShiftTimeWindow;
 
     /// <summary>
     /// Gets the fixed cost of the vehicle.
@@ -115,7 +115,6 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="index">The index of the vehicle.</param>
     /// <param name="vehicle">The vehicle.</param>
     /// <param name="shift">The shift this dummy vehicle represents.</param>
-    /// <param name="availableTimeWindow">The time window in which the vehicle is available.</param>
     /// <param name="fixedCost">The fixed cost of the vehicle.</param>
     /// <param name="baseCost">The base cost of the vehicle.</param>
     /// <param name="distanceCost">The distance cost of the vehicle.</param>
@@ -127,7 +126,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="maxDistance">The maximum distance the vehicle can drive.</param>
     /// <exception cref="ArgumentOutOfRangeException">The index is negative.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="vehicle"/> or <paramref name="shift"/> is <see langword="null"/>.</exception>
-    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, ValueRange? availableTimeWindow, long fixedCost, long baseCost, long distanceCost, long timeCost, long weightCost, long costPerWeightDistance, long maxWeight, long maxDuration, long maxDistance)
+    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, long fixedCost, long baseCost, long distanceCost, long timeCost, long weightCost, long costPerWeightDistance, long maxWeight, long maxDuration, long maxDistance)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
@@ -136,7 +135,6 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
         Index = index;
         Vehicle = vehicle;
         Shift = shift;
-        AvailableTimeWindow = availableTimeWindow;
         FixedCost = fixedCost;
         BaseCost = baseCost;
         DistanceCost = distanceCost;

@@ -18,4 +18,9 @@ public interface IDirectedRouteMatrix : IEnumerable<IRouteEdge>, IReadOnlyDirect
     /// <param name="toLocation">The location to which the edge leads.</param>
     /// <param name="edge">The edge to add.</param>
     public void AddEdge(Location fromLocation, Location toLocation, IRouteEdge edge);
+
+    /// <summary>
+    /// Clears the route matrix.
+    /// </summary>
+    public void Clear();
 }
