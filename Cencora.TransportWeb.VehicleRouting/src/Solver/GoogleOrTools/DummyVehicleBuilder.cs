@@ -9,11 +9,6 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// <summary>
 /// Builder for a dummy vehicle.
 /// </summary>
-/// <remarks>
-/// Note that you need to call <see cref="WithIndex"/>, <see cref="WithVehicle"/> and <see cref="WithShift"/>,
-/// before calling <see cref="Build"/>.
-/// You can also use the constructor to set the index, vehicle, shift, start node and end node.
-/// </remarks>
 internal sealed class DummyVehicleBuilder
 {
     private int _index = -1;
@@ -28,13 +23,6 @@ internal sealed class DummyVehicleBuilder
     private long _maxWeight;
     private long _maxDuration;
     private long _maxDistance;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DummyVehicleBuilder"/> class.
-    /// </summary>
-    internal DummyVehicleBuilder()
-    {
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DummyVehicleBuilder"/> class.
