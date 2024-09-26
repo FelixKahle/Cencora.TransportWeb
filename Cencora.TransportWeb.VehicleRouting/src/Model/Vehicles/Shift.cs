@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.Common.Flags;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
@@ -16,11 +17,6 @@ public sealed class Shift : IEquatable<Shift>
     /// Gets the time window of the shift.
     /// </summary>
     public ValueRange ShiftTimeWindow { get; }
-
-    /// <summary>
-    /// Gets the driver of the shift.
-    /// </summary>
-    public Driver? Driver { get; }
 
     /// <summary>
     /// Gets the breaks for the shift.
@@ -68,10 +64,14 @@ public sealed class Shift : IEquatable<Shift>
     public long? MaxDistance { get; }
 
     /// <summary>
+    /// Gets the flags of the shift.
+    /// </summary>
+    public IReadOnlyFlagContainer Flags { get; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Shift"/> class.
     /// </summary>
     /// <param name="shiftTimeWindow">The time window of the shift.</param>
-    /// <param name="driver">The driver of the shift.</param>
     /// <param name="breaks">The breaks for the shift.</param>
     /// <param name="startLocation">The start location of the shift.</param>
     /// <param name="endLocation">The end location of the shift.</param>
@@ -81,12 +81,12 @@ public sealed class Shift : IEquatable<Shift>
     /// <param name="distanceCost">The distance cost of the shift.</param>
     /// <param name="maxDuration">The maximum duration of the shift.</param>
     /// <param name="maxDistance">The maximum distance of the shift.</param>
-    public Shift(ValueRange shiftTimeWindow, Driver? driver, IEnumerable<Break>? breaks, Location? startLocation,
+    /// <param name="flags">The flags of the shift.</param>
+    public Shift(ValueRange shiftTimeWindow, IEnumerable<Break>? breaks, Location? startLocation,
         Location? endLocation, long? fixedCost, long? baseCost, long? timeCost, long? distanceCost, long? maxDuration,
-        long? maxDistance)
+        long? maxDistance, IReadOnlyFlagContainer? flags)
     {
         ShiftTimeWindow = shiftTimeWindow;
-        Driver = driver;
         Breaks = InitializeBreaks(shiftTimeWindow, breaks ?? Enumerable.Empty<Break>());
         StartLocation = startLocation;
         EndLocation = endLocation;
@@ -96,6 +96,7 @@ public sealed class Shift : IEquatable<Shift>
         DistanceCost = distanceCost;
         MaxDuration = maxDuration;
         MaxDistance = maxDistance;
+        Flags = flags ?? new FlagContainer();
     }
 
     /// <inheritdoc/>
@@ -111,9 +112,7 @@ public sealed class Shift : IEquatable<Shift>
             return true;
         }
 
-        return ShiftTimeWindow.Equals(other.ShiftTimeWindow)
-               && (Driver is null ? other.Driver is null : Driver.Equals(other.Driver))
-               && Breaks.SetEquals(other.Breaks);
+        return ShiftTimeWindow.Equals(other.ShiftTimeWindow) && Breaks.SetEquals(other.Breaks);
     }
 
     /// <inheritdoc/>

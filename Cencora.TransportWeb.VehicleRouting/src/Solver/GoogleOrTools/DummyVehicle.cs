@@ -37,7 +37,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <summary>
     /// Gets the time window in which the vehicle is available.
     /// </summary>
-    public ValueRange? AvailableTimeWindow => Shift.ShiftTimeWindow;
+    internal ValueRange? AvailableTimeWindow => Shift.ShiftTimeWindow;
 
     /// <summary>
     /// Gets the fixed cost of the vehicle.
@@ -46,7 +46,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// The fixed cost is a fixed amount of cost that is applied
     /// always, no matter how the vehicle is used.
     /// </remarks>
-    public long FixedCost { get; }
+    internal long FixedCost { get; }
 
     /// <summary>
     /// Gets the base cost of the vehicle.
@@ -55,7 +55,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// The base cost is a fixed amount of cost that is applied
     /// as soon as the vehicle is used.
     /// </remarks>
-    public long BaseCost { get; }
+    internal long BaseCost { get; }
 
     /// <summary>
     /// Gets the distance cost of the vehicle.
@@ -63,7 +63,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <remarks>
     /// The distance cost is applied per distance unit.
     /// </remarks>
-    public long DistanceCost { get; }
+    internal long DistanceCost { get; }
 
     /// <summary>
     /// Gets the time cost of the vehicle.
@@ -71,7 +71,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <remarks>
     /// The time cost is applied per time unit.
     /// </remarks>
-    public long TimeCost { get; }
+    internal long TimeCost { get; }
 
     /// <summary>
     /// Gets the weight cost of the vehicle.
@@ -79,7 +79,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <remarks>
     /// The weight cost is applied per weight unit.
     /// </remarks>
-    public long WeightCost { get; }
+    internal long WeightCost { get; }
 
     /// <summary>
     /// Gets the weight per distance cost of the vehicle.
@@ -87,27 +87,27 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <remarks>
     /// The weight per distance cost is applied per weight multiplied by distance unit.
     /// </remarks>
-    public long CostPerWeightDistance { get; }
+    internal long CostPerWeightDistance { get; }
 
     /// <summary>
     /// Gets the maximum weight the vehicle can carry.
     /// </summary>
-    public long MaxWeight { get; set; }
+    internal long MaxWeight { get; set; }
 
     /// <summary>
     /// Gets the maximum duration the vehicle can drive.
     /// </summary>
-    public long MaxDuration { get; set; }
+    internal long MaxDuration { get; set; }
 
     /// <summary>
     /// Gets the maximum distance the vehicle can drive.
     /// </summary>
-    public long MaxDistance { get; set; }
+    internal long MaxDistance { get; set; }
 
     /// <summary>
     /// The flags of the vehicle.
     /// </summary>
-    public IReadOnlyFlagContainer Flags { get; }
+    internal IReadOnlyFlagContainer Flags { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DummyVehicle"/> class.
@@ -144,7 +144,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
         MaxWeight = maxWeight;
         MaxDuration = maxDuration;
         MaxDistance = maxDistance;
-        Flags = CreateFlagContainerFromGroups(vehicle.Flags, shift.Driver?.Flags ?? Enumerable.Empty<Flag>());
+        Flags = CreateFlagContainerFromGroups(vehicle.Flags, shift.Flags);
     }
 
     /// <inheritdoc />

@@ -10,10 +10,9 @@ namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 /// <summary>
 /// A builder for creating a shift.
 /// </summary>
-public sealed class ShiftBuilder
+public sealed class ShiftBuilder : FlaggedBuilder
 {
     private ValueRange _shiftTimeWindow;
-    private Driver? _driver;
     private HashSet<Break> _breaks = new HashSet<Break>();
     private Location? _startLocation;
     private Location? _endLocation;
@@ -32,27 +31,6 @@ public sealed class ShiftBuilder
     public ShiftBuilder WithShiftTimeWindow(ValueRange shiftTimeWindow)
     {
         _shiftTimeWindow = shiftTimeWindow;
-        return this;
-    }
-
-    /// <summary>
-    /// Adds a driver to the shift.
-    /// </summary>
-    /// <param name="driver">The driver to add.</param>
-    /// <returns>The builder.</returns>
-    public ShiftBuilder WithDriver(Driver? driver)
-    {
-        _driver = driver;
-        return this;
-    }
-
-    /// <summary>
-    /// Removes the driver from the shift.
-    /// </summary>
-    /// <returns>The builder.</returns>
-    public ShiftBuilder WithoutDriver()
-    {
-        _driver = null;
         return this;
     }
 
@@ -292,8 +270,8 @@ public sealed class ShiftBuilder
     /// <returns>The shift.</returns>
     public Shift Build()
     {
-        return new Shift(_shiftTimeWindow, _driver, _breaks, _startLocation, _endLocation, _fixedCost, _baseCost,
-            _timeCost, _distanceCost, _maxDuration, _maxDistance);
+        return new Shift(_shiftTimeWindow, _breaks, _startLocation, _endLocation, _fixedCost, _baseCost,
+            _timeCost, _distanceCost, _maxDuration, _maxDistance, BuildFlags());
     }
 
     /// <inheritdoc/>
