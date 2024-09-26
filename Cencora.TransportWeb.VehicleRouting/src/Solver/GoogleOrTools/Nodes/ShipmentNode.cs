@@ -112,4 +112,12 @@ internal sealed class ShipmentNode : Node
             _ => null
         };
     }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return Location is null
+            ? $"{Type} node for shipment {Shipment.Id}"
+            : $"{Type} node for shipment {Shipment.Id} at {Location}";
+    }
 }
