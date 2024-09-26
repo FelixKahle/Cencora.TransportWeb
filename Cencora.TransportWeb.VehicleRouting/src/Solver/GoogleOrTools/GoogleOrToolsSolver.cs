@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.Common.MathUtils;
 using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
@@ -46,11 +47,13 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         // Initialize various components
         InitializeNodes(nodeCount);
         InitializeVehicles(vehicleCount);
+        InitializeVehiclesToNodeStore(vehicleCount);
+        InitializeVehiclesToTransitCallbackIndex(vehicleCount);
         SetupShipments(problem.Shipments);
         SetupDummyVehicles(problem.Vehicles);
 
         // Get vehicle start and end node indices
-        (int[] vehicleStartNodeIndices, int[] vehicleEndNodeIndices) = GetVehicleNodeIndices();
+        (var vehicleStartNodeIndices, var vehicleEndNodeIndices) = GetVehicleNodeIndices();
 
         // Initialize routing components
         InitializeRoutingIndexManager(nodeCount, vehicleCount, vehicleStartNodeIndices, vehicleEndNodeIndices);
@@ -67,8 +70,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             .Select(v => (StartNode: VehiclesToNodeStore[v].StartNode.Index, EndNode: VehiclesToNodeStore[v].EndNode.Index))
             .ToArray();
 
-        int[] startNodeIndices = vehicleNodeIndices.Select(x => x.StartNode).ToArray();
-        int[] endNodeIndices = vehicleNodeIndices.Select(x => x.EndNode).ToArray();
+        var startNodeIndices = vehicleNodeIndices.Select(x => x.StartNode).ToArray();
+        var endNodeIndices = vehicleNodeIndices.Select(x => x.EndNode).ToArray();
 
         return (startNodeIndices, endNodeIndices);
     }
@@ -128,17 +131,26 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
         ArgumentNullException.ThrowIfNull(shift, nameof(shift));
 
+        var shiftCount = vehicle.Shifts.Count;
+
+        var adjustedFixedCost = MathUtils.DivideOrDefault(vehicle.FixedCost ?? 0, shiftCount, 0, 0);
+        var adjustedBaseCost = MathUtils.DivideOrDefault(vehicle.BaseCost ?? 0, shiftCount, 0, 0);
+        var fixedCost = MathUtils.AddOrDefault(adjustedBaseCost, shift.FixedCost ?? 0, long.MaxValue);
+        var baseCost = MathUtils.AddOrDefault(adjustedFixedCost, shift.BaseCost ?? 0, long.MaxValue);
+        var distanceCost = MathUtils.AddOrDefault(vehicle.DistanceCost ?? 0, shift.DistanceCost ?? 0, long.MaxValue);
+        var timeCost = MathUtils.AddOrDefault(vehicle.TimeCost ?? 0, shift.TimeCost ?? 0, long.MaxValue);
+
         var dummyVehicleIndex = VehicleCount;
         return new DummyVehicleBuilder(dummyVehicleIndex, vehicle, shift)
-            .WithFixedCost(vehicle.FixedCost ?? 0)
-            .WithBaseCost(vehicle.BaseCost ?? 0)
-            .WithDistanceCost(vehicle.DistanceCost ?? 0)
-            .WithTimeCost(vehicle.TimeCost ?? 0)
+            .WithFixedCost(fixedCost)
+            .WithBaseCost(baseCost)
+            .WithDistanceCost(distanceCost)
+            .WithTimeCost(timeCost)
             .WithWeightCost(vehicle.WeightCost ?? 0)
             .WithCostPerWeightDistance(vehicle.CostPerWeightDistance ?? 0)
-            .WithMaxWeight(vehicle.MaxWeight ?? 0)
-            .WithMaxDistance(vehicle.MaxDistance ?? 0)
-            .WithMaxDuration(vehicle.MaxDuration ?? 0)
+            .WithMaxWeight(vehicle.MaxWeight ?? long.MaxValue)
+            .WithMaxDistance(shift.MaxDistance ?? long.MaxValue)
+            .WithMaxDuration(shift.MaxDuration ?? long.MaxValue)
             .Build();
     }
 

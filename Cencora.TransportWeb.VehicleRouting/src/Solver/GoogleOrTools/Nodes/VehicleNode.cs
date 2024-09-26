@@ -115,7 +115,7 @@ internal sealed class VehicleNode : Node
     /// <inheritdoc/>
     public override string ToString()
     {
-        string nodeType = GetNodeTypeString();
+        var nodeType = GetNodeTypeString();
 
         return Location is null
             ? $"{nodeType} Node {Index} of Vehicle {Vehicle.Id}"

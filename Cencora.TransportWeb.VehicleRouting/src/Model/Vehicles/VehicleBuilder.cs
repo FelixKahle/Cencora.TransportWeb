@@ -21,8 +21,6 @@ public sealed class VehicleBuilder : FlaggedBuilder
     private long? _weightCost;
     private long? _costPerWeightDistance;
     private long? _maxWeight;
-    private long? _maxDuration;
-    private long? _maxDistance;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="VehicleBuilder"/> class.
@@ -298,55 +296,13 @@ public sealed class VehicleBuilder : FlaggedBuilder
     }
 
     /// <summary>
-    /// Adds a max distance to the vehicle.
-    /// </summary>
-    /// <param name="maxDistance">The max distance to add.</param>
-    /// <returns>The builder.</returns>
-    public VehicleBuilder WithMaxDistance(long maxDistance)
-    {
-        _maxDistance = maxDistance;
-        return this;
-    }
-
-    /// <summary>
-    /// Removes the max distance from the vehicle.
-    /// </summary>
-    /// <returns>The builder.</returns>
-    public VehicleBuilder WithoutMaxDistance()
-    {
-        _maxDistance = null;
-        return this;
-    }
-
-    /// <summary>
-    /// Adds a max duration to the vehicle.
-    /// </summary>
-    /// <param name="maxDuration">The max duration to add.</param>
-    /// <returns>The builder.</returns>
-    public VehicleBuilder WithMaxDuration(long maxDuration)
-    {
-        _maxDuration = maxDuration;
-        return this;
-    }
-
-    /// <summary>
-    /// Removes the max duration from the vehicle.
-    /// </summary>
-    /// <returns>The builder.</returns>
-    public VehicleBuilder WithoutMaxDuration()
-    {
-        _maxDuration = null;
-        return this;
-    }
-
-    /// <summary>
     /// Builds the vehicle.
     /// </summary>
     /// <returns>The vehicle.</returns>
     public Vehicle Build()
     {
         return new Vehicle(_id, _shifts, _fixedCost, _baseCost, _distanceCost, _timeCost, _weightCost,
-            _costPerWeightDistance, _maxWeight, _maxDistance, _maxDuration, BuildFlags());
+            _costPerWeightDistance, _maxWeight, BuildFlags());
     }
 
     /// <inheritdoc/>

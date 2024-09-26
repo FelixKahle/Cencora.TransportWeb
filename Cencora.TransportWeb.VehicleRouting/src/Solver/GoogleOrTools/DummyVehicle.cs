@@ -35,11 +35,6 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     internal Id Id => Vehicle.Id;
 
     /// <summary>
-    /// Returns the flags of the vehicle.
-    /// </summary>
-    internal IReadOnlyFlagContainer Flags => Vehicle.Flags;
-
-    /// <summary>
     /// Gets the time window in which the vehicle is available.
     /// </summary>
     public ValueRange? AvailableTimeWindow => Shift.ShiftTimeWindow;
@@ -110,6 +105,11 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     public long MaxDistance { get; set; }
 
     /// <summary>
+    /// The flags of the vehicle.
+    /// </summary>
+    public IReadOnlyFlagContainer Flags { get; }
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="DummyVehicle"/> class.
     /// </summary>
     /// <param name="index">The index of the vehicle.</param>
@@ -144,6 +144,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
         MaxWeight = maxWeight;
         MaxDuration = maxDuration;
         MaxDistance = maxDistance;
+        Flags = CreateFlagContainerFromGroups(vehicle.Flags, shift.Driver?.Flags ?? Enumerable.Empty<Flag>());
     }
 
     /// <inheritdoc />
@@ -210,5 +211,29 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     public static bool operator !=(DummyVehicle? left, DummyVehicle? right)
     {
         return !Equals(left, right);
+    }
+
+    /// <summary>
+    /// Creates and initializes a <see cref="FlagContainer"/> from one or more collections of flags.
+    /// </summary>
+    /// <param name="flags">A variable number of collections containing <see cref="Flag"/> objects.</param>
+    /// <returns>A <see cref="FlagContainer"/> that contains all the flags from the provided collections.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="flags"/> parameter is null.</exception>
+    /// <remarks>
+    /// This method initializes a new <see cref="FlagContainer"/> by summing the number of flags in all the provided collections
+    /// and preallocating the necessary space for the flags in the container. It then adds each collection of flags to the container.
+    /// </remarks>
+    private static FlagContainer CreateFlagContainerFromGroups(params IEnumerable<Flag>[] flags)
+    {
+        ArgumentNullException.ThrowIfNull(flags, nameof(flags));
+
+        var totalFlagCount = flags.Sum(flagGroup => flagGroup.Count());
+        var flagContainer = new FlagContainer(totalFlagCount);
+        foreach (var flagGroup in flags)
+        {
+            flagContainer.AddFlags(flagGroup);
+        }
+
+        return flagContainer;
     }
 }

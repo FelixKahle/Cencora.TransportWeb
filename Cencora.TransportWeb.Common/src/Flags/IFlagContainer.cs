@@ -7,7 +7,7 @@ namespace Cencora.TransportWeb.Common.Flags;
 /// <summary>
 /// Represents a container for flags.
 /// </summary>
-public interface IFlagContainer : IReadOnlyFlagContainer, IEnumerable<Flag>
+public interface IFlagContainer : IReadOnlyFlagContainer
 {
     /// <summary>
     /// Adds a flag to the container.

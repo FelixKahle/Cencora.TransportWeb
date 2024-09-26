@@ -38,6 +38,26 @@ public sealed class Shift : IEquatable<Shift>
     public Location? EndLocation { get; }
 
     /// <summary>
+    /// Gets the fixed cost of the shift.
+    /// </summary>
+    public long? FixedCost { get; }
+
+    /// <summary>
+    /// Gets the base cost of the shift.
+    /// </summary>
+    public long? BaseCost { get; }
+
+    /// <summary>
+    /// Gets the time cost of the shift.
+    /// </summary>
+    public long? TimeCost { get; }
+
+    /// <summary>
+    /// Gets the distance cost of the shift.
+    /// </summary>
+    public long? DistanceCost { get; }
+
+    /// <summary>
     /// Gets the maximum duration of the shift.
     /// </summary>
     public long? MaxDuration { get; }
@@ -55,15 +75,25 @@ public sealed class Shift : IEquatable<Shift>
     /// <param name="breaks">The breaks for the shift.</param>
     /// <param name="startLocation">The start location of the shift.</param>
     /// <param name="endLocation">The end location of the shift.</param>
+    /// <param name="fixedCost">The fixed cost of the shift.</param>
+    /// <param name="baseCost">The base cost of the shift.</param>
+    /// <param name="timeCost">The time cost of the shift.</param>
+    /// <param name="distanceCost">The distance cost of the shift.</param>
     /// <param name="maxDuration">The maximum duration of the shift.</param>
     /// <param name="maxDistance">The maximum distance of the shift.</param>
-    public Shift(ValueRange shiftTimeWindow, Driver? driver, IEnumerable<Break>? breaks, Location? startLocation, Location? endLocation, long? maxDuration, long? maxDistance)
+    public Shift(ValueRange shiftTimeWindow, Driver? driver, IEnumerable<Break>? breaks, Location? startLocation,
+        Location? endLocation, long? fixedCost, long? baseCost, long? timeCost, long? distanceCost, long? maxDuration,
+        long? maxDistance)
     {
         ShiftTimeWindow = shiftTimeWindow;
         Driver = driver;
         Breaks = InitializeBreaks(shiftTimeWindow, breaks ?? Enumerable.Empty<Break>());
         StartLocation = startLocation;
         EndLocation = endLocation;
+        FixedCost = fixedCost;
+        BaseCost = baseCost;
+        TimeCost = timeCost;
+        DistanceCost = distanceCost;
         MaxDuration = maxDuration;
         MaxDistance = maxDistance;
     }

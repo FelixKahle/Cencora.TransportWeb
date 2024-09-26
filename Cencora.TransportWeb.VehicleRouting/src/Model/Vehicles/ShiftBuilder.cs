@@ -19,6 +19,10 @@ public sealed class ShiftBuilder
     private Location? _endLocation;
     private long? _maxDuration;
     private long? _maxDistance;
+    private long? _fixedCost;
+    private long? _baseCost;
+    private long? _timeCost;
+    private long? _distanceCost;
 
     /// <summary>
     /// Adds a time window to the shift.
@@ -199,12 +203,97 @@ public sealed class ShiftBuilder
     }
 
     /// <summary>
+    /// Adds a fixed cost to the shift.
+    /// </summary>
+    /// <param name="fixedCost">The fixed cost to add.</param>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithFixedCost(long fixedCost)
+    {
+        _fixedCost = fixedCost;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the fixed cost from the shift.
+    /// </summary>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithoutFixedCost()
+    {
+        _fixedCost = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a base cost to the shift.
+    /// </summary>
+    /// <param name="baseCost">The base cost to add.</param>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithBaseCost(long baseCost)
+    {
+        _baseCost = baseCost;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the base cost from the shift.
+    /// </summary>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithoutBaseCost()
+    {
+        _baseCost = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a time cost to the shift.
+    /// </summary>
+    /// <param name="timeCost">The time cost to add.</param>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithTimeCost(long timeCost)
+    {
+        _timeCost = timeCost;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the time cost from the shift.
+    /// </summary>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithoutTimeCost()
+    {
+        _timeCost = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a distance cost to the shift.
+    /// </summary>
+    /// <param name="distanceCost">The distance cost to add.</param>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithDistanceCost(long distanceCost)
+    {
+        _distanceCost = distanceCost;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the distance cost from the shift.
+    /// </summary>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithoutDistanceCost()
+    {
+        _distanceCost = null;
+        return this;
+    }
+
+    /// <summary>
     /// Builds the shift.
     /// </summary>
     /// <returns>The shift.</returns>
     public Shift Build()
     {
-        return new Shift(_shiftTimeWindow, _driver, _breaks, _startLocation, _endLocation, _maxDuration, _maxDistance);
+        return new Shift(_shiftTimeWindow, _driver, _breaks, _startLocation, _endLocation, _fixedCost, _baseCost,
+            _timeCost, _distanceCost, _maxDuration, _maxDistance);
     }
 
     /// <inheritdoc/>

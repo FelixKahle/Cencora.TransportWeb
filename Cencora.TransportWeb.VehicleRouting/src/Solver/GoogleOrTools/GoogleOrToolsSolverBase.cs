@@ -248,6 +248,19 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     }
 
     /// <summary>
+    /// Initializes the internal store of the solver.
+    /// </summary>
+    /// <param name="nodeCount">The number of nodes.</param>
+    /// <param name="vehicleCount">The number of vehicles.</param>
+    internal void InitializeInternalStore(int nodeCount, int vehicleCount)
+    {
+        InitializeNodes(nodeCount);
+        InitializeVehicles(vehicleCount);
+        InitializeVehiclesToTransitCallbackIndex(vehicleCount);
+        InitializeVehiclesToNodeStore(vehicleCount);
+    }
+
+    /// <summary>
     /// Resets the solver.
     /// </summary>
     public void Reset()

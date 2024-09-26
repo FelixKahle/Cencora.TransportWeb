@@ -11,9 +11,9 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// </summary>
 internal sealed class DummyVehicleBuilder
 {
-    private int _index = -1;
-    private Vehicle? _vehicle;
-    private Shift? _shift;
+    private int _index;
+    private Vehicle _vehicle;
+    private Shift _shift;
     private long _fixedCost;
     private long _baseCost;
     private long _distanceCost;
@@ -30,8 +30,14 @@ internal sealed class DummyVehicleBuilder
     /// <param name="index">The index.</param>
     /// <param name="vehicle">The vehicle.</param>
     /// <param name="shift">The shift.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is less than 0.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="vehicle"/> is <see langword="null"/>.</exception>
     internal DummyVehicleBuilder(int index, Vehicle vehicle, Shift shift)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
+        ArgumentNullException.ThrowIfNull(shift, nameof(shift));
+        
         _index = index;
         _vehicle = vehicle;
         _shift = shift;
@@ -42,8 +48,11 @@ internal sealed class DummyVehicleBuilder
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The builder.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is less than 0.</exception>
     internal DummyVehicleBuilder WithIndex(int index)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        
         _index = index;
         return this;
     }
@@ -53,8 +62,11 @@ internal sealed class DummyVehicleBuilder
     /// </summary>
     /// <param name="vehicle">The vehicle.</param>
     /// <returns>The builder.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="vehicle"/> is <see langword="null"/>.</exception>
     internal DummyVehicleBuilder WithVehicle(Vehicle vehicle)
     {
+        ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
+        
         _vehicle = vehicle;
         return this;
     }
@@ -64,8 +76,11 @@ internal sealed class DummyVehicleBuilder
     /// </summary>
     /// <param name="shift">The shift.</param>
     /// <returns>The builder.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="shift"/> is <see langword="null"/>.</exception>
     internal DummyVehicleBuilder WithShift(Shift shift)
     {
+        ArgumentNullException.ThrowIfNull(shift, nameof(shift));
+        
         _shift = shift;
         return this;
     }
@@ -176,11 +191,7 @@ internal sealed class DummyVehicleBuilder
     /// <exception cref="InvalidOperationException">Thrown if a required property is not set.</exception>
     internal DummyVehicle Build()
     {
-        var index = _index >= 0 ? _index : throw new InvalidOperationException("Index must be set.");
-        var vehicle = _vehicle ?? throw new InvalidOperationException("Vehicle must be set.");
-        var shift = _shift ?? throw new InvalidOperationException("Shift must be set.");
-
-        return new DummyVehicle(index, vehicle, shift, _fixedCost, _baseCost, _distanceCost,
+        return new DummyVehicle(_index, _vehicle, _shift, _fixedCost, _baseCost, _distanceCost,
             _timeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxDuration, _maxDistance);
     }
 
