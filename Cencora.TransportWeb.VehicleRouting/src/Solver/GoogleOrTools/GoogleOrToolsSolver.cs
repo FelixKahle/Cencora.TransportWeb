@@ -173,4 +173,10 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var nodeIndex = NodeCount;
         return new VehicleNode(nodeIndex, dummyVehicle, location, nodeType);
     }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"{nameof(GoogleOrToolsSolver)}";
+    }
 }

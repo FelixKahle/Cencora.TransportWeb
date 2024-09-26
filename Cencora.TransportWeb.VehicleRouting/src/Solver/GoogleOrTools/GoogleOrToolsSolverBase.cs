@@ -11,6 +11,11 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// <summary>
 /// Base class for Google OR-Tools solver implementations.
 /// </summary>
+/// <remarks>
+/// The base class is responsible for the internal state keeping of the solver.
+/// This seperates the solver logic from the internal state management,
+/// and disallows the direct access to the internal collections and interfaces.
+/// </remarks>
 public abstract class GoogleOrToolsSolverBase : IDisposable
 {
     private RoutingIndexManager? _indexManager;
@@ -279,7 +284,13 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <returns><see langword="true"/> if the solver is initialized; otherwise, <see langword="false"/>.</returns>
     internal bool IsInitialized()
     {
-        return _routingModel is not null && _indexManager is not null && _routeMatrix is not null && _nodes is not null && _vehicles is not null && _vehiclesToTransitCallbackIndex is not null && _vehiclesToNodeStore is not null;
+        return _routingModel is not null
+            && _indexManager is not null
+            && _routeMatrix is not null
+            && _nodes is not null
+            && _vehicles is not null
+            && _vehiclesToTransitCallbackIndex is not null
+            && _vehiclesToNodeStore is not null;
     }
 
     /// <summary>
@@ -293,6 +304,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     {
         ArgumentNullException.ThrowIfNull(fromNode, nameof(fromNode));
         ArgumentNullException.ThrowIfNull(toNode, nameof(toNode));
+
         var fromLocation = fromNode.GetLocation();
         var toLocation = toNode.GetLocation();
 
@@ -307,5 +319,11 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
             DefinedRouteEdge definedRouteEdge => definedRouteEdge.Distance,
             _ => long.MaxValue
         };
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"{nameof(GoogleOrToolsSolverBase)}";
     }
 }

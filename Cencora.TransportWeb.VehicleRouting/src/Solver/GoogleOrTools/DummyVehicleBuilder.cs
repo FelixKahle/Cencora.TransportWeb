@@ -183,4 +183,10 @@ internal sealed class DummyVehicleBuilder
         return new DummyVehicle(index, vehicle, shift, _fixedCost, _baseCost, _distanceCost,
             _timeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxDuration, _maxDistance);
     }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"DummyVehicleBuilder";
+    }
 }

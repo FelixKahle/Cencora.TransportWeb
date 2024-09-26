@@ -69,7 +69,7 @@ internal sealed class ShipmentNode : Node
         {
             ShipmentNodeType.Pickup => Shipment.PickupLocation,
             ShipmentNodeType.Delivery => Shipment.DeliveryLocation,
-            _ => throw new InvalidOperationException("Unknown shipment node type.")
+            _ => null
         };
     }
 
@@ -98,7 +98,7 @@ internal sealed class ShipmentNode : Node
         {
             ShipmentNodeType.Pickup => Shipment.PickupHandlingTime ?? 0,
             ShipmentNodeType.Delivery => Shipment.DeliveryHandlingTime ?? 0,
-            _ => throw new InvalidOperationException("Unknown shipment node type.")
+            _ => 0
         };
     }
 
@@ -109,7 +109,7 @@ internal sealed class ShipmentNode : Node
         {
             ShipmentNodeType.Pickup => Shipment.PickupTimeWindow,
             ShipmentNodeType.Delivery => Shipment.DeliveryTimeWindow,
-            _ => throw new InvalidOperationException("Unknown shipment node type.")
+            _ => null
         };
     }
 }
