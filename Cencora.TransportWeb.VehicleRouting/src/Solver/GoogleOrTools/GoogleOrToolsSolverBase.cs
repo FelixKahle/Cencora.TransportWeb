@@ -29,11 +29,30 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     private IReadOnlyDirectedRouteMatrix? _routeMatrix;
 
     /// <summary>
+    /// Initializes the internal model of the solver.
+    /// </summary>
+    /// <param name="nodeCount">The number of nodes.</param>
+    /// <param name="vehicleCount">The number of vehicles.</param>
+    /// <param name="shipmentCount">The number of shipments.</param>
+    /// <remarks>
+    /// Internally calls the initialization methods for the nodes, vehicles, vehicles to transit callback index,
+    /// vehicles to node store, and shipments to node store.
+    /// </remarks>
+    internal void InitializeInternalModel(int nodeCount = 0, int vehicleCount = 0, int shipmentCount = 0)
+    {
+        InitializeNodes(nodeCount);
+        InitializeVehicles(vehicleCount);
+        InitializeVehiclesToTransitCallbackIndex(vehicleCount);
+        InitializeVehiclesToNodeStore(vehicleCount);
+        InitializeShipmentsToNodeStore(shipmentCount);
+    }
+
+    /// <summary>
     /// Gets or sets the <see cref="RoutingIndexManager"/> of the solver.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the routing index manager is not initialized.</exception>
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
-    protected internal RoutingIndexManager IndexManager
+    internal RoutingIndexManager IndexManager
     {
         get => _indexManager ?? throw new InvalidOperationException("The routing index manager is not initialized.");
         set
@@ -52,7 +71,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <param name="startNodes">The start nodes of the vehicles.</param>
     /// <param name="endNodes">The end nodes of the vehicles.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="startNodes"/> or <paramref name="endNodes"/> is <see langword="null"/>.</exception>
-    protected internal void InitializeRoutingIndexManager(int nodeCount, int vehicleCount, int[] startNodes, int[] endNodes)
+    internal void InitializeRoutingIndexManager(int nodeCount, int vehicleCount, int[] startNodes, int[] endNodes)
     {
         ArgumentNullException.ThrowIfNull(startNodes, nameof(startNodes));
         ArgumentNullException.ThrowIfNull(endNodes, nameof(endNodes));
@@ -68,7 +87,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the routing model is not initialized.</exception>
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
-    protected internal RoutingModel RoutingModel
+    internal RoutingModel RoutingModel
     {
         get => _routingModel ?? throw new InvalidOperationException("The routing model is not initialized.");
         set
@@ -83,7 +102,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the routing model of the solver.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the routing index manager is not initialized.</exception>
-    protected internal void InitializeRoutingModel()
+    internal void InitializeRoutingModel()
     {
         RoutingModel = new RoutingModel(IndexManager);
     }
@@ -93,7 +112,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <param name="indexManager">The routing index manager.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="indexManager"/> is <see langword="null"/>.</exception>
-    protected internal void InitializeRoutingModel(RoutingIndexManager indexManager)
+    internal void InitializeRoutingModel(RoutingIndexManager indexManager)
     {
         ArgumentNullException.ThrowIfNull(indexManager, nameof(indexManager));
 
@@ -105,7 +124,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the route matrix is not initialized.</exception>
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
-    protected internal IReadOnlyDirectedRouteMatrix RouteMatrix
+    internal IReadOnlyDirectedRouteMatrix RouteMatrix
     {
         get => _routeMatrix ?? throw new InvalidOperationException("The route matrix is not initialized.");
         set
@@ -172,7 +191,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the vehicles of the solver.
     /// </summary>
     /// <param name="capacity">The capacity of the vehicles.</param>
-    protected void InitializeVehicles(int capacity = 0)
+    internal void InitializeVehicles(int capacity = 0)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         Vehicles = new List<DummyVehicle>(adjustedCapacity);
@@ -197,7 +216,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the vehicles to transit callback index of the solver.
     /// </summary>
     /// <param name="capacity">The capacity of the vehicles to transit callback index.</param>
-    protected void InitializeVehiclesToTransitCallbackIndex(int capacity = 0)
+    internal void InitializeVehiclesToTransitCallbackIndex(int capacity = 0)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         VehiclesToTransitCallbackIndex = new Dictionary<DummyVehicle, int>(adjustedCapacity);
@@ -222,7 +241,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the vehicles to node store of the solver.
     /// </summary>
     /// <param name="capacity">The capacity of the vehicles to node store.</param>
-    protected void InitializeVehiclesToNodeStore(int capacity = 0)
+    internal void InitializeVehiclesToNodeStore(int capacity = 0)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         VehiclesToNodeStore = new Dictionary<DummyVehicle, VehicleNodeStore>(adjustedCapacity);
@@ -247,7 +266,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the shipments to node store of the solver.
     /// </summary>
     /// <param name="capacity">The capacity of the shipments to node store.</param>
-    protected void InitializeShipmentsToNodeStore(int capacity = 0)
+    internal void InitializeShipmentsToNodeStore(int capacity = 0)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         ShipmentsToNodeStore = new Dictionary<Shipment, ShipmentNodeStore>(adjustedCapacity);
@@ -267,6 +286,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         _vehicles?.Clear();
         _vehiclesToTransitCallbackIndex?.Clear();
         _vehiclesToNodeStore?.Clear();
+        _shipmentsToNodeStore?.Clear();
 
         // Set everything to null
         _indexManager = null;
@@ -276,6 +296,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         _vehiclesToTransitCallbackIndex = null;
         _routeMatrix = null;
         _vehiclesToNodeStore = null;
+        _shipmentsToNodeStore = null;
     }
 
     /// <inheritdoc/>
@@ -296,7 +317,8 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
             && _nodes is not null
             && _vehicles is not null
             && _vehiclesToTransitCallbackIndex is not null
-            && _vehiclesToNodeStore is not null;
+            && _vehiclesToNodeStore is not null
+            && _shipmentsToNodeStore is not null;
     }
 
     /// <summary>

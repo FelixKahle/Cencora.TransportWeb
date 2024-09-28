@@ -35,6 +35,11 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="problem"/> is <see langword="null"/>.</exception>
     private void InitializeSolver(Problem problem)
     {
+        // NOTE: The order of the following method calls is important.
+        // Do not modify the order unless you know what you are doing
+        // as some methods depend on the successful execution of others.
+        
+        // Make sure the problem is not null.
         ArgumentNullException.ThrowIfNull(problem, nameof(problem));
 
         // Precalculate the number of nodes, vehicles, and shipments.
@@ -44,19 +49,19 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var vehicleCount = problem.Vehicles.Sum(v => v.Shifts.Count);
         var nodeCount = shipmentCount * 2 + vehicleCount * 2;
 
-        // Initialize various components
-        InitializeNodes(nodeCount);
-        InitializeVehicles(vehicleCount);
-        InitializeVehiclesToNodeStore(vehicleCount);
-        InitializeShipmentsToNodeStore(shipmentCount);
-        InitializeVehiclesToTransitCallbackIndex(vehicleCount);
+        // Initialize the internal model,
+        // which holds the nodes, vehicles and mappings.
+        InitializeInternalModel(nodeCount, vehicleCount, shipmentCount);
+        
+        // Populate the internal model with the given problem.
         SetupShipments(problem.Shipments);
         SetupDummyVehicles(problem.Vehicles);
 
-        // Get vehicle start and end node indices
-        (var vehicleStartNodeIndices, var vehicleEndNodeIndices) = GetVehicleNodeIndices();
+        // Get vehicle start and end node indices out of the internal model.
+        // We need them to tell Google OR-Tools where the vehicles start and end.
+        var (vehicleStartNodeIndices, vehicleEndNodeIndices) = GetVehicleNodeIndices();
 
-        // Initialize routing components
+        // Initialize the Google OR-Tools interfaces.
         InitializeRoutingIndexManager(nodeCount, vehicleCount, vehicleStartNodeIndices, vehicleEndNodeIndices);
         InitializeRoutingModel();
     }
