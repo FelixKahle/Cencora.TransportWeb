@@ -3,6 +3,7 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
+using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 using Google.OrTools.ConstraintSolver;
 
@@ -24,6 +25,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     private List<DummyVehicle>? _vehicles;
     private Dictionary<DummyVehicle, int>? _vehiclesToTransitCallbackIndex;
     private Dictionary<DummyVehicle, VehicleNodeStore>? _vehiclesToNodeStore;
+    private Dictionary<Shipment, ShipmentNodeStore>? _shipmentsToNodeStore;
     private IReadOnlyDirectedRouteMatrix? _routeMatrix;
 
     /// <summary>
@@ -31,12 +33,9 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the routing index manager is not initialized.</exception>
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
-    internal RoutingIndexManager IndexManager
+    protected internal RoutingIndexManager IndexManager
     {
-        get
-        {
-            return _indexManager ?? throw new InvalidOperationException("The routing index manager is not initialized.");
-        }
+        get => _indexManager ?? throw new InvalidOperationException("The routing index manager is not initialized.");
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -53,7 +52,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <param name="startNodes">The start nodes of the vehicles.</param>
     /// <param name="endNodes">The end nodes of the vehicles.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="startNodes"/> or <paramref name="endNodes"/> is <see langword="null"/>.</exception>
-    internal void InitializeRoutingIndexManager(int nodeCount, int vehicleCount, int[] startNodes, int[] endNodes)
+    protected internal void InitializeRoutingIndexManager(int nodeCount, int vehicleCount, int[] startNodes, int[] endNodes)
     {
         ArgumentNullException.ThrowIfNull(startNodes, nameof(startNodes));
         ArgumentNullException.ThrowIfNull(endNodes, nameof(endNodes));
@@ -69,12 +68,9 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the routing model is not initialized.</exception>
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
-    internal RoutingModel RoutingModel
+    protected internal RoutingModel RoutingModel
     {
-        get
-        {
-            return _routingModel ?? throw new InvalidOperationException("The routing model is not initialized.");
-        }
+        get => _routingModel ?? throw new InvalidOperationException("The routing model is not initialized.");
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -87,7 +83,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the routing model of the solver.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the routing index manager is not initialized.</exception>
-    internal void InitializeRoutingModel()
+    protected internal void InitializeRoutingModel()
     {
         RoutingModel = new RoutingModel(IndexManager);
     }
@@ -97,7 +93,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <param name="indexManager">The routing index manager.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="indexManager"/> is <see langword="null"/>.</exception>
-    internal void InitializeRoutingModel(RoutingIndexManager indexManager)
+    protected internal void InitializeRoutingModel(RoutingIndexManager indexManager)
     {
         ArgumentNullException.ThrowIfNull(indexManager, nameof(indexManager));
 
@@ -109,12 +105,9 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the route matrix is not initialized.</exception>
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
-    internal IReadOnlyDirectedRouteMatrix RouteMatrix
+    protected internal IReadOnlyDirectedRouteMatrix RouteMatrix
     {
-        get
-        {
-            return _routeMatrix ?? throw new InvalidOperationException("The route matrix is not initialized.");
-        }
+        get => _routeMatrix ?? throw new InvalidOperationException("The route matrix is not initialized.");
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -130,10 +123,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
     internal List<Node> Nodes
     {
-        get
-        {
-            return _nodes ?? throw new InvalidOperationException("The nodes are not initialized.");
-        }
+        get => _nodes ?? throw new InvalidOperationException("The nodes are not initialized.");
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -164,10 +154,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
     internal List<DummyVehicle> Vehicles
     {
-        get
-        {
-            return _vehicles ?? throw new InvalidOperationException("The vehicles are not initialized.");
-        }
+        get => _vehicles ?? throw new InvalidOperationException("The vehicles are not initialized.");
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -185,7 +172,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the vehicles of the solver.
     /// </summary>
     /// <param name="capacity">The capacity of the vehicles.</param>
-    internal void InitializeVehicles(int capacity = 0)
+    protected void InitializeVehicles(int capacity = 0)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         Vehicles = new List<DummyVehicle>(adjustedCapacity);
@@ -198,10 +185,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
     internal Dictionary<DummyVehicle, int> VehiclesToTransitCallbackIndex
     {
-        get
-        {
-            return _vehiclesToTransitCallbackIndex ?? throw new InvalidOperationException("The vehicles to transit callback index is not initialized.");
-        }
+        get => _vehiclesToTransitCallbackIndex ?? throw new InvalidOperationException("The vehicles to transit callback index is not initialized.");
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -213,7 +197,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the vehicles to transit callback index of the solver.
     /// </summary>
     /// <param name="capacity">The capacity of the vehicles to transit callback index.</param>
-    internal void InitializeVehiclesToTransitCallbackIndex(int capacity = 0)
+    protected void InitializeVehiclesToTransitCallbackIndex(int capacity = 0)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         VehiclesToTransitCallbackIndex = new Dictionary<DummyVehicle, int>(adjustedCapacity);
@@ -226,10 +210,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
     internal Dictionary<DummyVehicle, VehicleNodeStore> VehiclesToNodeStore
     {
-        get
-        {
-            return _vehiclesToNodeStore ?? throw new InvalidOperationException("The vehicles to node store is not initialized.");
-        }
+        get => _vehiclesToNodeStore ?? throw new InvalidOperationException("The vehicles to node store is not initialized.");
         set
         {
             ArgumentNullException.ThrowIfNull(value, nameof(value));
@@ -241,23 +222,35 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Initializes the vehicles to node store of the solver.
     /// </summary>
     /// <param name="capacity">The capacity of the vehicles to node store.</param>
-    internal void InitializeVehiclesToNodeStore(int capacity = 0)
+    protected void InitializeVehiclesToNodeStore(int capacity = 0)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         VehiclesToNodeStore = new Dictionary<DummyVehicle, VehicleNodeStore>(adjustedCapacity);
     }
 
     /// <summary>
-    /// Initializes the internal store of the solver.
+    /// Gets or sets the shipments to node store of the solver.
     /// </summary>
-    /// <param name="nodeCount">The number of nodes.</param>
-    /// <param name="vehicleCount">The number of vehicles.</param>
-    internal void InitializeInternalStore(int nodeCount, int vehicleCount)
+    /// <exception cref="InvalidOperationException">Thrown if the shipments to node store is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    internal Dictionary<Shipment, ShipmentNodeStore> ShipmentsToNodeStore
     {
-        InitializeNodes(nodeCount);
-        InitializeVehicles(vehicleCount);
-        InitializeVehiclesToTransitCallbackIndex(vehicleCount);
-        InitializeVehiclesToNodeStore(vehicleCount);
+        get => _shipmentsToNodeStore ?? throw new InvalidOperationException("The shipments to node store is not initialized.");
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            _shipmentsToNodeStore = value;
+        }
+    }
+
+    /// <summary>
+    /// Initializes the shipments to node store of the solver.
+    /// </summary>
+    /// <param name="capacity">The capacity of the shipments to node store.</param>
+    protected void InitializeShipmentsToNodeStore(int capacity = 0)
+    {
+        var adjustedCapacity = Math.Max(0, capacity);
+        ShipmentsToNodeStore = new Dictionary<Shipment, ShipmentNodeStore>(adjustedCapacity);
     }
 
     /// <summary>

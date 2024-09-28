@@ -48,6 +48,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         InitializeNodes(nodeCount);
         InitializeVehicles(vehicleCount);
         InitializeVehiclesToNodeStore(vehicleCount);
+        InitializeShipmentsToNodeStore(shipmentCount);
         InitializeVehiclesToTransitCallbackIndex(vehicleCount);
         SetupShipments(problem.Shipments);
         SetupDummyVehicles(problem.Vehicles);
@@ -92,6 +93,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
 
             Nodes.Add(pickupNode);
             Nodes.Add(deliveryNode);
+            ShipmentsToNodeStore.Add(shipment, new ShipmentNodeStore(pickupNode, deliveryNode));
         }
     }
 
@@ -115,6 +117,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
                 Vehicles.Add(dummyVehicle);
                 Nodes.Add(startNode);
                 Nodes.Add(endNode);
+                VehiclesToNodeStore.Add(dummyVehicle, new VehicleNodeStore(startNode, endNode));
             }
         }
     }
