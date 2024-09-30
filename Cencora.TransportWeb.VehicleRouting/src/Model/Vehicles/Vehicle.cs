@@ -60,6 +60,14 @@ public sealed class Vehicle : IEquatable<Vehicle>
     /// The time cost is applied per time unit.
     /// </remarks>
     public long? TimeCost { get; }
+    
+    /// <summary>
+    /// Gets the waiting time cost of the vehicle.
+    /// </summary>
+    /// <remarks>
+    /// The waiting time cost is applied per time unit.
+    /// </remarks>
+    public long? WaitingTimeCost { get; }
 
     /// <summary>
     /// Gets the weight cost of the vehicle.
@@ -102,12 +110,13 @@ public sealed class Vehicle : IEquatable<Vehicle>
     /// <param name="baseCost">The base cost of the vehicle.</param>
     /// <param name="distanceCost">The distance cost of the vehicle.</param>
     /// <param name="timeCost">The time cost of the vehicle.</param>
+    /// <param name="waitingTimeCost">The waiting time cost of the vehicle</param>
     /// <param name="weightCost">The weight cost of the vehicle.</param>
     /// <param name="costPerWeightDistance">The weight per distance cost of the vehicle.</param>
     /// <param name="maxWeight">The maximum weight the vehicle can carry.</param>
     /// <param name="flags">The flags of the vehicle.</param>
     public Vehicle(Id id, IReadOnlySet<Shift>? shifts, long? fixedCost, long? baseCost, long? distanceCost,
-        long? timeCost, long? weightCost, long? costPerWeightDistance, long? maxWeight, IReadOnlyFlagContainer? flags)
+        long? timeCost, long? waitingTimeCost, long? weightCost, long? costPerWeightDistance, long? maxWeight, IReadOnlyFlagContainer? flags)
     {
         Id = id;
         Shifts = shifts ?? new HashSet<Shift>();
@@ -116,6 +125,7 @@ public sealed class Vehicle : IEquatable<Vehicle>
         BaseCost = baseCost;
         DistanceCost = distanceCost;
         TimeCost = timeCost;
+        WaitingTimeCost = waitingTimeCost;
         WeightCost = weightCost;
         CostPerWeightDistance = costPerWeightDistance;
         MaxWeight = maxWeight;

@@ -72,6 +72,14 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// The time cost is applied per time unit.
     /// </remarks>
     internal long TimeCost { get; }
+    
+    /// <summary>
+    /// Gets the waiting time cost of the vehicle.
+    /// </summary>
+    /// <remarks>
+    /// The waiting time cost is applied per time unit.
+    /// </remarks>
+    internal long WaitingTimeCost { get; }
 
     /// <summary>
     /// Gets the weight cost of the vehicle.
@@ -119,6 +127,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="baseCost">The base cost of the vehicle.</param>
     /// <param name="distanceCost">The distance cost of the vehicle.</param>
     /// <param name="timeCost">The time cost of the vehicle.</param>
+    /// <param name="waitingTimeCost">The waiting time cost of the vehicle.</param>
     /// <param name="weightCost">The weight cost of the vehicle.</param>
     /// <param name="costPerWeightDistance">The weight per distance cost of the vehicle.</param>
     /// <param name="maxWeight">The maximum weight the vehicle can carry.</param>
@@ -126,7 +135,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="maxDistance">The maximum distance the vehicle can drive.</param>
     /// <exception cref="ArgumentOutOfRangeException">The index is negative.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="vehicle"/> or <paramref name="shift"/> is <see langword="null"/>.</exception>
-    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, long fixedCost, long baseCost, long distanceCost, long timeCost, long weightCost, long costPerWeightDistance, long maxWeight, long maxDuration, long maxDistance)
+    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, long fixedCost, long baseCost, long distanceCost, long timeCost, long waitingTimeCost, long weightCost, long costPerWeightDistance, long maxWeight, long maxDuration, long maxDistance)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
@@ -139,6 +148,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
         BaseCost = baseCost;
         DistanceCost = distanceCost;
         TimeCost = timeCost;
+        WaitingTimeCost = waitingTimeCost;
         WeightCost = weightCost;
         CostPerWeightDistance = costPerWeightDistance;
         MaxWeight = maxWeight;

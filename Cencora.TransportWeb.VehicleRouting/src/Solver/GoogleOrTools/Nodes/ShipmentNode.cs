@@ -80,6 +80,28 @@ internal sealed class ShipmentNode : Node
     }
 
     /// <inheritdoc/>
+    internal override Shipment? GetPickup()
+    {
+        return Type switch
+        {
+            ShipmentNodeType.Pickup => Shipment,
+            ShipmentNodeType.Delivery => null,
+            _ => null
+        };
+    }
+
+    /// <inheritdoc/>
+    internal override Shipment? GetDelivery()
+    {
+        return Type switch
+        {
+            ShipmentNodeType.Pickup => null,
+            ShipmentNodeType.Delivery => Shipment,
+            _ => null
+        };
+    }
+
+    /// <inheritdoc/>
     internal override DummyVehicle? GetDummyVehicle()
     {
         return null;
@@ -88,7 +110,13 @@ internal sealed class ShipmentNode : Node
     /// <inheritdoc/>
     internal override long GetWeightDemand()
     {
-        return Shipment.ShipmentWeight ?? 0;
+        return Type switch
+        {
+            ShipmentNodeType.Pickup => Shipment.ShipmentWeight ?? 0,
+            // We deliver the shipment, so the weight is negative.
+            ShipmentNodeType.Delivery => (Shipment.ShipmentWeight * -1) ?? 0,
+            _ => 0
+        };
     }
 
     /// <inheritdoc/>

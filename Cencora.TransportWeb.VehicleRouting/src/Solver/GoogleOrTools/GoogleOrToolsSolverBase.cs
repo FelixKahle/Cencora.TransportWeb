@@ -21,14 +21,32 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// </remarks>
 public abstract class GoogleOrToolsSolverBase : IDisposable
 {
+    private protected const string TimeDimensionName = "TimeDimension";
+    private protected const string WeightDimensionName = "WeightDimension";
+    private protected const string DistanceDimensionName = "DistanceDimension";
+    
+    // OR-Tools interfaces
     private RoutingIndexManager? _indexManager;
     private RoutingModel? _routingModel;
+    
+    // Internal state
     private List<Node>? _nodes;
     private List<DummyVehicle>? _vehicles;
-    private Dictionary<DummyVehicle, int>? _vehiclesToTransitCallbackIndex;
     private Dictionary<DummyVehicle, VehicleNodeStore>? _vehiclesToNodeStore;
     private Dictionary<Shipment, ShipmentNodeStore>? _shipmentsToNodeStore;
     private IReadOnlyDirectedRouteMatrix? _routeMatrix;
+    
+    // Time
+    private int _timeCallback = -1;
+    private RoutingDimension? _timeDimension;
+    
+    // Weight
+    private int _weightCallback = -1;
+    private RoutingDimension? _weightDimension;
+    
+    // Distance
+    private int _distanceCallback = -1;
+    private RoutingDimension? _distanceDimension;
 
     /// <summary>
     /// Initializes the internal model of the solver.
@@ -44,7 +62,6 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     {
         InitializeNodes(nodeCount);
         InitializeVehicles(vehicleCount);
-        InitializeVehiclesToTransitCallbackIndex(vehicleCount);
         InitializeVehiclesToNodeStore(vehicleCount);
         InitializeShipmentsToNodeStore(shipmentCount);
     }
@@ -204,31 +221,6 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the vehicles to node store is not initialized.</exception>
     /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
-    private protected Dictionary<DummyVehicle, int> VehiclesToTransitCallbackIndex
-    {
-        get => _vehiclesToTransitCallbackIndex ?? throw new InvalidOperationException("The vehicles to transit callback index is not initialized.");
-        set
-        {
-            ArgumentNullException.ThrowIfNull(value, nameof(value));
-            _vehiclesToTransitCallbackIndex = value;
-        }
-    }
-
-    /// <summary>
-    /// Initializes the vehicles to transit callback index of the solver.
-    /// </summary>
-    /// <param name="capacity">The capacity of the vehicles to transit callback index.</param>
-    private void InitializeVehiclesToTransitCallbackIndex(int capacity = 0)
-    {
-        var adjustedCapacity = Math.Max(0, capacity);
-        VehiclesToTransitCallbackIndex = new Dictionary<DummyVehicle, int>(adjustedCapacity);
-    }
-
-    /// <summary>
-    /// Gets or sets the vehicles to node store of the solver.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the vehicles to node store is not initialized.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
     private protected Dictionary<DummyVehicle, VehicleNodeStore> VehiclesToNodeStore
     {
         get => _vehiclesToNodeStore ?? throw new InvalidOperationException("The vehicles to node store is not initialized.");
@@ -263,6 +255,83 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
             _shipmentsToNodeStore = value;
         }
     }
+    
+    /// <summary>
+    /// Gets or sets the time callback of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the time callback is not initialized.</exception>
+    private protected int TimeCallback
+    {
+        get => _timeCallback >= 0 ? _timeCallback : throw new InvalidOperationException("The time callback is not initialized.");
+        set => _timeCallback = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value), value, "The time callback must be greater or equal to 0.");
+    }
+    
+    /// <summary>
+    /// Gets or sets the time dimension of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the time dimension is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    private protected RoutingDimension TimeDimension
+    {
+        get => _timeDimension ?? throw new InvalidOperationException("The time dimension is not initialized.");
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            _timeDimension = value;
+        }
+    }
+    
+    /// <summary>
+    /// Gets or sets the weight dimension of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the weight dimension is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    private protected int WeightCallback
+    {
+        get => _weightCallback >= 0 ? _weightCallback : throw new InvalidOperationException("The weight callback is not initialized.");
+        set => _weightCallback = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value), value, "The weight callback must be greater or equal to 0.");
+    }
+    
+    /// <summary>
+    /// Gets or sets the weight dimension of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the weight dimension is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    private protected RoutingDimension WeightDimension
+    {
+        get => _weightDimension ?? throw new InvalidOperationException("The weight dimension is not initialized.");
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            _weightDimension = value;
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the distance dimension of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the distance dimension is not initialized.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is less than 0.</exception>
+    private protected int DistanceCallback
+    {
+        get => _distanceCallback >= 0 ? _distanceCallback : throw new InvalidOperationException("The distance callback is not initialized.");
+        set => _distanceCallback = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value), value, "The distance callback must be greater or equal to 0.");
+    }
+
+    /// <summary>
+    /// Gets or sets the distance dimension of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the distance dimension is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    private protected RoutingDimension DistanceDimension
+    {
+        get => _distanceDimension ?? throw new InvalidOperationException("The distance dimension is not initialized.");
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            _distanceDimension = value;
+        }
+    }
 
     /// <summary>
     /// Initializes the shipments to node store of the solver.
@@ -279,25 +348,30 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// </summary>
     protected void Reset()
     {
-        // Dispose the GoogleOr-Tools interfaces
         _routingModel?.Dispose();
-        _indexManager?.Dispose();
-
-        // Clear the collections
-        _nodes?.Clear();
-        _vehicles?.Clear();
-        _vehiclesToTransitCallbackIndex?.Clear();
-        _vehiclesToNodeStore?.Clear();
-        _shipmentsToNodeStore?.Clear();
-
-        // Set everything to null
-        _indexManager = null;
         _routingModel = null;
+        
+        _indexManager?.Dispose();
+        _indexManager = null;
+        
+        _timeDimension?.Dispose();
+        _timeDimension = null;
+        _timeCallback = -1;
+        
+        _weightDimension?.Dispose();
+        _weightDimension = null;
+        _weightCallback = -1;
+        
+        _nodes?.Clear();
         _nodes = null;
+        
+        _vehicles?.Clear();
         _vehicles = null;
-        _vehiclesToTransitCallbackIndex = null;
-        _routeMatrix = null;
+        
+        _vehiclesToNodeStore?.Clear();
         _vehiclesToNodeStore = null;
+        
+        _shipmentsToNodeStore?.Clear();
         _shipmentsToNodeStore = null;
     }
 
@@ -305,22 +379,6 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     public void Dispose()
     {
         Reset();
-    }
-
-    /// <summary>
-    /// Checks if the solver is initialized.
-    /// </summary>
-    /// <returns><see langword="true"/> if the solver is initialized; otherwise, <see langword="false"/>.</returns>
-    internal bool IsInitialized()
-    {
-        return _routingModel is not null
-            && _indexManager is not null
-            && _routeMatrix is not null
-            && _nodes is not null
-            && _vehicles is not null
-            && _vehiclesToTransitCallbackIndex is not null
-            && _vehiclesToNodeStore is not null
-            && _shipmentsToNodeStore is not null;
     }
 
     /// <summary>
@@ -347,6 +405,33 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         return RouteMatrix.GetEdge(fromLocation, toLocation) switch
         {
             DefinedRouteEdge definedRouteEdge => definedRouteEdge.Distance,
+            _ => long.MaxValue
+        };
+    }
+
+    /// <summary>
+    /// Returns the time between two nodes.
+    /// </summary>
+    /// <param name="fromNode">The node to start from.</param>
+    /// <param name="toNode">The node to end at.</param>
+    /// <returns>The time between the two nodes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="fromNode"/> or <paramref name="toNode"/> is <see langword="null"/>.</exception>
+    private protected long GetDuration(Node fromNode, Node toNode)
+    {
+        ArgumentNullException.ThrowIfNull(fromNode, nameof(fromNode));
+        ArgumentNullException.ThrowIfNull(toNode, nameof(toNode));
+        
+        var fromLocation = fromNode.GetLocation();
+        var toLocation = toNode.GetLocation();
+        
+        if (fromLocation is null || toLocation is null)
+        {
+            return 0;
+        }
+        
+        return RouteMatrix.GetEdge(fromLocation, toLocation) switch
+        {
+            DefinedRouteEdge definedRouteEdge => definedRouteEdge.Duration,
             _ => long.MaxValue
         };
     }

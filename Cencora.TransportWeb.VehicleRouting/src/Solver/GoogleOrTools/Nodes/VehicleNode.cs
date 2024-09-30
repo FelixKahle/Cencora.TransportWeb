@@ -75,6 +75,18 @@ internal sealed class VehicleNode : Node
     }
 
     /// <inheritdoc/>
+    internal override Shipment? GetPickup()
+    {
+        return null;
+    }
+    
+    /// <inheritdoc/>
+    internal override Shipment? GetDelivery()
+    {
+        return null;
+    }
+
+    /// <inheritdoc/>
     internal override DummyVehicle GetDummyVehicle()
     {
         return Vehicle;

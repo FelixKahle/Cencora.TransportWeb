@@ -91,6 +91,26 @@ internal abstract class Node : IEquatable<Node>
     internal abstract Shipment? GetShipment();
 
     /// <summary>
+    /// Gets the pickup of the node.
+    /// </summary>
+    /// <returns>The pickup of the node.</returns>
+    /// <remarks>
+    /// This can be <see langword="null"/>. If this returns <see langword="null"/>,
+    /// the node does not have a pickup.
+    /// </remarks>
+    internal abstract Shipment? GetPickup();
+    
+    /// <summary>
+    /// Gets the delivery of the node.
+    /// </summary>
+    /// <returns>The delivery of the node.</returns>
+    /// <remarks>
+    /// This can be <see langword="null"/>. If this returns <see langword="null"/>,
+    /// the node does not have a delivery.
+    /// </remarks>
+    internal abstract Shipment? GetDelivery();
+
+    /// <summary>
     /// Gets a value indicating whether the node has a shipment.
     /// </summary>
     /// <returns><see langword="true"/> if the node has a shipment; otherwise, <see langword="false"/>.</returns>

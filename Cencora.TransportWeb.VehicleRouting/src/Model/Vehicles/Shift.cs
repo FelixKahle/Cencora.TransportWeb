@@ -47,6 +47,11 @@ public sealed class Shift : IEquatable<Shift>
     /// Gets the time cost of the shift.
     /// </summary>
     public long? TimeCost { get; }
+    
+    /// <summary>
+    /// Gets the waiting time cost of the shift.
+    /// </summary>
+    public long? WaitingTimeCost { get; }
 
     /// <summary>
     /// Gets the distance cost of the shift.
@@ -78,12 +83,13 @@ public sealed class Shift : IEquatable<Shift>
     /// <param name="fixedCost">The fixed cost of the shift.</param>
     /// <param name="baseCost">The base cost of the shift.</param>
     /// <param name="timeCost">The time cost of the shift.</param>
+    /// <param name="waitingTimeCost">The waiting time cost of the shift.</param>
     /// <param name="distanceCost">The distance cost of the shift.</param>
     /// <param name="maxDuration">The maximum duration of the shift.</param>
     /// <param name="maxDistance">The maximum distance of the shift.</param>
     /// <param name="flags">The flags of the shift.</param>
     public Shift(ValueRange shiftTimeWindow, IEnumerable<Break>? breaks, Location? startLocation,
-        Location? endLocation, long? fixedCost, long? baseCost, long? timeCost, long? distanceCost, long? maxDuration,
+        Location? endLocation, long? fixedCost, long? baseCost, long? timeCost, long? waitingTimeCost, long? distanceCost, long? maxDuration,
         long? maxDistance, IReadOnlyFlagContainer? flags)
     {
         ShiftTimeWindow = shiftTimeWindow;
@@ -93,6 +99,7 @@ public sealed class Shift : IEquatable<Shift>
         FixedCost = fixedCost;
         BaseCost = baseCost;
         TimeCost = timeCost;
+        WaitingTimeCost = waitingTimeCost;
         DistanceCost = distanceCost;
         MaxDuration = maxDuration;
         MaxDistance = maxDistance;

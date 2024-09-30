@@ -13,11 +13,12 @@ namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 public sealed class VehicleBuilder : FlaggedBuilder
 {
     private Id _id;
-    private HashSet<Shift> _shifts = new HashSet<Shift>();
+    private readonly HashSet<Shift> _shifts = new HashSet<Shift>();
     private long? _fixedCost;
     private long? _baseCost;
     private long? _distanceCost;
     private long? _timeCost;
+    private long? _waitingTimeCost;
     private long? _weightCost;
     private long? _costPerWeightDistance;
     private long? _maxWeight;
@@ -233,6 +234,27 @@ public sealed class VehicleBuilder : FlaggedBuilder
     }
 
     /// <summary>
+    /// Adds a waiting time cost to the vehicle.
+    /// </summary>
+    /// <param name="waitingTimeCost">The waiting time cost to add.</param>
+    /// <returns>The builder.</returns>
+    public VehicleBuilder WithWaitingTimeCost(long waitingTimeCost)
+    {
+        _waitingTimeCost = waitingTimeCost;
+        return this;
+    }
+
+    /// <summary>
+    /// Removes the waiting time cost from the vehicle.
+    /// </summary>
+    /// <returns>The builder.</returns>
+    public VehicleBuilder WithoutWaitingTimeCost()
+    {
+        _waitingTimeCost = null;
+        return this;
+    }
+
+    /// <summary>
     /// Adds a weight cost to the vehicle.
     /// </summary>
     /// <param name="weightCost">The weight cost to add.</param>
@@ -301,7 +323,7 @@ public sealed class VehicleBuilder : FlaggedBuilder
     /// <returns>The vehicle.</returns>
     public Vehicle Build()
     {
-        return new Vehicle(_id, _shifts, _fixedCost, _baseCost, _distanceCost, _timeCost, _weightCost,
+        return new Vehicle(_id, _shifts, _fixedCost, _baseCost, _distanceCost, _timeCost, _waitingTimeCost, _weightCost,
             _costPerWeightDistance, _maxWeight, BuildFlags());
     }
 

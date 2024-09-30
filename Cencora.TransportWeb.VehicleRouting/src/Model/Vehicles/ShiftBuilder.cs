@@ -21,6 +21,7 @@ public sealed class ShiftBuilder : FlaggedBuilder
     private long? _fixedCost;
     private long? _baseCost;
     private long? _timeCost;
+    private long? _waitingTimeCost;
     private long? _distanceCost;
 
     /// <summary>
@@ -242,6 +243,26 @@ public sealed class ShiftBuilder : FlaggedBuilder
         _timeCost = null;
         return this;
     }
+    
+    /// <summary>
+    /// Adds a waiting time cost to the shift.
+    /// </summary>
+    /// <param name="waitingTimeCost">The waiting time cost to add.</param>
+    /// <returns>The builder.</returns>
+    public ShiftBuilder WithWaitingTimeCost(long waitingTimeCost)
+    {
+        _waitingTimeCost = waitingTimeCost;
+        return this;
+    }
+    
+    /// <summary>
+    /// Removes the waiting time cost from the shift.
+    /// </summary>
+    public ShiftBuilder WithoutWaitingTimeCost()
+    {
+        _waitingTimeCost = null;
+        return this;
+    }
 
     /// <summary>
     /// Adds a distance cost to the shift.
@@ -271,7 +292,7 @@ public sealed class ShiftBuilder : FlaggedBuilder
     public Shift Build()
     {
         return new Shift(_shiftTimeWindow, _breaks, _startLocation, _endLocation, _fixedCost, _baseCost,
-            _timeCost, _distanceCost, _maxDuration, _maxDistance, BuildFlags());
+            _timeCost, _waitingTimeCost, _distanceCost, _maxDuration, _maxDistance, BuildFlags());
     }
 
     /// <inheritdoc/>
