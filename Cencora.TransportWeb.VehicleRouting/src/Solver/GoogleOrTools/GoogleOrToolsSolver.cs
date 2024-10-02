@@ -412,7 +412,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// </summary>
     private void SetupIndexCallback()
     {
-        IndexCallback = RoutingModel.RegisterUnaryTransitCallback((node) => 1);
+        IndexCallback = RoutingModel.RegisterUnaryTransitCallback((_) => 1);
     }
     
     private void SetupIndexDimension()
@@ -535,7 +535,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             .WithBaseCost(baseCost)
             .WithDistanceCost(distanceCost)
             .WithTimeCost(timeCost)
-            .WithWaitingTimeCost(shift.WaitingTimeCost ?? 0)
+            .WithWaitingTimeCost(waitingTimeCost)
             .WithWeightCost(vehicle.WeightCost ?? 0)
             .WithCostPerWeightDistance(vehicle.CostPerWeightDistance ?? 0)
             .WithMaxWeight(vehicle.MaxWeight ?? long.MaxValue)

@@ -2,7 +2,6 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
