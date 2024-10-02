@@ -16,16 +16,13 @@ namespace Cencora.TransportWeb.Cli;
 public class VehicleRoutingTest
 {
     private const int LocationCount = 20;
-    private const int ShipmentCount = 1;
-    private const int VehicleCount = 5;
-    
-    private readonly ISolver _solver = new GoogleOrToolsSolver(new GoogleOrToolsSolverOptions(TimeSpan.FromSeconds(10)));
     private readonly Random _random = new Random();
 
     public void Run()
     {
         var problem = BuildProblem();
-        var solution = _solver.Solve(problem);
+        using var solver = new GoogleOrToolsSolver(new GoogleOrToolsSolverOptions(TimeSpan.FromSeconds(4)));
+        var solution = solver.Solve(problem);
     }
 
     private Problem BuildProblem()
@@ -63,9 +60,6 @@ public class VehicleRoutingTest
             .WithMaxVehicleWaitingTime(long.MaxValue)
             .WithShipment(shipment)
             .Build();
-        
-        Console.WriteLine($"{problem}");
-        Console.WriteLine($"{string.Join("\n", problem.Shipments)}");
         
         return problem;
     }

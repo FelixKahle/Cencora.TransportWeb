@@ -38,15 +38,15 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         
         // Make sure the solver is reset before solving a new problem.
         Reset();
-
-        // Initialize the solver with the given problem.
-        InitializeSolver(problem);
         
-        // Prepare the solver for solving the problem.
-        PrepareSolver(problem);
-
         try
         {
+            // Initialize the solver with the given problem.
+            InitializeSolver(problem);
+        
+            // Prepare the solver for solving the problem.
+            PrepareSolver(problem);
+            
             // Solve the problem.
             var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
             searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
@@ -64,10 +64,10 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         }
         catch (Exception e)
         {
-            throw e;
+            throw new VehicleRoutingSolverException("An error occurred while solving the vehicle routing problem", e);
         }
 
-        throw new NotImplementedException();
+        return new SolverOutput();
     }
 
     /// <summary>
@@ -415,6 +415,9 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         IndexCallback = RoutingModel.RegisterUnaryTransitCallback((_) => 1);
     }
     
+    /// <summary>
+    /// Sets up the index dimension of the solver.
+    /// </summary>
     private void SetupIndexDimension()
     {
         RoutingModel.AddDimension(IndexCallback, 0, long.MaxValue, true, IndexDimensionName);

@@ -52,6 +52,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     private int _distanceCallback = -1;
     private RoutingDimension? _distanceDimension;
     
+    // Index
     private int _indexCallback = -1;
     private RoutingDimension? _indexDimension;
 
