@@ -464,6 +464,12 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         {
             return 0;
         }
+        
+        // The distance between the same location is 0.
+        if (fromLocation.Equals(toLocation))
+        {
+            return 0;
+        }
 
         return RouteMatrix.GetEdge(fromLocation, toLocation) switch
         {
@@ -487,7 +493,14 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         var fromLocation = fromNode.GetLocation();
         var toLocation = toNode.GetLocation();
         
+        // Arbitrary nodes have a duration of 0.
         if (fromLocation is null || toLocation is null)
+        {
+            return 0;
+        }
+        
+        // The duration between the same location is 0.
+        if (fromLocation.Equals(toLocation))
         {
             return 0;
         }
