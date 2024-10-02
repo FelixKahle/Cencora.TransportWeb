@@ -100,17 +100,25 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <summary>
     /// Gets the maximum weight the vehicle can carry.
     /// </summary>
-    internal long MaxWeight { get; set; }
+    internal long MaxWeight { get; }
+    
+    /// <summary>
+    /// Gets the maximum total weight the vehicle can carry.
+    /// </summary>
+    /// <remarks>
+    /// The maximum total weight is the sum of all weights a vehicle is allowed to carry.
+    /// </remarks>
+    internal long MaxTotalWeight { get; }
 
     /// <summary>
     /// Gets the maximum duration the vehicle can drive.
     /// </summary>
-    internal long MaxDuration { get; set; }
+    internal long MaxDuration { get; }
 
     /// <summary>
     /// Gets the maximum distance the vehicle can drive.
     /// </summary>
-    internal long MaxDistance { get; set; }
+    internal long MaxDistance { get; }
 
     /// <summary>
     /// The flags of the vehicle.
@@ -131,11 +139,12 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="weightCost">The weight cost of the vehicle.</param>
     /// <param name="costPerWeightDistance">The weight per distance cost of the vehicle.</param>
     /// <param name="maxWeight">The maximum weight the vehicle can carry.</param>
+    /// <param name="maxTotalWeight">The maximum total weight the vehicle can carry.</param>
     /// <param name="maxDuration">The maximum duration the vehicle can drive.</param>
     /// <param name="maxDistance">The maximum distance the vehicle can drive.</param>
     /// <exception cref="ArgumentOutOfRangeException">The index is negative.</exception>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="vehicle"/> or <paramref name="shift"/> is <see langword="null"/>.</exception>
-    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, long fixedCost, long baseCost, long distanceCost, long timeCost, long waitingTimeCost, long weightCost, long costPerWeightDistance, long maxWeight, long maxDuration, long maxDistance)
+    internal DummyVehicle(int index, Vehicle vehicle, Shift shift, long fixedCost, long baseCost, long distanceCost, long timeCost, long waitingTimeCost, long weightCost, long costPerWeightDistance, long maxWeight, long maxTotalWeight, long maxDuration, long maxDistance)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
@@ -151,9 +160,10 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
         WaitingTimeCost = waitingTimeCost;
         WeightCost = weightCost;
         CostPerWeightDistance = costPerWeightDistance;
-        MaxWeight = maxWeight;
-        MaxDuration = maxDuration;
-        MaxDistance = maxDistance;
+        MaxWeight = Math.Max(0, maxWeight);
+        MaxTotalWeight = Math.Max(0, maxTotalWeight);
+        MaxDuration = Math.Max(0, maxDuration);
+        MaxDistance = Math.Max(0, maxDistance);
         Flags = CreateFlagContainerFromGroups(vehicle.Flags, shift.Flags);
     }
 

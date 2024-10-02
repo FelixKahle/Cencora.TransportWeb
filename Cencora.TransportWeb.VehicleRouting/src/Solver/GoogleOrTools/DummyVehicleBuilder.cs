@@ -22,6 +22,7 @@ internal sealed class DummyVehicleBuilder
     private long _weightCost;
     private long _costPerWeightDistance;
     private long _maxWeight;
+    private long _maxTotalWeight;
     private long _maxDuration;
     private long _maxDistance;
 
@@ -172,6 +173,17 @@ internal sealed class DummyVehicleBuilder
         _maxWeight = maxWeight;
         return this;
     }
+    
+    /// <summary>
+    /// Adds the max total weight.
+    /// </summary>
+    /// <param name="maxTotalWeight">The max total weight.</param>
+    /// <returns>The builder.</returns>
+    internal DummyVehicleBuilder WithMaxTotalWeight(long maxTotalWeight)
+    {
+        _maxTotalWeight = maxTotalWeight;
+        return this;
+    }
 
     /// <summary>
     /// Adds the max duration.
@@ -203,7 +215,8 @@ internal sealed class DummyVehicleBuilder
     internal DummyVehicle Build()
     {
         return new DummyVehicle(_index, _vehicle, _shift, _fixedCost, _baseCost, _distanceCost,
-            _timeCost, _waitingTimeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxDuration, _maxDistance);
+            _timeCost, _waitingTimeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxTotalWeight, _maxDuration,
+            _maxDistance);
     }
 
     /// <inheritdoc/>

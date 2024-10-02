@@ -14,7 +14,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 public sealed class ShipmentBuilder : FlaggedBuilder
 {
     private Id _id;
-    private HashSet<ShipUnit> _shipUnits = new();
+    private readonly HashSet<ShipUnit> _shipUnits = new();
     private Location? _pickupLocation;
     private Location? _deliveryLocation;
     private long? _shipmentWeight;

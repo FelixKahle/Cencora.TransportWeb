@@ -8,6 +8,8 @@ using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
+using Google.OrTools.ConstraintSolver;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 
@@ -16,6 +18,17 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// </summary>
 public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
 {
+    private readonly GoogleOrToolsSolverOptions _options;
+    
+    /// <summary>
+    /// Creates a new instance of the <see cref="GoogleOrToolsSolver"/> class.
+    /// </summary>
+    /// <param name="options">The options for the solver.</param>
+    public GoogleOrToolsSolver(GoogleOrToolsSolverOptions options)
+    {
+        _options = options;
+    }
+    
     /// <inheritdoc/>
     public SolverOutput Solve(Problem problem)
     {
@@ -31,6 +44,28 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         
         // Prepare the solver for solving the problem.
         PrepareSolver(problem);
+
+        try
+        {
+            // Solve the problem.
+            var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
+            searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
+            searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
+            searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
+            using var solution = RoutingModel.SolveWithParameters(searchParameters);
+            
+            // We did not find a solution.
+            if (solution is null)
+            {
+                return new SolverOutput();
+            }
+            
+            Console.WriteLine("Worked");
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
 
         throw new NotImplementedException();
     }
@@ -59,6 +94,9 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         // Initialize the internal model,
         // which holds the nodes, vehicles and mappings.
         InitializeInternalModel(nodeCount, vehicleCount, shipmentCount);
+        
+        // Set the route matrix of the solver.
+        RouteMatrix = problem.DirectedRouteMatrix;
         
         // Populate the internal model with the given problem.
         SetupShipments(problem.Shipments);
@@ -94,18 +132,42 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         SetupVehicleCosts();
         
         // Setup all the solver callbacks.
-        SetupTransitCallback();
+        SetupArcCostEvaluators();
         SetupTimeCallback();
         SetupDistanceCallback();
         SetupWeightCallback();
+        SetupCumulativeWeightCallback();
+        SetupIndexCallback();
         
         // Setup the dimensions of the solver.
         SetupTimeDimension();
         SetupDistanceDimension();
         SetupWeightDimension();
+        SetupCumulativeWeightDimension();
+        SetupIndexDimension();
+        
+        // Add time window constraints to the solver.
+        AddTimeWindowConstraints();
         
         // Link pickup and delivery.
         LinkNodes();
+        
+        // Set the objective functions for the vehicles.
+        SetupVehicleObjectiveFunctions();
+    }
+
+    /// <summary>
+    /// Sets the objective functions for the vehicles.
+    /// </summary>
+    private void SetupVehicleObjectiveFunctions()
+    {
+        // We want to maximize the start time to start as late as possible
+        // and minimize the end time to finish as early as possible.
+        for (var i = 0; i < VehicleCount; i++)
+        {
+            RoutingModel.AddVariableMaximizedByFinalizer(TimeDimension.CumulVar(RoutingModel.Start(i)));
+            RoutingModel.AddVariableMinimizedByFinalizer(TimeDimension.CumulVar(RoutingModel.End(i)));
+        }
     }
 
     /// <summary>
@@ -203,9 +265,10 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var fromNode = Nodes[fromNodeIndex];
             var toNode = Nodes[toNodeIndex];
 
-            var time = GetDuration(fromNode, toNode);
+            var travelTime = GetDuration(fromNode, toNode);
+            var handlingTime = fromNode.GetTimeDemand();
             
-            return time;
+            return travelTime + handlingTime;
         });
     }
 
@@ -218,6 +281,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var adjustedMaxSlackTime = Math.Max(0, maxSlackTime);
         var maxTravelTimes = Vehicles.Select(v => v.MaxDuration).ToArray();
         RoutingModel.AddDimensionWithVehicleCapacity(TimeCallback, adjustedMaxSlackTime, maxTravelTimes, false, TimeDimensionName);
+        TimeDimension = RoutingModel.GetMutableDimension(TimeDimensionName);
 
         for (var i = 0; i < VehicleCount; i++)
         {
@@ -249,22 +313,59 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     }
     
     /// <summary>
+    /// Sets up the cumulative weight callback of the solver.
+    /// </summary>
+    /// <remarks>
+    /// The cumulative weight callback is used to calculate the cumulative weight of a node.
+    /// </remarks>
+    private void SetupCumulativeWeightCallback()
+    {
+        CumulativeWeightCallback = RoutingModel.RegisterUnaryTransitCallback((node) =>
+        {
+            var nodeIndex = IndexManager.IndexToNode(node);
+            var actualNode = Nodes[nodeIndex];
+            
+            // We do not want any negative weights in the cumulative weight dimension,
+            // as we want to keep track of the total weight that has been collected.
+            return Math.Max(0, actualNode.GetWeightDemand());
+        });
+    }
+    
+    /// <summary>
     /// Sets up the weight dimension of the solver.
     /// </summary>
     private void SetupWeightDimension()
     {
+        // The weight dimension is only to enforce the maximum weight of the vehicles.
+        // We do not set any coefficients for the weight dimension, as this will increase or decrease from node to node,
+        // and would not make any sense to set a coefficient for it.
+        // Coefficients are set for the cumulative weight dimension.
         var maxWeights = Vehicles.Select(v => v.MaxWeight).ToArray();
         RoutingModel.AddDimensionWithVehicleCapacity(WeightCallback, 0, maxWeights, true, WeightDimensionName);
+        WeightDimension = RoutingModel.GetMutableDimension(WeightDimensionName);
+    }
+    
+    /// <summary>
+    /// Sets up the cumulative weight dimension of the solver.
+    /// </summary>
+    /// <remarks>
+    /// The cumulative weight dimension is used to keep track of the total weight that has been collected.
+    /// </remarks>
+    private void SetupCumulativeWeightDimension()
+    {
+        var maxWeights = Vehicles.Select(v => v.MaxTotalWeight).ToArray();
+        RoutingModel.AddDimensionWithVehicleCapacity(CumulativeWeightCallback, 0, maxWeights, true, CumulativeWeightDimensionName);
+        CumulativeWeightDimension = RoutingModel.GetMutableDimension(CumulativeWeightDimensionName);
 
         for (var i = 0; i < VehicleCount; i++)
         {
             var vehicle = Vehicles[i];
             var weightCost = vehicle.WeightCost;
             
-            WeightDimension.SetSpanCostCoefficientForVehicle(weightCost, i);
+            CumulativeWeightDimension.SetSpanCostCoefficientForVehicle(weightCost, i);
             // Theoretically we do not need to do this, as we disallow any slack on this dimension.
             // For good practice and because it will not cause any harm, we keep it here.
-            WeightDimension.SetSlackCostCoefficientForVehicle(weightCost, i);
+            CumulativeWeightDimension.SetSlackCostCoefficientForVehicle(weightCost, i);
         }
     }
 
@@ -292,7 +393,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     {
         var maxDistances = Vehicles.Select(v => v.MaxDistance).ToArray();
         RoutingModel.AddDimensionWithVehicleCapacity(DistanceCallback, 0, maxDistances, true, DistanceDimensionName);
-
+        DistanceDimension = RoutingModel.GetMutableDimension(DistanceDimensionName);
+        
         for (var i = 0; i < VehicleCount; i++)
         {
             var vehicle = Vehicles[i];
@@ -304,28 +406,76 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             DistanceDimension.SetSlackCostCoefficientForVehicle(distanceCost, i);
         }
     }
-
+    
     /// <summary>
-    /// Sets up the transit callbacks of the solver.
+    /// Sets up the index callback of the solver.
+    /// </summary>
+    private void SetupIndexCallback()
+    {
+        IndexCallback = RoutingModel.RegisterUnaryTransitCallback((node) => 1);
+    }
+    
+    private void SetupIndexDimension()
+    {
+        RoutingModel.AddDimension(IndexCallback, 0, long.MaxValue, true, IndexDimensionName);
+        IndexDimension = RoutingModel.GetMutableDimension(IndexDimensionName);
+    }
+
+    private void SetupArcCostEvaluators()
+    {
+        // TODO:
+        // The Arc cost evaluator takes into account the cost of traveling from one node to another.
+        // We calculate the cost based on the distance and time cost of the vehicle.
+        // As we also have dimensions for time and distance, we consider these costs twice,
+        // which is not ideal.
+        for (var i = 0; i < VehicleCount; i++)
+        {
+            var vehicle = Vehicles[i];
+            var distanceCost = vehicle.DistanceCost;
+            var timeCost = vehicle.TimeCost;
+
+            var callback = RoutingModel.RegisterTransitCallback((from, to) =>
+            {
+                var fromNodeIndex = IndexManager.IndexToNode(from);
+                var toNodeIndex = IndexManager.IndexToNode(to);
+                var fromNode = Nodes[fromNodeIndex];
+                var toNode = Nodes[toNodeIndex];
+                
+                var distance = GetDistance(fromNode, toNode);
+                var duration = GetDuration(fromNode, toNode);
+                
+                var totalDistanceCost = MathUtils.MultiplyOrDefault(distance, distanceCost, long.MaxValue);
+                var totalTimeCost = MathUtils.MultiplyOrDefault(duration, timeCost, long.MaxValue);
+                
+                return MathUtils.AddOrDefault(totalDistanceCost, totalTimeCost, long.MaxValue);
+            });
+            
+            RoutingModel.SetArcCostEvaluatorOfVehicle(callback, i);
+        }
+    }
+    
+    /// <summary>
+    /// Adds the time window constraints to the solver.
     /// </summary>
     /// <remarks>
-    /// The transit callback is used to calculate the cost of traveling from one node to another.
-    /// This is used to find a initial solution for the solver.
+    /// The time window constraints are used to ensure that the vehicles visit the nodes within the given time windows.
     /// </remarks>
-    private void SetupTransitCallback()
+    private void AddTimeWindowConstraints()
     {
-        var callback = RoutingModel.RegisterTransitCallback((from, to) =>
+        for (var i = 0; i < NodeCount; i++)
         {
-            var fromNodeIndex = IndexManager.IndexToNode(from);
-            var toNodeIndex = IndexManager.IndexToNode(to);
-            var fromNode = Nodes[fromNodeIndex];
-            var toNode = Nodes[toNodeIndex];
-            var distance = GetDistance(fromNode, toNode);
+            var node = Nodes[i];
 
-            return distance;
-        });
-        
-        RoutingModel.SetArcCostEvaluatorOfAllVehicles(callback);
+            var range = node.GetTimeWindow();
+            if (range is null)
+            {
+                continue;
+            }
+            
+            var index = IndexManager.NodeToIndex(i);
+            TimeDimension.CumulVar(index).SetRange(range.Value.Min, range.Value.Max);
+            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
+        }
     }
 
     /// <summary>
@@ -352,9 +502,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // The following line adds the requirement that each item must be picked up and delivered by the same vehicle.
             solver.Add(solver.MakeEquality(RoutingModel.VehicleVar(pickupIndex), RoutingModel.VehicleVar(deliveryIndex)));
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
-            // To do so, we require that a vehicle's cumulative distance at an item's pickup location is at most 
-            // its cumulative distance at the delivery location.
-            solver.Add(solver.MakeLessOrEqual(DistanceDimension.CumulVar(pickupIndex), DistanceDimension.CumulVar(deliveryIndex)));
+            solver.Add(solver.MakeLessOrEqual(IndexDimension.CumulVar(pickupIndex), IndexDimension.CumulVar(deliveryIndex)));
         }
     }
 
@@ -388,9 +536,10 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             .WithDistanceCost(distanceCost)
             .WithTimeCost(timeCost)
             .WithWaitingTimeCost(shift.WaitingTimeCost ?? 0)
-            .WithWeightCost(waitingTimeCost)
+            .WithWeightCost(vehicle.WeightCost ?? 0)
             .WithCostPerWeightDistance(vehicle.CostPerWeightDistance ?? 0)
             .WithMaxWeight(vehicle.MaxWeight ?? long.MaxValue)
+            .WithMaxTotalWeight(long.MaxValue)
             .WithMaxDistance(shift.MaxDistance ?? long.MaxValue)
             .WithMaxDuration(shift.MaxDuration ?? long.MaxValue)
             .Build();

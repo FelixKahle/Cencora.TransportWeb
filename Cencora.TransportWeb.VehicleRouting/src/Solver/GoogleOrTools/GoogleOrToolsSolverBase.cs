@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
@@ -23,7 +24,9 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
 {
     private protected const string TimeDimensionName = "TimeDimension";
     private protected const string WeightDimensionName = "WeightDimension";
+    private protected const string CumulativeWeightDimensionName = "CumulativeWeightDimension";
     private protected const string DistanceDimensionName = "DistanceDimension";
+    private protected const string IndexDimensionName = "IndexDimension";
     
     // OR-Tools interfaces
     private RoutingIndexManager? _indexManager;
@@ -43,10 +46,15 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     // Weight
     private int _weightCallback = -1;
     private RoutingDimension? _weightDimension;
+    private int _cumulativeWeightCallback = -1;
+    private RoutingDimension? _cumulativeWeightDimension;
     
     // Distance
     private int _distanceCallback = -1;
     private RoutingDimension? _distanceDimension;
+    
+    private int _indexCallback = -1;
+    private RoutingDimension? _indexDimension;
 
     /// <summary>
     /// Initializes the internal model of the solver.
@@ -332,6 +340,58 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
             _distanceDimension = value;
         }
     }
+    
+    /// <summary>
+    /// Gets or sets the cumulative weight callback of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the cumulative weight callback is not initialized.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is less than 0.</exception>
+    private protected int CumulativeWeightCallback
+    {
+        get => _cumulativeWeightCallback >= 0 ? _cumulativeWeightCallback : throw new InvalidOperationException("The cumulative weight callback is not initialized.");
+        set => _cumulativeWeightCallback = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value), value, "The cumulative weight callback must be greater or equal to 0.");
+    }
+    
+    /// <summary>
+    /// Gets or sets the cumulative weight dimension of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the cumulative weight dimension is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    private protected RoutingDimension CumulativeWeightDimension
+    {
+        get => _cumulativeWeightDimension ?? throw new InvalidOperationException("The cumulative weight dimension is not initialized.");
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            _cumulativeWeightDimension = value;
+        }
+    }
+    
+    /// <summary>
+    /// Gets or sets the index callback of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the index callback is not initialized.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the value is less than 0.</exception>
+    private protected int IndexCallback
+    {
+        get => _indexCallback >= 0 ? _indexCallback : throw new InvalidOperationException("The index callback is not initialized.");
+        set => _indexCallback = value >= 0 ? value : throw new ArgumentOutOfRangeException(nameof(value), value, "The index callback must be greater or equal to 0.");
+    }
+    
+    /// <summary>
+    /// Gets or sets the index dimension of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the index dimension is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    private protected RoutingDimension IndexDimension
+    {
+        get => _indexDimension ?? throw new InvalidOperationException("The index dimension is not initialized.");
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+            _indexDimension = value;
+        }
+    }
 
     /// <summary>
     /// Initializes the shipments to node store of the solver.
@@ -361,6 +421,10 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         _weightDimension?.Dispose();
         _weightDimension = null;
         _weightCallback = -1;
+        
+        _cumulativeWeightDimension?.Dispose();
+        _cumulativeWeightDimension = null;
+        _cumulativeWeightCallback = -1;
         
         _nodes?.Clear();
         _nodes = null;

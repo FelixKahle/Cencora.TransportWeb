@@ -14,9 +14,9 @@ namespace Cencora.TransportWeb.VehicleRouting.Model;
 /// </summary>
 public sealed class ProblemBuilder
 {
-    private HashSet<Location> _locations = new HashSet<Location>();
-    private HashSet<Vehicle> _vehicles = new HashSet<Vehicle>();
-    private HashSet<Shipment> _shipments = new HashSet<Shipment>();
+    private readonly HashSet<Location> _locations = new HashSet<Location>();
+    private readonly HashSet<Vehicle> _vehicles = new HashSet<Vehicle>();
+    private readonly HashSet<Shipment> _shipments = new HashSet<Shipment>();
     private DirectedRouteMatrix? _routeMatrix;
     private long? _maxVehicleWaitingTime;
 

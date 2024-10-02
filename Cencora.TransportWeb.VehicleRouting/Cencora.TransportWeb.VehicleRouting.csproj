@@ -9,7 +9,6 @@
         <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
         <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
         <TrimMode>full</TrimMode>
-        <LangVersion>13</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

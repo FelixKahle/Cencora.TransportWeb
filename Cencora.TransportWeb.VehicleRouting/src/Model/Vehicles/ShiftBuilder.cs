@@ -13,7 +13,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 public sealed class ShiftBuilder : FlaggedBuilder
 {
     private ValueRange _shiftTimeWindow;
-    private HashSet<Break> _breaks = new HashSet<Break>();
+    private readonly HashSet<Break> _breaks = new HashSet<Break>();
     private Location? _startLocation;
     private Location? _endLocation;
     private long? _maxDuration;
