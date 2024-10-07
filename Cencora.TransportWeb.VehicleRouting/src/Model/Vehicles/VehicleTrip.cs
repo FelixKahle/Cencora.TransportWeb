@@ -10,7 +10,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 /// <summary>
 /// Represents a vehicle trip.
 /// </summary>
-public sealed class VehicleTrip
+public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTrip>
 {
     /// <summary>
     /// Gets the index of the vehicle trip.
@@ -99,6 +99,109 @@ public sealed class VehicleTrip
         ArrivalTimeWindow = arrivalTimeWindow;
         TripDistanceCost = tripDistanceCost;
         TripDurationCost = tripDurationCost;
+    }
+
+    /// <inheritdoc/>
+    public bool Equals(VehicleTrip? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+        
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Index.Equals(other.Index) && Vehicle.Equals(other.Vehicle);
+    }
+
+    /// <inheritdoc/>
+    public int CompareTo(VehicleTrip? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return 1;
+        }
+        
+        return Index.CompareTo(other.Index);
+    }
+    
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="VehicleTrip"/> are equal>
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator ==(VehicleTrip? left, VehicleTrip? right)
+    {
+        return Equals(left, right);
+    }
+    
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="VehicleTrip"/> are not equal.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is not equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator !=(VehicleTrip? left, VehicleTrip? right)
+    {
+        return !Equals(left, right);
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleTrip"/> is less than another specified <see cref="VehicleTrip"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is less than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <(VehicleTrip left, VehicleTrip right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleTrip"/> is greater than another specified <see cref="VehicleTrip"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is greater than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >(VehicleTrip left, VehicleTrip right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleTrip"/> is less than or equal to another specified <see cref="VehicleTrip"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is less than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <=(VehicleTrip left, VehicleTrip right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleTrip"/> is greater than or equal to another specified <see cref="VehicleTrip"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is greater than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >=(VehicleTrip left, VehicleTrip right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+    
+    /// <summary>
+    /// Converts a <see cref="VehicleTrip"/> to an <see cref="int"/>.
+    /// </summary>
+    /// <param name="trip">The vehicle trip to convert.</param>
+    /// <returns>The index of the vehicle trip.</returns>
+    public static implicit operator int (VehicleTrip trip)
+    {
+        return trip.Index;
     }
 
     /// <inheritdoc/>

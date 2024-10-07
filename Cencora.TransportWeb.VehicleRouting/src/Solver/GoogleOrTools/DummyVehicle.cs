@@ -12,7 +12,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// <summary>
 /// Represents a dummy vehicle.
 /// </summary>
-internal sealed class DummyVehicle : IEquatable<DummyVehicle>
+internal sealed class DummyVehicle : IEquatable<DummyVehicle>, IEquatable<Vehicle>
 {
     /// <summary>
     /// The index of the dummy vehicle in the solver vehicle list.
@@ -184,9 +184,23 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     }
 
     /// <inheritdoc />
+    public bool Equals(Vehicle? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+        
+        // These are not the same classes,
+        // so comparing for reference equality
+        // makes no sense here.
+        return Vehicle.Id.Equals(other.Id);
+    }
+
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        return obj is DummyVehicle other && Equals(other);
+        return (obj is DummyVehicle other && Equals(other)) || (obj is Vehicle otherVehicle && Equals(otherVehicle));
     }
 
     /// <inheritdoc />
@@ -212,6 +226,16 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     }
 
     /// <summary>
+    /// Converts a <see cref="DummyVehicle"/> to a <see cref="Vehicle"/>.
+    /// </summary>
+    /// <param name="dummyVehicle">The <see cref="DummyVehicle"/> to convert.</param>
+    /// <returns>The <see cref="Vehicle"/> of the <see cref="DummyVehicle"/>.</returns>
+    public static implicit operator Vehicle(DummyVehicle dummyVehicle)
+    {
+        return dummyVehicle.Vehicle;
+    }
+
+    /// <summary>
     /// Determines whether two specified instances of <see cref="DummyVehicle"/> are equal.
     /// </summary>
     /// <param name="left">The first <see cref="DummyVehicle"/> to compare.</param>
@@ -219,7 +243,17 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> represent the same <see cref="DummyVehicle"/>; otherwise, <see langword="false"/>.</returns>
     public static bool operator ==(DummyVehicle? left, DummyVehicle? right)
     {
-        return Equals(left, right);
+        if (ReferenceEquals(left, right))
+        {
+            return true;
+        }
+        
+        if (left is null || right is null)
+        {
+            return false;
+        }
+        
+        return left.Equals(right);
     }
 
     /// <summary>
@@ -229,6 +263,28 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <param name="right">The second <see cref="DummyVehicle"/> to compare.</param>
     /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> do not represent the same <see cref="DummyVehicle"/>; otherwise, <see langword="false"/>.</returns>
     public static bool operator !=(DummyVehicle? left, DummyVehicle? right)
+    {
+        return !(left == right);
+    }
+    
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="DummyVehicle"/> and <see cref="Vehicle"/> are equal.
+    /// </summary>
+    /// <param name="left">The first <see cref="DummyVehicle"/> to compare.</param>
+    /// <param name="right">The second <see cref="Vehicle"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> represent the same vehicle; otherwise, <see langword="false"/>.</returns>
+    public static bool operator ==(DummyVehicle? left, Vehicle? right)
+    {
+        return Equals(left, right);
+    }
+    
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="DummyVehicle"/> and <see cref="Vehicle"/> are not equal.
+    /// </summary>
+    /// <param name="left">The first <see cref="DummyVehicle"/> to compare.</param>
+    /// <param name="right">The second <see cref="Vehicle"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> do not represent the same vehicle; otherwise, <see langword="false"/>.</returns>
+    public static bool operator !=(DummyVehicle? left, Vehicle? right)
     {
         return !Equals(left, right);
     }

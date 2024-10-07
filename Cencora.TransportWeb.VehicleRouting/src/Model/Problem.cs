@@ -20,14 +20,29 @@ public sealed class Problem
     public IReadOnlySet<Location> Locations { get; }
 
     /// <summary>
+    /// Returns the number of locations of the problem.
+    /// </summary>
+    public int LocationCount => Locations.Count;
+
+    /// <summary>
     /// All shipments that are part of the problem.
     /// </summary>
     public IReadOnlySet<Vehicle> Vehicles { get; }
 
     /// <summary>
+    /// Returns the number of vehicles of the problem.
+    /// </summary>
+    public int VehicleCount => Vehicles.Count;
+
+    /// <summary>
     /// All vehicles that are part of the problem.
     /// </summary>
     public IReadOnlySet<Shipment> Shipments { get; }
+
+    /// <summary>
+    /// Returns the number of shipments of the problem.
+    /// </summary>
+    public int ShipmentCount => Shipments.Count;
 
     /// <summary>
     /// The directed route matrix that contains the travel information between locations.

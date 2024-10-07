@@ -11,7 +11,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 /// <summary>
 /// Represents a stop of a vehicle.
 /// </summary>
-public sealed class VehicleStop
+public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleStop>
 {
     /// <summary>
     /// Gets the index of the vehicle stop.
@@ -41,22 +41,22 @@ public sealed class VehicleStop
     /// <summary>
     /// Gets the arrival time window of the vehicle stop.
     /// </summary>
-    public ValueRange ArrivalTimeWindow { get; }
+    public ValueRange ArrivalTimeWindow { get; internal set; }
 
     /// <summary>
     /// Gets the departure time window of the vehicle stop.
     /// </summary>
-    public ValueRange DepartureTimeWindow { get; }
+    public ValueRange DepartureTimeWindow { get; internal set; }
 
     /// <summary>
     /// Gets the waiting time of the vehicle stop.
     /// </summary>
-    public long WaitingTime { get; }
+    public long WaitingTime { get; internal set; }
 
     /// <summary>
     /// Gets the total cost of the vehicle stop.
     /// </summary>
-    public long StopCost { get; }
+    public long StopCost { get; internal set; }
 
     /// <summary>
     /// Gets the total service time of handling the pickups.
@@ -77,6 +77,35 @@ public sealed class VehicleStop
     /// Gets the total time the vehicle is stopped at the vehicle stop.
     /// </summary>
     public long TotalStopTime => TotalHandlingTime + WaitingTime;
+    
+    /// <summary>
+    /// Creates a new instance of the <see cref="VehicleStop"/> class.
+    /// </summary>
+    /// <param name="index">The index of the vehicle stop.</param>
+    /// <param name="location">The location of the vehicle stop.</param>
+    /// <param name="vehicle">The vehicle of the vehicle stop.</param>
+    /// <param name="arrivalTimeWindow">The arrival time window of the vehicle stop.</param>
+    /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
+    /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
+    /// <param name="stopCost">The total cost of the vehicle stop.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is negative.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="location"/> or <paramref name="vehicle"/> is null.</exception>
+    public VehicleStop(int index, Location location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, long waitingTime, long stopCost)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
+        ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
+
+        Index = index;
+        Location = location;
+        Vehicle = vehicle;
+        Pickups = new HashSet<Shipment>();
+        Deliveries = new HashSet<Shipment>();
+        ArrivalTimeWindow = arrivalTimeWindow;
+        DepartureTimeWindow = departureTimeWindow;
+        WaitingTime = waitingTime;
+        StopCost = stopCost;
+    }
 
     /// <summary>
     /// Creates a new instance of the <see cref="VehicleStop"/> class.
@@ -109,6 +138,109 @@ public sealed class VehicleStop
         DepartureTimeWindow = departureTimeWindow;
         WaitingTime = waitingTime;
         StopCost = stopCost;
+    }
+
+    /// <inheritdoc/>
+    public bool Equals(VehicleStop? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+        
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return Index.Equals(other.Index) && Vehicle.Equals(other.Vehicle);
+    }
+
+    /// <inheritdoc/>
+    public int CompareTo(VehicleStop? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return 1;
+        }
+
+        return Index.CompareTo(other.Index);
+    }
+
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="VehicleStop"/> are equal.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleStop"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleStop"/> to compare.</param>
+    /// <returns><see langword="true"/> if the two instances are equal; otherwise, <see langword="false"/>.</returns>
+    public static bool operator ==(VehicleStop? left, VehicleStop? right)
+    {
+        return Equals(left, right);
+    }
+    
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="VehicleStop"/> are not equal.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleStop"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleStop"/> to compare.</param>
+    /// <returns><see langword="true"/> if the two instances are not equal; otherwise, <see langword="false"/>.</returns>
+    public static bool operator !=(VehicleStop? left, VehicleStop? right)
+    {
+        return !Equals(left, right);
+    }
+    
+    /// <summary>
+    /// Converts a <see cref="VehicleStop"/> to an <see cref="int"/>.
+    /// </summary>
+    /// <param name="stop">The vehicle stop to convert.</param>
+    /// <returns>The index of the vehicle stop.</returns>
+    public static implicit operator int(VehicleStop stop)
+    {
+        return stop.Index;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleStop"/> is less than another specified <see cref="VehicleStop"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleStop"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleStop"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is less than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <(VehicleStop left, VehicleStop right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleStop"/> is greater than another specified <see cref="VehicleStop"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleStop"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleStop"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is greater than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >(VehicleStop left, VehicleStop right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleStop"/> is less than or equal to another specified <see cref="VehicleStop"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleStop"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleStop"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is less than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <=(VehicleStop left, VehicleStop right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified <see cref="VehicleStop"/> is greater than or equal to another specified <see cref="VehicleStop"/>.
+    /// </summary>
+    /// <param name="left">The first <see cref="VehicleStop"/> to compare.</param>
+    /// <param name="right">The second <see cref="VehicleStop"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is greater than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >=(VehicleStop left, VehicleStop right)
+    {
+        return left.CompareTo(right) >= 0;
     }
 
     /// <inheritdoc/>

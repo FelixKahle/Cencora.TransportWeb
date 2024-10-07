@@ -2,7 +2,9 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.Common.Extensions;
 using Cencora.TransportWeb.Common.MathUtils;
+using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
@@ -45,7 +47,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             InitializeSolver(problem);
         
             // Prepare the solver for solving the problem.
-            PrepareSolver(problem);
+            PrepareSolver();
             
             // Solve the problem.
             var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
@@ -93,7 +95,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
 
         // Initialize the internal model,
         // which holds the nodes, vehicles and mappings.
-        InitializeInternalModel(nodeCount, vehicleCount, shipmentCount);
+        InitializeInternalModel(problem, nodeCount, vehicleCount, shipmentCount);
         
         // Set the route matrix of the solver.
         RouteMatrix = problem.DirectedRouteMatrix;
@@ -114,19 +116,15 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <summary>
     /// Prepares the solver.
     /// </summary>
-    /// <param name="problem">The problem to solve.</param>
     /// <remarks>
     /// This method mainly populates the Google OR-Tools routing model with the necessary data
     /// for solving the vehicle routing problem.
     /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="problem"/> is <see langword="null"/>.</exception>
-    private void PrepareSolver(Problem problem)
+    private void PrepareSolver()
     {
         // NOTE: The order of the following method calls is important.
         // Do not modify the order unless you know what you are doing
         // as some methods depend on the successful execution of others.
-        
-        ArgumentNullException.ThrowIfNull(problem, nameof(problem));
         
         // Set up the fixed costs of the vehicles.
         SetupVehicleCosts();
@@ -578,6 +576,50 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
 
         var nodeIndex = NodeCount;
         return new VehicleNode(nodeIndex, dummyVehicle, location, nodeType);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="SolverOutput"/> from an assignment.
+    /// </summary>
+    /// <param name="assignment">The assignment.</param>
+    /// <returns>The output of the solver.</returns>
+    private SolverOutput CreateOutput(in Assignment assignment)
+    {
+        ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
+        
+        List<VehiclePlan> vehiclePlans = new List<VehiclePlan>(SolverProblem.VehicleCount);
+        
+        // Iterate over all vehicles we need to create a plan for.
+        for (var i = 0; i < VehicleCount; i++)
+        {
+            var currentDummyVehicle = Vehicles[i];
+            var currentShift = currentDummyVehicle.Shift;
+            var currentVehicle = currentDummyVehicle.Vehicle;
+
+            // Get the start of the current vehicle.
+            var currentIndex = RoutingModel.Start(i);
+            var stopIndex = 1;
+            var tripIndex = 1;
+
+            List<VehicleStop> stops = new List<VehicleStop>();
+            List<VehicleTrip> trips = new List<VehicleTrip>();
+
+            // Now iterate over all nodes of the current dummy vehicle.
+            while (true)
+            {
+                // Get the arrival times of the current node.
+                var currentArrivalTimeVar = TimeDimension.CumulVar(currentIndex);
+                var currentEarliestArrivalTime = currentArrivalTimeVar.Min();
+                var currentLatestArrivalTime = currentArrivalTimeVar.Max();
+                
+                var currentWaitingTimeVar = TimeDimension.SlackVar(currentIndex);
+                var minimumWaitingTime = currentWaitingTimeVar.Min();
+                var maximumWaitingTime = currentWaitingTimeVar.Max();
+            }
+
+
+        }
+        throw new NotImplementedException();
     }
 
     /// <inheritdoc/>

@@ -15,31 +15,23 @@ public sealed class VehiclePlan
     public Vehicle Vehicle { get; }
 
     /// <summary>
-    /// Gets the stops of the plan.
+    /// Gets the shifts of the plan.
     /// </summary>
-    public IReadOnlyList<VehicleStop> Stops { get; }
-
-    /// <summary>
-    /// Gets the trips of the plan.
-    /// </summary>
-    public IReadOnlyList<VehicleTrip> Trips { get; }
-
+    public IReadOnlyList<VehicleShift> Shifts { get; }
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="VehiclePlan"/> class.
     /// </summary>
-    /// <param name="vehicle">The vehicle of the plan.</param>
-    /// <param name="stops">The stops of the plan.</param>
-    /// <param name="trips">The trips of the plan.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/>, <paramref name="stops"/> or <paramref name="trips"/> is <see langword="null"/>.</exception>
-    public VehiclePlan(Vehicle vehicle, IReadOnlyList<VehicleStop> stops, IReadOnlyList<VehicleTrip> trips)
+    /// <param name="vehicle">The vehicle.</param>
+    /// <param name="shifts">The shifts.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="vehicle"/> or <paramref name="shifts"/> is <see langword="null"/>.</exception>
+    public VehiclePlan(Vehicle vehicle, IReadOnlyList<VehicleShift> shifts)
     {
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
-        ArgumentNullException.ThrowIfNull(stops, nameof(stops));
-        ArgumentNullException.ThrowIfNull(trips, nameof(trips));
+        ArgumentNullException.ThrowIfNull(shifts, nameof(shifts));
 
         Vehicle = vehicle;
-        Stops = stops;
-        Trips = trips;
+        Shifts = shifts;
     }
 
     /// <inheritdoc/>

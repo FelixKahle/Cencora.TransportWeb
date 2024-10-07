@@ -23,6 +23,24 @@ public static class HashSetExtensions
             set.Add(item);
         }
     }
+    
+    /// <summary>
+    /// Adds the specified item to the set if the condition is <see langword="true"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the set.</typeparam>
+    /// <param name="set">The set to add the item to.</param>
+    /// <param name="condition">The condition that must be <see langword="true"/> to add the item.</param>
+    /// <param name="item">The item to add to the set.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="set"/> is <see langword="null"/>.</exception>
+    public static void AddIf<T>(this HashSet<T> set, bool condition, T item)
+    {
+        ArgumentNullException.ThrowIfNull(set, nameof(set));
+        
+        if (condition)
+        {
+            set.Add(item);
+        }
+    }
 
     /// <summary>
     /// Removes the elements of the specified collection from the set.

@@ -108,8 +108,29 @@ public static class ListExtensions
     /// <param name="list">The list to check.</param>
     /// <param name="index">The index to check.</param>
     /// <returns><see langword="true"/> if the index is valid; otherwise <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="list"/> is <see langword="null"/>.</exception>
     public static bool IsIndexValid<T>(this IReadOnlyList<T> list, int index)
     {
+        ArgumentNullException.ThrowIfNull(list, nameof(list));
+        
         return index >= 0 && index < list.Count;
+    }
+    
+    /// <summary>
+    /// Adds the specified item to the list if the condition is <see langword="true"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the items in the list.</typeparam>
+    /// <param name="list">The list to add the item to.</param>
+    /// <param name="condition">The condition that must be <see langword="true"/> to add the item.</param>
+    /// <param name="item">The item to add to the list.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="list"/> is <see langword="null"/>.</exception>
+    public static void AddIf<T>(this List<T> list, bool condition, T item)
+    {
+        ArgumentNullException.ThrowIfNull(list, nameof(list));
+        
+        if (condition)
+        {
+            list.Add(item);
+        }
     }
 }

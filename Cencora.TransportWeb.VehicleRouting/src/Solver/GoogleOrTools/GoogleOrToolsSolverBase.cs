@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
@@ -32,6 +33,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     private RoutingModel? _routingModel;
     
     // Internal state
+    private Problem? _problem;
     private List<Node>? _nodes;
     private List<DummyVehicle>? _vehicles;
     private Dictionary<DummyVehicle, VehicleNodeStore>? _vehiclesToNodeStore;
@@ -59,6 +61,7 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <summary>
     /// Initializes the internal model of the solver.
     /// </summary>
+    /// <param name="problem">The problem.</param>
     /// <param name="nodeCount">The number of nodes.</param>
     /// <param name="vehicleCount">The number of vehicles.</param>
     /// <param name="shipmentCount">The number of shipments.</param>
@@ -66,12 +69,29 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// Internally calls the initialization methods for the nodes, vehicles, vehicles to transit callback index,
     /// vehicles to node store, and shipments to node store.
     /// </remarks>
-    private protected void InitializeInternalModel(int nodeCount = 0, int vehicleCount = 0, int shipmentCount = 0)
+    private protected void InitializeInternalModel(in Problem problem, int nodeCount = 0, int vehicleCount = 0, int shipmentCount = 0)
     {
+        SolverProblem = problem;
         InitializeNodes(nodeCount);
         InitializeVehicles(vehicleCount);
         InitializeVehiclesToNodeStore(vehicleCount);
         InitializeShipmentsToNodeStore(shipmentCount);
+    }
+
+    /// <summary>
+    /// Gets or sets the <see cref="Problem"/> of the solver.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the problem is not initialized.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if the value is <see langword="null"/>.</exception>
+    private protected Problem SolverProblem
+    {
+        get => _problem ?? throw new InvalidOperationException("The problem is not initialized");
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+
+            _problem = value;
+        }
     }
 
     /// <summary>
@@ -437,6 +457,9 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         
         _shipmentsToNodeStore?.Clear();
         _shipmentsToNodeStore = null;
+
+        // Do not clear the problem!
+        _problem = null;
     }
 
     /// <inheritdoc/>
