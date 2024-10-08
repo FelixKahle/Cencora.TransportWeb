@@ -93,7 +93,7 @@ public sealed class Shift : IEquatable<Shift>
         long? maxDistance, IReadOnlyFlagContainer? flags)
     {
         ShiftTimeWindow = shiftTimeWindow;
-        Breaks = InitializeBreaks(shiftTimeWindow, breaks ?? Enumerable.Empty<Break>());
+        Breaks = InitializeBreaks(shiftTimeWindow, breaks ?? []);
         StartLocation = startLocation;
         EndLocation = endLocation;
         FixedCost = fixedCost;
@@ -152,7 +152,7 @@ public sealed class Shift : IEquatable<Shift>
 
         // Little optimization: If the breaks are a collection, we can preallocate the hash set with the correct capacity.
         // Do not use Count() on IEnumerable, because it will iterate over the whole collection.
-        var breakSet = breaks is ICollection<Break> collection ? new HashSet<Break>(collection.Count) : new HashSet<Break>();
+        var breakSet = breaks is ICollection<Break> collection ? new HashSet<Break>(collection.Count) : [];
         foreach (var currentBreak in breaks)
         {
             // If the break is not in the time window of the shift, skip it,

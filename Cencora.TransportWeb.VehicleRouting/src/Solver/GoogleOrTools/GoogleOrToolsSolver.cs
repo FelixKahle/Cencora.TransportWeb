@@ -55,21 +55,12 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
             searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
             using var solution = RoutingModel.SolveWithParameters(searchParameters);
-            
-            // We did not find a solution.
-            if (solution is null)
-            {
-                return new SolverOutput();
-            }
-            
-            Console.WriteLine("Worked");
+            return CreateOutput(solution);
         }
         catch (Exception e)
         {
             throw new VehicleRoutingSolverException("An error occurred while solving the vehicle routing problem", e);
         }
-
-        return new SolverOutput();
     }
 
     /// <summary>
@@ -137,7 +128,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         SetupCumulativeWeightCallback();
         SetupIndexCallback();
         
-        // Setup the dimensions of the solver.
+        // Set up the dimensions of the solver.
         SetupTimeDimension();
         SetupDistanceDimension();
         SetupWeightDimension();
@@ -583,11 +574,17 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// </summary>
     /// <param name="assignment">The assignment.</param>
     /// <returns>The output of the solver.</returns>
-    private SolverOutput CreateOutput(in Assignment assignment)
+    private SolverOutput CreateOutput(in Assignment? assignment)
     {
-        ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
+        // If the assignment is null, we did not find a solution.
+        if (assignment is null)
+        {
+            return new SolverOutput();
+        }
         
-        List<VehiclePlan> vehiclePlans = new List<VehiclePlan>(SolverProblem.VehicleCount);
+        // Store the vehicle shifts in a dictionary,
+        // so we can later convert them into vehicle plans.
+        var vehicleShifts = new Dictionary<Vehicle, List<VehicleShift>>(SolverProblem.VehicleCount);
         
         // Iterate over all vehicles we need to create a plan for.
         for (var i = 0; i < VehicleCount; i++)
@@ -599,27 +596,134 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // Get the start of the current vehicle.
             var currentIndex = RoutingModel.Start(i);
             var stopIndex = 1;
-            var tripIndex = 1;
 
-            List<VehicleStop> stops = new List<VehicleStop>();
-            List<VehicleTrip> trips = new List<VehicleTrip>();
+            var stops = new List<SolverVehicleStop>();
 
             // Now iterate over all nodes of the current dummy vehicle.
-            while (true)
+            while (RoutingModel.IsEnd(currentIndex) == false)
             {
-                // Get the arrival times of the current node.
-                var currentArrivalTimeVar = TimeDimension.CumulVar(currentIndex);
-                var currentEarliestArrivalTime = currentArrivalTimeVar.Min();
-                var currentLatestArrivalTime = currentArrivalTimeVar.Max();
+                // Get the current node index and the current node.
+                var currentNodeNodeIndex = IndexManager.IndexToNode(currentIndex);
+                var currentNode = Nodes[currentNodeNodeIndex];
+                var currentLocation = currentNode.GetLocation();
                 
-                var currentWaitingTimeVar = TimeDimension.SlackVar(currentIndex);
-                var minimumWaitingTime = currentWaitingTimeVar.Min();
-                var maximumWaitingTime = currentWaitingTimeVar.Max();
+                // Get the time windows for the current node.
+                var (currentArrivalTimeWindow, currentWaitingTimeWindow, currentDepartureTimeWindow) = GetTimeWindows(currentIndex);
+
+                // Check if we are still at the same physical location as the last stop.
+                // We might have moved a node further, but the location can still be the same,
+                // as each shipment has its own pickup and delivery node, but the location can be the same.
+                // Two locations that are both null are not considered equal, as they are treated as arbitrary locations.
+                var lastLocation = stops.Count > 0 ? stops.Last().Location : null;
+                var isAtLastLocation = AreLocationsEqual(lastLocation, currentLocation);
+                
+                if (isAtLastLocation)
+                {
+                    // We are at the same location, therefore we need to update the last stop.
+                    // Calling last is safe here, as we have already checked if the stops list is empty.
+                    var lastStop = stops.Last();
+                    lastStop.ArrivalTimeWindow = CombineTimeWindows(lastStop.ArrivalTimeWindow, currentArrivalTimeWindow);
+                    lastStop.DepartureTimeWindow = CombineTimeWindows(lastStop.DepartureTimeWindow, currentDepartureTimeWindow);
+                    lastStop.WaitingTime = CombineTimeWindows(lastStop.WaitingTime, currentWaitingTimeWindow);
+                    lastStop.Pickups.AddIfNotNull(currentNode.GetPickup());
+                    lastStop.Deliveries.AddIfNotNull(currentNode.GetDelivery());
+                }
+                else
+                {
+                    // Create lists for the pickups and deliveries.
+                    var pickups = new HashSet<Shipment>();
+                    var deliveries = new HashSet<Shipment>();
+                    pickups.AddIfNotNull(currentNode.GetPickup());
+                    deliveries.AddIfNotNull(currentNode.GetDelivery());
+                    
+                    // We are at a new location, therefore we need to create a new stop.
+                    var stop = new SolverVehicleStop(stopIndex++, currentLocation, currentVehicle, pickups, deliveries, currentArrivalTimeWindow, currentDepartureTimeWindow, currentWaitingTimeWindow);
+                    stops.Add(stop);
+                }
+                
+                // Move to the next node.
+                currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
             }
-
-
+            
+            // Create the vehicle plan for the current vehicle.
+            var vehicleShift = new VehicleShift(currentVehicle, currentShift, stops.ConvertAll(s => s.ToVehicleStop()), []);
+            // We now need to check if we already have a plan for the current vehicle.
+            // If we have a plan, we need to add the current plan to the existing plan.
+            // If we do not have a plan, we need to create a new plan for the current vehicle.
+            if (vehicleShifts.TryGetValue(currentVehicle, out List<VehicleShift>? value))
+            {
+                value.Add(vehicleShift);
+            }
+            else
+            {
+                vehicleShifts[currentVehicle] = [vehicleShift];
+            }
         }
-        throw new NotImplementedException();
+        
+        var vehiclePlans = vehicleShifts.Select(kvp => new VehiclePlan(kvp.Key, kvp.Value)).ToHashSet();
+        var solution = new Solution(vehiclePlans);
+        return new SolverOutput(solution);
+    }
+    
+    
+    /// <summary>
+    /// Retrieves the time windows (arrival, waiting, and departure) for a given index.
+    /// </summary>
+    /// <param name="index">The index to retrieve the time windows for.</param>
+    /// <returns>The time windows (arrival, waiting, and departure) for the given index.</returns>
+    private (ValueRange arrival, ValueRange waiting, ValueRange departure) GetTimeWindows(long index)
+    {
+        var arrivalTimeVar = TimeDimension.CumulVar(index);
+        var earliestArrival = arrivalTimeVar.Min();
+        var latestArrival = arrivalTimeVar.Max();
+
+        var waitingTimeVar = TimeDimension.SlackVar(index);
+        var minimumWaitingTime = waitingTimeVar.Min();
+        var maximumWaitingTime = waitingTimeVar.Max();
+        
+        var nodeIndex = IndexManager.IndexToNode(index);
+        var handlingTime = Nodes[nodeIndex].GetTimeDemand();
+        var totalMinimumWaiting = minimumWaitingTime + handlingTime;
+        var totalMaximumWaiting = maximumWaitingTime + handlingTime;
+        
+        var arrivalWindow = new ValueRange(earliestArrival, latestArrival);
+        var waitingWindow = new ValueRange(totalMinimumWaiting, totalMaximumWaiting);
+        var departureWindow = new ValueRange(earliestArrival + handlingTime, latestArrival + handlingTime);
+
+        return (arrivalWindow, waitingWindow, departureWindow);
+    }
+    
+    /// <summary>
+    /// Combines two specified time windows.
+    /// </summary>
+    /// <param name="left">The first time window to combine.</param>
+    /// <param name="right">The second time window to combine.</param>
+    /// <returns>The combined time window.</returns>
+    /// <remarks>
+    /// It uses the maximum of the minimum values and the minimum of the maximum values of the two time windows.
+    /// </remarks>
+    private static ValueRange CombineTimeWindows(ValueRange left, ValueRange right)
+    {
+        return new ValueRange(Math.Max(left.Min, right.Min), Math.Min(left.Max, right.Max));
+    }
+    
+    /// <summary>
+    /// Helper method to compare two locations using LocationNullComparer.
+    /// </summary>
+    /// <param name="left">The first location to compare.</param>
+    /// <param name="right">The second location to compare.</param>
+    /// <returns><see langword="true"/> if the two locations are equal; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// If both locations are <see langword="null"/>, this method returns <see langword="false"/>.
+    /// </remarks>
+    private static bool AreLocationsEqual(Location? left, Location? right)
+    {
+        if (left is null || right is null)
+        {
+            return false;
+        }
+
+        return left.Equals(right);
     }
 
     /// <inheritdoc/>

@@ -8,7 +8,6 @@ using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 
 namespace Cencora.TransportWeb.Cli;

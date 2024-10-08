@@ -59,4 +59,21 @@ public static class HashSetExtensions
             set.Remove(item);
         }
     }
+    
+    /// <summary>
+    /// Adds the specified item to the set if it is not <see langword="null"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the set.</typeparam>
+    /// <param name="set">The set to add the item to.</param>
+    /// <param name="item">The item to add to the set.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="set"/> is <see langword="null"/>.</exception>
+    public static void AddIfNotNull<T>(this HashSet<T> set, T? item)
+    {
+        ArgumentNullException.ThrowIfNull(set, nameof(set));
+        
+        if (item is not null)
+        {
+            set.Add(item);
+        }
+    }
 }

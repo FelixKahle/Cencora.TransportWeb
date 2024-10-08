@@ -22,7 +22,7 @@ public static class ListExtensions
         ArgumentNullException.ThrowIfNull(list, nameof(list));
         ArgumentNullException.ThrowIfNull(items, nameof(items));
 
-        HashSet<T> set = new(items);
+        HashSet<T> set = [..items];
         return list.All(set.Contains);
     }
 

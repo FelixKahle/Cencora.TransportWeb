@@ -21,7 +21,7 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <summary>
     /// Gets the location of the vehicle stop.
     /// </summary>
-    public Location Location { get; }
+    public Location? Location { get; }
 
     /// <summary>
     /// Gets the vehicle of the vehicle stop.
@@ -41,22 +41,17 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <summary>
     /// Gets the arrival time window of the vehicle stop.
     /// </summary>
-    public ValueRange ArrivalTimeWindow { get; internal set; }
+    public ValueRange ArrivalTimeWindow { get; }
 
     /// <summary>
     /// Gets the departure time window of the vehicle stop.
     /// </summary>
-    public ValueRange DepartureTimeWindow { get; internal set; }
+    public ValueRange DepartureTimeWindow { get; }
 
     /// <summary>
     /// Gets the waiting time of the vehicle stop.
     /// </summary>
-    public long WaitingTime { get; internal set; }
-
-    /// <summary>
-    /// Gets the total cost of the vehicle stop.
-    /// </summary>
-    public long StopCost { get; internal set; }
+    public ValueRange WaitingTime { get; }
 
     /// <summary>
     /// Gets the total service time of handling the pickups.
@@ -76,7 +71,7 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <summary>
     /// Gets the total time the vehicle is stopped at the vehicle stop.
     /// </summary>
-    public long TotalStopTime => TotalHandlingTime + WaitingTime;
+    public ValueRange TotalStopTime => TotalHandlingTime + WaitingTime;
     
     /// <summary>
     /// Creates a new instance of the <see cref="VehicleStop"/> class.
@@ -87,13 +82,11 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <param name="arrivalTimeWindow">The arrival time window of the vehicle stop.</param>
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
-    /// <param name="stopCost">The total cost of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="location"/> or <paramref name="vehicle"/> is null.</exception>
-    public VehicleStop(int index, Location location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, long waitingTime, long stopCost)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/> is null.</exception>
+    public VehicleStop(int index, Location? location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
-        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
 
         Index = index;
@@ -104,7 +97,6 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
         ArrivalTimeWindow = arrivalTimeWindow;
         DepartureTimeWindow = departureTimeWindow;
         WaitingTime = waitingTime;
-        StopCost = stopCost;
     }
 
     /// <summary>
@@ -118,13 +110,11 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <param name="arrivalTimeWindow">The arrival time window of the vehicle stop.</param>
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
-    /// <param name="stopCost">The total cost of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="location"/>, <paramref name="vehicle"/>, <paramref name="pickups"/> or <paramref name="deliveries"/> is null.</exception>
-    public VehicleStop(int index, Location location, Vehicle vehicle, IReadOnlySet<Shipment> pickups, IReadOnlySet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, long waitingTime, long stopCost)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/>, <paramref name="pickups"/> or <paramref name="deliveries"/> is null.</exception>
+    public VehicleStop(int index, Location? location, Vehicle vehicle, IReadOnlySet<Shipment> pickups, IReadOnlySet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
-        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
         ArgumentNullException.ThrowIfNull(pickups, nameof(pickups));
         ArgumentNullException.ThrowIfNull(deliveries, nameof(deliveries));
@@ -137,7 +127,6 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
         ArrivalTimeWindow = arrivalTimeWindow;
         DepartureTimeWindow = departureTimeWindow;
         WaitingTime = waitingTime;
-        StopCost = stopCost;
     }
 
     /// <inheritdoc/>
@@ -154,6 +143,18 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
         }
 
         return Index.Equals(other.Index) && Vehicle.Equals(other.Vehicle);
+    }
+    
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+    {
+        return obj is VehicleStop other && Equals(other);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Index, Vehicle);
     }
 
     /// <inheritdoc/>
@@ -246,6 +247,8 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"Stop {Index} of vehicle {Vehicle.Id} at {Location.Id}";
+        var location = Location is null ? "unknown location" : Location.Id.ToString();
+        
+        return $"Stop {Index} of vehicle {Vehicle.Id} at {location}";
     }
 }

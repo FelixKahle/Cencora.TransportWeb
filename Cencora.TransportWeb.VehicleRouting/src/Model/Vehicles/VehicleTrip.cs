@@ -118,6 +118,18 @@ public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTr
     }
 
     /// <inheritdoc/>
+    public override bool Equals(object? obj)
+    {
+        return obj is VehicleTrip other && Equals(other);
+    }
+    
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Index, Vehicle);
+    }
+
+    /// <inheritdoc/>
     public int CompareTo(VehicleTrip? other)
     {
         if (ReferenceEquals(null, other))

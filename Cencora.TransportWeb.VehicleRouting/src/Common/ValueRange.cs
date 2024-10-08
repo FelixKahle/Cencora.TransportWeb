@@ -176,6 +176,18 @@ public readonly struct ValueRange : IEquatable<ValueRange>, IFormattable, ICompa
         var adjustedThreshold = Math.Max(0, threshold);
         return Min - adjustedThreshold <= other.Min && Max + adjustedThreshold >= other.Max;
     }
+    
+    /// <summary>
+    /// Combines the range with another range.
+    /// </summary>
+    /// <param name="other">The other range to combine with.</param>
+    /// <returns>The combined range.</returns>
+    public ValueRange Combine(ValueRange other)
+    {
+        var min = Math.Min(Min, other.Min);
+        var max = Math.Max(Max, other.Max);
+        return new ValueRange(min, max);
+    }
 
     /// <summary>
     /// Returns the intersection of the range with another range if it exists.
@@ -258,5 +270,38 @@ public readonly struct ValueRange : IEquatable<ValueRange>, IFormattable, ICompa
     public static bool operator >=(ValueRange left, ValueRange right)
     {
         return left.CompareTo(right) >= 0;
+    }
+    
+    /// <summary>
+    /// Adds two <see cref="ValueRange"/> instances.
+    /// </summary>
+    /// <param name="left">The first <see cref="ValueRange"/> instance.</param>
+    /// <param name="right">The second <see cref="ValueRange"/> instance.</param>
+    /// <returns>The sum of the two instances.</returns>
+    public static ValueRange operator +(ValueRange left, ValueRange right)
+    {
+        return new ValueRange(left.Min + right.Min, left.Max + right.Max);
+    }
+    
+    /// <summary>
+    /// Adds a value to a <see cref="ValueRange"/> instance.
+    /// </summary>
+    /// <param name="left">The <see cref="ValueRange"/> instance.</param>
+    /// <param name="right">The value to add.</param>
+    /// <returns>The sum of the instance and the value.</returns>
+    public static ValueRange operator +(ValueRange left, long right)
+    {
+        return new ValueRange(left.Min + right, left.Max + right);
+    }
+    
+    /// <summary>
+    /// Adds a value to a <see cref="ValueRange"/> instance.
+    /// </summary>
+    /// <param name="left">The value to add.</param>
+    /// <param name="right">The <see cref="ValueRange"/> instance.</param>
+    /// <returns>The sum of the value and the instance.</returns>
+    public static ValueRange operator +(long left, ValueRange right)
+    {
+        return new ValueRange(left + right.Min, left + right.Max);
     }
 }

@@ -12,7 +12,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// <summary>
 /// Represents a dummy vehicle.
 /// </summary>
-internal sealed class DummyVehicle : IEquatable<DummyVehicle>, IEquatable<Vehicle>
+internal sealed class DummyVehicle : IEquatable<DummyVehicle>
 {
     /// <summary>
     /// The index of the dummy vehicle in the solver vehicle list.
@@ -184,23 +184,9 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>, IEquatable<Vehicl
     }
 
     /// <inheritdoc />
-    public bool Equals(Vehicle? other)
-    {
-        if (ReferenceEquals(null, other))
-        {
-            return false;
-        }
-        
-        // These are not the same classes,
-        // so comparing for reference equality
-        // makes no sense here.
-        return Vehicle.Id.Equals(other.Id);
-    }
-
-    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        return (obj is DummyVehicle other && Equals(other)) || (obj is Vehicle otherVehicle && Equals(otherVehicle));
+        return obj is DummyVehicle other && Equals(other);
     }
 
     /// <inheritdoc />
@@ -230,8 +216,11 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>, IEquatable<Vehicl
     /// </summary>
     /// <param name="dummyVehicle">The <see cref="DummyVehicle"/> to convert.</param>
     /// <returns>The <see cref="Vehicle"/> of the <see cref="DummyVehicle"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the <paramref name="dummyVehicle"/> parameter is null.</exception>
     public static implicit operator Vehicle(DummyVehicle dummyVehicle)
     {
+        ArgumentNullException.ThrowIfNull(dummyVehicle, nameof(dummyVehicle));
+        
         return dummyVehicle.Vehicle;
     }
 
@@ -243,17 +232,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>, IEquatable<Vehicl
     /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> represent the same <see cref="DummyVehicle"/>; otherwise, <see langword="false"/>.</returns>
     public static bool operator ==(DummyVehicle? left, DummyVehicle? right)
     {
-        if (ReferenceEquals(left, right))
-        {
-            return true;
-        }
-        
-        if (left is null || right is null)
-        {
-            return false;
-        }
-        
-        return left.Equals(right);
+        return Equals(left, right);
     }
 
     /// <summary>
@@ -267,28 +246,6 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>, IEquatable<Vehicl
         return !(left == right);
     }
     
-    /// <summary>
-    /// Determines whether two specified instances of <see cref="DummyVehicle"/> and <see cref="Vehicle"/> are equal.
-    /// </summary>
-    /// <param name="left">The first <see cref="DummyVehicle"/> to compare.</param>
-    /// <param name="right">The second <see cref="Vehicle"/> to compare.</param>
-    /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> represent the same vehicle; otherwise, <see langword="false"/>.</returns>
-    public static bool operator ==(DummyVehicle? left, Vehicle? right)
-    {
-        return Equals(left, right);
-    }
-    
-    /// <summary>
-    /// Determines whether two specified instances of <see cref="DummyVehicle"/> and <see cref="Vehicle"/> are not equal.
-    /// </summary>
-    /// <param name="left">The first <see cref="DummyVehicle"/> to compare.</param>
-    /// <param name="right">The second <see cref="Vehicle"/> to compare.</param>
-    /// <returns><see langword="true"/> if <paramref name="left"/> and <paramref name="right"/> do not represent the same vehicle; otherwise, <see langword="false"/>.</returns>
-    public static bool operator !=(DummyVehicle? left, Vehicle? right)
-    {
-        return !Equals(left, right);
-    }
-
     /// <summary>
     /// Creates and initializes a <see cref="FlagContainer"/> from one or more collections of flags.
     /// </summary>
