@@ -11,6 +11,7 @@ using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 using Google.OrTools.ConstraintSolver;
+using Google.OrTools.Sat;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
@@ -54,7 +55,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
             searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
             searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
-            using var solution = RoutingModel.SolveWithParameters(searchParameters);
+            
+            var solution = RoutingModel.SolveWithParameters(searchParameters);
             return CreateOutput(solution);
         }
         catch (Exception e)
@@ -593,59 +595,20 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var currentShift = currentDummyVehicle.Shift;
             var currentVehicle = currentDummyVehicle.Vehicle;
 
-            // Get the start of the current vehicle.
-            var currentIndex = RoutingModel.Start(i);
-            var stopIndex = 1;
+            var stops = CollectStopsForVehicle(assignment, i, currentVehicle);
+        
+            // Create a vehicle shift for the current vehicle
+            var vehicleShift = new VehicleShift(currentVehicle, currentShift, stops.ConvertAll(s => s.ToVehicleStop()), []);
 
-            var stops = new List<VehicleStop>();
-
-            // Now iterate over all nodes of the current dummy vehicle.
-            while (RoutingModel.IsEnd(currentIndex) == false)
+            // Check if we already have a list of shifts for the current vehicle.
+            // If not, we create a new list and add the current shift to it.
+            // If we already have a list of shifts, we add the current shift to it.
+            if (!vehicleShifts.TryGetValue(currentVehicle, out var shifts))
             {
-                // Get the current node index and the current node.
-                var currentNodeNodeIndex = IndexManager.IndexToNode(currentIndex);
-                var currentNode = Nodes[currentNodeNodeIndex];
-                var currentLocation = currentNode.GetLocation();
-                
-                // Get the time windows for the current node.
-                var (currentArrivalTimeWindow, currentWaitingTimeWindow, currentDepartureTimeWindow) = GetTimeWindows(currentIndex);
-
-                // Check if we are still at the same physical location as the last stop.
-                // We might have moved a node further, but the location can still be the same,
-                // as each shipment has its own pickup and delivery node, but the location can be the same.
-                // Two locations that are both null are not considered equal, as they are treated as arbitrary locations.
-                var lastLocation = stops.Count > 0 ? stops.Last().Location : null;
-                var isAtLastLocation = AreLocationsEqual(lastLocation, currentLocation);
-                
-                if (isAtLastLocation)
-                {
-                    // Update the last stop in the list.
-                    UpdateLastStop(stops, currentNode, currentArrivalTimeWindow, currentWaitingTimeWindow, currentDepartureTimeWindow);
-                }
-                else
-                {
-                    // Add a new stop for this location.
-                    AddNewStop(stops, currentVehicle, stopIndex++, currentLocation, currentNode,
-                        currentArrivalTimeWindow, currentWaitingTimeWindow, currentDepartureTimeWindow);
-                }
-                
-                // Move to the next node.
-                currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
+                shifts = new List<VehicleShift>();
+                vehicleShifts[currentVehicle] = shifts;
             }
-            
-            // Create the vehicle plan for the current vehicle.
-            var vehicleShift = new VehicleShift(currentVehicle, currentShift, stops, []);
-            // We now need to check if we already have a plan for the current vehicle.
-            // If we have a plan, we need to add the current plan to the existing plan.
-            // If we do not have a plan, we need to create a new plan for the current vehicle.
-            if (vehicleShifts.TryGetValue(currentVehicle, out var value))
-            {
-                value.Add(vehicleShift);
-            }
-            else
-            {
-                vehicleShifts[currentVehicle] = [vehicleShift];
-            }
+            shifts.Add(vehicleShift);
         }
         
         // Create the vehicle plans from the vehicle shifts.
@@ -656,70 +619,42 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     }
     
     /// <summary>
-    /// Helper method to update the last stop in the list.
+    /// Collects the stops for a vehicle from an assignment.
     /// </summary>
-    /// <param name="stops">The list of stops.</param>
-    /// <param name="currentNode">The current node.</param>
-    /// <param name="arrivalTimeWindow">The arrival time window of the current node.</param>
-    /// <param name="waitingTimeWindow">The waiting time window of the current node.</param>
-    /// <param name="departureTimeWindow">The departure time window of the current node.</param>
-    /// <remarks>
-    /// This method is used to update the last stop in the list of stops.
-    /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stops"/> or <paramref name="currentNode"/> is <see langword="null"/>.</exception>
-    private void UpdateLastStop(List<VehicleStop> stops, Node currentNode, 
-        ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    /// <param name="assignment">The assignment.</param>
+    /// <param name="vehicleIndex">The index of the vehicle.</param>
+    /// <param name="currentVehicle">The current vehicle.</param>
+    /// <returns>The stops for the vehicle.</returns>
+    private List<MutableVehicleStop> CollectStopsForVehicle(in Assignment assignment, int vehicleIndex, in Vehicle currentVehicle)
     {
-        ArgumentNullException.ThrowIfNull(stops, nameof(stops));
-        ArgumentNullException.ThrowIfNull(currentNode, nameof(currentNode));
+        var stops = new List<MutableVehicleStop>();
+        var currentIndex = RoutingModel.Start(vehicleIndex);
+        var stopIndex = 1;
         
-        var lastStop = stops.Last();
-        var updatedPickups = lastStop.Pickups.ToHashSet();
-        var updatedDeliveries = lastStop.Deliveries.ToHashSet();
+        Console.WriteLine($"Vehicle: {currentVehicle}");
 
-        updatedPickups.AddIfNotNull(currentNode.GetPickup());
-        updatedDeliveries.AddIfNotNull(currentNode.GetDelivery());
+        while (RoutingModel.IsEnd(currentIndex) == false)
+        {
+            var currentNodeIndex = IndexManager.IndexToNode(currentIndex);
+            var currentNode = Nodes[currentNodeIndex];
+            var currentLocation = currentNode.GetLocation();
 
-        stops[^1] = new VehicleStopBuilder(lastStop.Index, lastStop.Vehicle)
-            .WithLocation(lastStop.Location)
-            .WithPickups(updatedPickups)
-            .WithDeliveries(updatedDeliveries)
-            .WithArrivalTimeWindow(CombineTimeWindows(lastStop.ArrivalTimeWindow, arrivalTimeWindow))
-            .WithDepartureTimeWindow(CombineTimeWindows(lastStop.DepartureTimeWindow, departureTimeWindow))
-            .WithWaitingTime(CombineTimeWindows(lastStop.WaitingTime, waitingTimeWindow))
-            .Build();
-    }
-    
-    /// <summary>
-    /// Helper method to add a new stop to the list of stops.
-    /// </summary>
-    /// <param name="stops">The list of stops.</param>
-    /// <param name="vehicle">The vehicle of the stop.</param>
-    /// <param name="stopIndex">The index of the stop.</param>
-    /// <param name="location">The location of the stop.</param>
-    /// <param name="node">The node of the stop.</param>
-    /// <param name="arrivalTimeWindow">The arrival time window of the stop.</param>
-    /// <param name="waitingTimeWindow">The waiting time window of the stop.</param>
-    /// <param name="departureTimeWindow">The departure time window of the stop.</param>
-    /// <remarks>
-    /// This method is used to add a new stop to the list of stops.
-    /// </remarks>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stops"/> or <paramref name="vehicle"/> or <paramref name="node"/> is <see langword="null"/>.</exception>
-    private void AddNewStop(List<VehicleStop> stops, Vehicle vehicle, int stopIndex, Location? location, Node node, 
-        ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
-    {
-        ArgumentNullException.ThrowIfNull(stops, nameof(stops));
-        ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
-        ArgumentNullException.ThrowIfNull(node, nameof(node));
+            var (arrivalWindow, waitingWindow, departureWindow) = GetTimeWindows(currentIndex, assignment);
         
-        stops.Add(new VehicleStopBuilder(stopIndex, vehicle)
-            .WithLocation(location)
-            .WithPickup(node.GetPickup())
-            .WithDelivery(node.GetDelivery())
-            .WithArrivalTimeWindow(arrivalTimeWindow)
-            .WithDepartureTimeWindow(departureTimeWindow)
-            .WithWaitingTime(waitingTimeWindow)
-            .Build());
+            if (IsSameLocationAsLastStop(stops, currentLocation))
+            {
+                MergeStopWithLast(stops.Last(), currentNode, arrivalWindow, waitingWindow, departureWindow);
+            }
+            else
+            {
+                stops.Add(CreateNewStop(stopIndex++, currentNode, currentVehicle, currentLocation, arrivalWindow, waitingWindow, departureWindow));
+            }
+            
+            currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
+        }
+
+        Console.WriteLine($"Stops: {stops.Count}");
+        return stops;
     }
     
     
@@ -727,16 +662,17 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// Retrieves the time windows (arrival, waiting, and departure) for a given index.
     /// </summary>
     /// <param name="index">The index to retrieve the time windows for.</param>
+    /// <param name="assignment">The assignment to retrieve the time windows from.</param>
     /// <returns>The time windows (arrival, waiting, and departure) for the given index.</returns>
-    private (ValueRange arrival, ValueRange waiting, ValueRange departure) GetTimeWindows(long index)
+    private (ValueRange arrival, ValueRange waiting, ValueRange departure) GetTimeWindows(long index, in Assignment assignment)
     {
         var arrivalTimeVar = TimeDimension.CumulVar(index);
-        var earliestArrival = arrivalTimeVar.Min();
-        var latestArrival = arrivalTimeVar.Max();
+        var earliestArrival = assignment.Min(arrivalTimeVar);
+        var latestArrival = assignment.Max(arrivalTimeVar);
 
         var waitingTimeVar = TimeDimension.SlackVar(index);
-        var minimumWaitingTime = waitingTimeVar.Min();
-        var maximumWaitingTime = waitingTimeVar.Max();
+        var minimumWaitingTime = assignment.Min(waitingTimeVar);
+        var maximumWaitingTime = assignment.Max(waitingTimeVar);
         
         var nodeIndex = IndexManager.IndexToNode(index);
         var handlingTime = Nodes[nodeIndex].GetTimeDemand();
@@ -748,6 +684,61 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var departureWindow = new ValueRange(earliestArrival + handlingTime, latestArrival + handlingTime);
 
         return (arrivalWindow, waitingWindow, departureWindow);
+    }
+    
+    /// <summary>
+    /// Checks if the current location matches the last stop's location.
+    /// </summary>
+    /// <param name="stops">The list of stops.</param>
+    /// <param name="currentLocation">The current location.</param>
+    /// <returns><see langword="true"/> if the current location matches the last stop's location; otherwise, <see langword="false"/>.</returns>
+    private static bool IsSameLocationAsLastStop(in IReadOnlyList<MutableVehicleStop> stops, Location? currentLocation)
+    {
+        if (stops.Count == 0)
+        {
+            return false;
+        }
+
+        var lastLocation = stops.Last().Location;
+        return AreLocationsEqual(lastLocation, currentLocation);
+    }
+    
+    /// <summary>
+    /// Creates a new stop for a vehicle.
+    /// </summary>
+    /// <param name="stopIndex">The index of the stop.</param>
+    /// <param name="currentNode">The current node.</param>
+    /// <param name="vehicle">The vehicle.</param>
+    /// <param name="location">The location of the stop.</param>
+    /// <param name="arrivalTimeWindow">The arrival time window of the stop.</param>
+    /// <param name="waitingTimeWindow">The waiting time window of the stop.</param>
+    /// <param name="departureTimeWindow">The departure time window of the stop.</param>
+    /// <returns>The new stop for the vehicle.</returns>
+    private static MutableVehicleStop CreateNewStop(int stopIndex, Node currentNode, Vehicle vehicle, Location? location, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    {
+        var pickups = new HashSet<Shipment>();
+        var deliveries = new HashSet<Shipment>();
+        pickups.AddIfNotNull(currentNode.GetPickup());
+        deliveries.AddIfNotNull(currentNode.GetDelivery());
+
+        return new MutableVehicleStop(stopIndex, location, vehicle, pickups, deliveries, arrivalTimeWindow, departureTimeWindow, waitingTimeWindow);
+    }
+    
+    /// <summary>
+    /// Merges the current node information with the last stop.
+    /// </summary>
+    /// <param name="lastStop">The last stop.</param>
+    /// <param name="currentNode">The current node.</param>
+    /// <param name="arrivalTimeWindow">The arrival time window of the current node.</param>
+    /// <param name="waitingTimeWindow">The waiting time window of the current node.</param>
+    /// <param name="departureTimeWindow">The departure time window of the current node.</param>
+    private static void MergeStopWithLast(MutableVehicleStop lastStop, Node currentNode, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    {
+        lastStop.ArrivalTimeWindow = CombineTimeWindows(lastStop.ArrivalTimeWindow, arrivalTimeWindow);
+        lastStop.WaitingTime = CombineTimeWindows(lastStop.WaitingTime, waitingTimeWindow);
+        lastStop.DepartureTimeWindow = CombineTimeWindows(lastStop.DepartureTimeWindow, departureTimeWindow);
+        lastStop.Pickups.AddIfNotNull(currentNode.GetPickup());
+        lastStop.Deliveries.AddIfNotNull(currentNode.GetDelivery());
     }
     
     /// <summary>
