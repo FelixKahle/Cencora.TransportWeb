@@ -597,7 +597,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var currentIndex = RoutingModel.Start(i);
             var stopIndex = 1;
 
-            var stops = new List<SolverVehicleStop>();
+            var stops = new List<VehicleStop>();
 
             // Now iterate over all nodes of the current dummy vehicle.
             while (RoutingModel.IsEnd(currentIndex) == false)
@@ -622,22 +622,33 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
                     // We are at the same location, therefore we need to update the last stop.
                     // Calling last is safe here, as we have already checked if the stops list is empty.
                     var lastStop = stops.Last();
-                    lastStop.ArrivalTimeWindow = CombineTimeWindows(lastStop.ArrivalTimeWindow, currentArrivalTimeWindow);
-                    lastStop.DepartureTimeWindow = CombineTimeWindows(lastStop.DepartureTimeWindow, currentDepartureTimeWindow);
-                    lastStop.WaitingTime = CombineTimeWindows(lastStop.WaitingTime, currentWaitingTimeWindow);
-                    lastStop.Pickups.AddIfNotNull(currentNode.GetPickup());
-                    lastStop.Deliveries.AddIfNotNull(currentNode.GetDelivery());
+                    var updatedStop = new VehicleStopBuilder(lastStop.Index, lastStop.Vehicle)
+                        .WithLocation(lastLocation)
+                        .WithPickup(currentNode.GetPickup())
+                        .WithDelivery(currentNode.GetDelivery())
+                        .WithArrivalTimeWindow(CombineTimeWindows(lastStop.ArrivalTimeWindow, currentArrivalTimeWindow))
+                        .WithDepartureTimeWindow(CombineTimeWindows(lastStop.DepartureTimeWindow,
+                            currentDepartureTimeWindow))
+                        .WithWaitingTime(CombineTimeWindows(lastStop.WaitingTime, currentWaitingTimeWindow))
+                        .Build();
+                    
+                    // Update the last stop in the list.
+                    stops[^1] = updatedStop;
+
                 }
                 else
                 {
                     // Create lists for the pickups and deliveries.
-                    var pickups = new HashSet<Shipment>();
-                    var deliveries = new HashSet<Shipment>();
-                    pickups.AddIfNotNull(currentNode.GetPickup());
-                    deliveries.AddIfNotNull(currentNode.GetDelivery());
+                    var stop = new VehicleStopBuilder(stopIndex, currentVehicle)
+                        .WithLocation(currentLocation)
+                        .WithPickup(currentNode.GetPickup())
+                        .WithDelivery(currentNode.GetDelivery())
+                        .WithArrivalTimeWindow(currentArrivalTimeWindow)
+                        .WithDepartureTimeWindow(currentDepartureTimeWindow)
+                        .WithWaitingTime(currentWaitingTimeWindow)
+                        .Build();
                     
-                    // We are at a new location, therefore we need to create a new stop.
-                    var stop = new SolverVehicleStop(stopIndex++, currentLocation, currentVehicle, pickups, deliveries, currentArrivalTimeWindow, currentDepartureTimeWindow, currentWaitingTimeWindow);
+                    // Add the stop to the list of stops.
                     stops.Add(stop);
                 }
                 
@@ -646,11 +657,11 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             }
             
             // Create the vehicle plan for the current vehicle.
-            var vehicleShift = new VehicleShift(currentVehicle, currentShift, stops.ConvertAll(s => s.ToVehicleStop()), []);
+            var vehicleShift = new VehicleShift(currentVehicle, currentShift, stops, []);
             // We now need to check if we already have a plan for the current vehicle.
             // If we have a plan, we need to add the current plan to the existing plan.
             // If we do not have a plan, we need to create a new plan for the current vehicle.
-            if (vehicleShifts.TryGetValue(currentVehicle, out List<VehicleShift>? value))
+            if (vehicleShifts.TryGetValue(currentVehicle, out var value))
             {
                 value.Add(vehicleShift);
             }
@@ -660,6 +671,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             }
         }
         
+        // Create the vehicle plans from the vehicle shifts.
+        // Each vehicle plan is created from a vehicle and its shifts.
         var vehiclePlans = vehicleShifts.Select(kvp => new VehiclePlan(kvp.Key, kvp.Value)).ToHashSet();
         var solution = new Solution(vehiclePlans);
         return new SolverOutput(solution);
