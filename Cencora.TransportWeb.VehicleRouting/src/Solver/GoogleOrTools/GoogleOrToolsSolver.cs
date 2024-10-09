@@ -622,10 +622,19 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
                     // We are at the same location, therefore we need to update the last stop.
                     // Calling last is safe here, as we have already checked if the stops list is empty.
                     var lastStop = stops.Last();
+                    
+                    // Get the pickups and deliveries of the last stop,
+                    // so we can duplicate them and add the current node's pickups and deliveries.
+                    var pickups = lastStop.Pickups.ToHashSet();
+                    var deliveries = lastStop.Deliveries.ToHashSet();
+                    pickups.AddIfNotNull(currentNode.GetPickup());
+                    deliveries.AddIfNotNull(currentNode.GetDelivery());
+                    
+                    // Construct the updated stop.
                     var updatedStop = new VehicleStopBuilder(lastStop.Index, lastStop.Vehicle)
                         .WithLocation(lastLocation)
-                        .WithPickup(currentNode.GetPickup())
-                        .WithDelivery(currentNode.GetDelivery())
+                        .WithPickups(pickups)
+                        .WithDeliveries(deliveries)
                         .WithArrivalTimeWindow(CombineTimeWindows(lastStop.ArrivalTimeWindow, currentArrivalTimeWindow))
                         .WithDepartureTimeWindow(CombineTimeWindows(lastStop.DepartureTimeWindow,
                             currentDepartureTimeWindow))

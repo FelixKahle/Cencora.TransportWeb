@@ -122,6 +122,24 @@ public class VehicleStopBuilder
     }
     
     /// <summary>
+    /// Adds a collection of pickups to the stop.
+    /// </summary>
+    /// <param name="pickups">The pickups to add.</param>
+    /// <returns>The builder instance.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="pickups"/> is <see langword="null"/>.</exception>
+    public VehicleStopBuilder WithPickups(IReadOnlySet<Shipment> pickups)
+    {
+        ArgumentNullException.ThrowIfNull(pickups, nameof(pickups));
+
+        foreach (var pickup in pickups)
+        {
+            WithPickup(pickup);
+        }
+
+        return this;
+    }
+    
+    /// <summary>
     /// Adds a pickup to the stop.
     /// </summary>
     /// <param name="pickup">The pickup to add.</param>
@@ -187,6 +205,24 @@ public class VehicleStopBuilder
     /// <returns>The builder instance.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="deliveries"/> is <see langword="null"/>.</exception>
     public VehicleStopBuilder WithDeliveries(IEnumerable<Shipment> deliveries)
+    {
+        ArgumentNullException.ThrowIfNull(deliveries, nameof(deliveries));
+
+        foreach (var delivery in deliveries)
+        {
+            WithDelivery(delivery);
+        }
+
+        return this;
+    }
+    
+    /// <summary>
+    /// Adds a collection of deliveries to the stop.
+    /// </summary>
+    /// <param name="deliveries">The deliveries to add.</param>
+    /// <returns>The builder instance.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="deliveries"/> is <see langword="null"/>.</exception>
+    public VehicleStopBuilder WithDeliveries(IReadOnlySet<Shipment> deliveries)
     {
         ArgumentNullException.ThrowIfNull(deliveries, nameof(deliveries));
 
