@@ -35,7 +35,9 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     // Internal state
     private Problem? _problem;
     private List<Node>? _nodes;
+    private int _nextNodeIndex = 0;
     private List<DummyVehicle>? _vehicles;
+    private int _nextVehicleIndex = 0;
     private Dictionary<DummyVehicle, VehicleNodeStore>? _vehiclesToNodeStore;
     private Dictionary<Shipment, ShipmentNodeStore>? _shipmentsToNodeStore;
     private IReadOnlyDirectedRouteMatrix? _routeMatrix;
@@ -196,6 +198,15 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
             _nodes = value;
         }
     }
+    
+    /// <summary>
+    /// Gets the next node index.
+    /// </summary>
+    /// <returns>The next node index.</returns>
+    /// <remarks>
+    /// The next node index is the index of the next node to be added to the solver.
+    /// </remarks>
+    private protected int GetNextNodeIndex() => _nextNodeIndex++;
 
     /// <summary>
     /// Gets the number of nodes.
@@ -227,6 +238,15 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
             _vehicles = value;
         }
     }
+    
+    /// <summary>
+    /// Gets the next vehicle index.
+    /// </summary>
+    /// <returns>The next vehicle index.</returns>
+    /// <remarks>
+    /// The next vehicle index is the index of the next vehicle to be added to the solver.
+    /// </remarks>
+    private protected int GetNextVehicleIndex() => _nextVehicleIndex++;
 
     /// <summary>
     /// Gets the number of vehicles.
@@ -448,9 +468,11 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
         
         _nodes?.Clear();
         _nodes = null;
+        _nextNodeIndex = 0;
         
         _vehicles?.Clear();
         _vehicles = null;
+        _nextVehicleIndex = 0;
         
         _vehiclesToNodeStore?.Clear();
         _vehiclesToNodeStore = null;

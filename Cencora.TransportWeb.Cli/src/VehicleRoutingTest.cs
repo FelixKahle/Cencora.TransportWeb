@@ -14,7 +14,7 @@ namespace Cencora.TransportWeb.Cli;
 
 public class VehicleRoutingTest
 {
-    public long[,] DistanceTimeMatrix = {
+    private readonly long[,] _distanceTimeMatrix = {
         { 0, 6, 9, 8, 7, 3, 6, 2, 3, 2, 6, 6, 4, 4, 5, 9, 7 },
         { 6, 0, 8, 3, 2, 6, 8, 4, 8, 8, 13, 7, 5, 8, 12, 10, 14 },
         { 9, 8, 0, 11, 10, 6, 3, 9, 5, 8, 4, 15, 14, 13, 9, 18, 9 },
@@ -69,39 +69,99 @@ public class VehicleRoutingTest
     
     private List<Vehicle> BuildVehicles(List<Location> locations)
     {
-        var shift = new ShiftBuilder()
-            .WithShiftTimeWindow(new ValueRange(0, 300))
+        var shift1 = new ShiftBuilder()
+            .WithShiftTimeWindow(new ValueRange(0, 700))
+            .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+            .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+            .Build();
+        
+        var shift2 = new ShiftBuilder()
+            .WithShiftTimeWindow(new ValueRange(700, 900))
             .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .Build();
         
         var vehicle = new VehicleBuilder()
             .WithId("First Vehicle")
-            .WithShift(shift)
+            .WithShift(shift1)
+            .WithShift(shift2)
             .WithDistanceCost(10)
             .WithTimeCost(10)
-            .WithFixedCost(0)
-            .WithBaseCost(0)
+            .WithFixedCost(10)
+            .WithBaseCost(10)
+            .WithMaxWeight(10000000)
             .Build();
         
-        return [vehicle];
+        var shift3 = new ShiftBuilder()
+            .WithShiftTimeWindow(new ValueRange(0, 700))
+            .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+            .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+            .Build();
+        
+        var shift4 = new ShiftBuilder()
+            .WithShiftTimeWindow(new ValueRange(700, 900))
+            .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+            .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+            .Build();
+        
+        var secondVehicle = new VehicleBuilder()
+            .WithId("Second Vehicle")
+            .WithShift(shift3)
+            .WithShift(shift4)
+            .WithDistanceCost(10)
+            .WithTimeCost(10)
+            .WithFixedCost(10)
+            .WithBaseCost(10)
+            .WithMaxWeight(10000000)
+            .Build();
+        
+        return [vehicle, secondVehicle];
     }
     
     private List<Shipment> BuildShipments(List<Location> locations)
     {
         var shipments = new List<Shipment>();
         
-        var firstShipment = new ShipmentBuilder()
-            .WithAutomaticId()
-            .WithPickupLocation(locations.Find(l => l.Id == "1") ?? throw new InvalidOperationException("Location not found"))
-            .WithDeliveryLocation(locations.Find(l => l.Id == "2") ?? throw new InvalidOperationException("Location not found"))
+        var firstShipment =
+            new ShipmentBuilder(
+                    locations.Find(l => l.Id == "3") ?? throw new InvalidOperationException("Location not found"),
+                    locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+            .WithId("123")
             .WithPickupHandlingTime(3)
             .WithDeliveryHandlingTime(5)
             .WithPickupTimeWindow(new ValueRange(7, 12))
             .WithDeliveryTimeWindow(new ValueRange(9, 20))
+            .WithWeight(10)
             .Build();
         
+        var secondShipment =
+            new ShipmentBuilder(
+                    locations.Find(l => l.Id == "3") ?? throw new InvalidOperationException("Location not found"),
+                    locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
+                .WithId("267")
+                .WithPickupHandlingTime(3)
+                .WithDeliveryHandlingTime(5)
+                .WithPickupTimeWindow(new ValueRange(350, 400))
+                .WithDeliveryTimeWindow(new ValueRange(420, 490))
+                .WithWeight(10)
+                .Build();
+        
+        
+        var thirdShipment =
+            new ShipmentBuilder(
+                    locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"),
+                    locations.Find(l => l.Id == "9") ?? throw new InvalidOperationException("Location not found"))
+                .WithId("555")
+                .WithPickupHandlingTime(3)
+                .WithDeliveryHandlingTime(5)
+                .WithPickupTimeWindow(new ValueRange(710, 800))
+                .WithDeliveryTimeWindow(new ValueRange(801, 860))
+                .WithWeight(10)
+                .Build();
+        
         shipments.Add(firstShipment);
+        shipments.Add(secondShipment);
+        shipments.Add(thirdShipment);
 
         return shipments;
     }
@@ -109,7 +169,7 @@ public class VehicleRoutingTest
     private List<Location> BuildLocations()
     {
         var locations = new List<Location>();
-        for (var i = 0; i < DistanceTimeMatrix.GetLength(0); i++)
+        for (var i = 0; i < _distanceTimeMatrix.GetLength(0); i++)
         {
             var location = new LocationBuilder()
                 .WithId(i.ToString())
@@ -123,14 +183,14 @@ public class VehicleRoutingTest
     private DirectedRouteMatrix BuildRouteMatrix(List<Location> locations)
     {
         var builder = new DirectedRouteMatrixBuilder();
-        for (var i = 0; i < DistanceTimeMatrix.GetLength(0); i++)
+        for (var i = 0; i < _distanceTimeMatrix.GetLength(0); i++)
         {
             var firstLocation = locations[i];
-            for (var j = 0; j < DistanceTimeMatrix.GetLength(1); j++)
+            for (var j = 0; j < _distanceTimeMatrix.GetLength(1); j++)
             {
                 var secondLocation = locations[j];
                 
-                builder.WithEdge(firstLocation, secondLocation, new DefinedRouteEdge(DistanceTimeMatrix[i, j], DistanceTimeMatrix[i, j]));
+                builder.WithEdge(firstLocation, secondLocation, new DefinedRouteEdge(_distanceTimeMatrix[i, j], _distanceTimeMatrix[i, j]));
             }
         }
         

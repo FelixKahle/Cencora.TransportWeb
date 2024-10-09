@@ -37,7 +37,7 @@ internal sealed class DummyVehicle : IEquatable<DummyVehicle>
     /// <summary>
     /// Gets the time window in which the vehicle is available.
     /// </summary>
-    internal ValueRange? AvailableTimeWindow => Shift.ShiftTimeWindow;
+    internal ValueRange AvailableTimeWindow => Shift.ShiftTimeWindow;
 
     /// <summary>
     /// Gets the fixed cost of the vehicle.

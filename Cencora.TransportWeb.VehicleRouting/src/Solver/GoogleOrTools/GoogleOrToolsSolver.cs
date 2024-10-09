@@ -2,11 +2,13 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using System.Diagnostics;
 using Cencora.TransportWeb.Common.Extensions;
 using Cencora.TransportWeb.Common.MathUtils;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
+using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
@@ -55,7 +57,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
             searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
             
-            var solution = RoutingModel.SolveWithParameters(searchParameters);
+            using var solution = RoutingModel.SolveWithParameters(searchParameters);
             return CreateOutput(solution);
         }
         catch (Exception e)
@@ -101,7 +103,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var (vehicleStartNodeIndices, vehicleEndNodeIndices) = GetVehicleNodeIndices();
 
         // Initialize the Google OR-Tools interfaces.
-        InitializeRoutingIndexManager(nodeCount, vehicleCount, vehicleStartNodeIndices, vehicleEndNodeIndices);
+        InitializeRoutingIndexManager(Nodes.Count, Vehicles.Count, vehicleStartNodeIndices, vehicleEndNodeIndices);
         InitializeRoutingModel();
     }
 
@@ -258,7 +260,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var travelTime = GetDuration(fromNode, toNode);
             var handlingTime = fromNode.GetTimeDemand();
             
-            return travelTime + handlingTime;
+            return MathUtils.AddOrDefault(travelTime, handlingTime, long.MaxValue);
         });
     }
 
@@ -402,7 +404,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// </summary>
     private void SetupIndexCallback()
     {
-        IndexCallback = RoutingModel.RegisterUnaryTransitCallback((_) => 1);
+        IndexCallback = RoutingModel.RegisterUnaryTransitCallback(_ => 1);
     }
     
     /// <summary>
@@ -461,14 +463,16 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         for (var i = 0; i < NodeCount; i++)
         {
             var node = Nodes[i];
-
+            var index = IndexManager.NodeToIndex(i);
             var range = node.GetTimeWindow();
-            if (range is null)
+            
+            // If the range is null or the index is out of bounds, we skip the current node.
+            // Start and end nodes have an index of -1, so we need to check for that as well.
+            if (range is null || index < 0 || index >= NodeCount)
             {
                 continue;
             }
             
-            var index = IndexManager.NodeToIndex(i);
             TimeDimension.CumulVar(index).SetRange(range.Value.Min, range.Value.Max);
             RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
         }
@@ -498,7 +502,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // The following line adds the requirement that each item must be picked up and delivered by the same vehicle.
             solver.Add(solver.MakeEquality(RoutingModel.VehicleVar(pickupIndex), RoutingModel.VehicleVar(deliveryIndex)));
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
-            solver.Add(solver.MakeLessOrEqual(IndexDimension.CumulVar(pickupIndex), IndexDimension.CumulVar(deliveryIndex)));
+            solver.Add(solver.MakeLessOrEqual(TimeDimension.CumulVar(pickupIndex), TimeDimension.CumulVar(deliveryIndex)));
         }
     }
 
@@ -524,9 +528,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var distanceCost = MathUtils.AddOrDefault(vehicle.DistanceCost ?? 0, shift.DistanceCost ?? 0, long.MaxValue);
         var timeCost = MathUtils.AddOrDefault(vehicle.TimeCost ?? 0, shift.TimeCost ?? 0, long.MaxValue);
         var waitingTimeCost = MathUtils.AddOrDefault(vehicle.WaitingTimeCost ?? 0, shift.WaitingTimeCost ?? 0, long.MaxValue);
-
-        var dummyVehicleIndex = VehicleCount;
-        return new DummyVehicleBuilder(dummyVehicleIndex, vehicle, shift)
+        
+        return new DummyVehicleBuilder(GetNextVehicleIndex(), vehicle, shift)
             .WithFixedCost(fixedCost)
             .WithBaseCost(baseCost)
             .WithDistanceCost(distanceCost)
@@ -552,9 +555,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     private ShipmentNode CreateShipmentNode(Shipment shipment, Location? location, ShipmentNodeType nodeType)
     {
         ArgumentNullException.ThrowIfNull(shipment, nameof(shipment));
-
-        var nodeIndex = NodeCount;
-        return new ShipmentNode(nodeIndex, shipment, location, nodeType);
+        
+        return new ShipmentNode(GetNextNodeIndex(), shipment, location, nodeType);
     }
 
     /// <summary>
@@ -568,9 +570,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     private VehicleNode CreateVehicleNode(DummyVehicle dummyVehicle, Location? location, VehicleNodeType nodeType)
     {
         ArgumentNullException.ThrowIfNull(dummyVehicle, nameof(dummyVehicle));
-
-        var nodeIndex = NodeCount;
-        return new VehicleNode(nodeIndex, dummyVehicle, location, nodeType);
+        
+        return new VehicleNode(GetNextNodeIndex(), dummyVehicle, location, nodeType);
     }
 
     /// <summary>
@@ -598,9 +599,14 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var currentVehicle = currentDummyVehicle.Vehicle;
 
             var stops = CollectStopsForVehicle(assignment, i, currentVehicle);
+            var trips = CollectTripsForVehicle(stops, currentVehicle);
+            
+            // Make sure the stops and trips are sorted by their index.
+            stops.Sort();
+            trips.Sort();
         
             // Create a vehicle shift for the current vehicle
-            var vehicleShift = new VehicleShift(currentVehicle, currentShift, stops.ConvertAll(s => s.ToVehicleStop()), []);
+            var vehicleShift = new VehicleShift(currentVehicle, currentShift, stops, trips);
 
             // Check if we already have a list of shifts for the current vehicle.
             // If not, we create a new list and add the current shift to it.
@@ -627,17 +633,28 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <param name="vehicleIndex">The index of the vehicle.</param>
     /// <param name="currentVehicle">The current vehicle.</param>
     /// <returns>The stops for the vehicle.</returns>
-    private List<MutableVehicleStop> CollectStopsForVehicle(in Assignment assignment, int vehicleIndex, in Vehicle currentVehicle)
+    private List<VehicleStop> CollectStopsForVehicle(in Assignment assignment, int vehicleIndex, in Vehicle currentVehicle)
     {
+        ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
+        ArgumentOutOfRangeException.ThrowIfNegative(vehicleIndex, nameof(vehicleIndex));
+        ArgumentNullException.ThrowIfNull(currentVehicle, nameof(currentVehicle));
+        
         var stops = new List<MutableVehicleStop>();
         var currentIndex = RoutingModel.Start(vehicleIndex);
         var stopIndex = 1;
-
-        while (RoutingModel.IsEnd(currentIndex) == false)
+        
+        while (!RoutingModel.IsEnd(currentIndex))
         {
             var currentNodeIndex = IndexManager.IndexToNode(currentIndex);
             var currentNode = Nodes[currentNodeIndex];
             var currentLocation = currentNode.GetLocation();
+
+            // We are at an arbitrary location, so we skip it.
+            if (currentLocation is null)
+            {
+                currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
+                continue;
+            }
 
             var (arrivalWindow, waitingWindow, departureWindow) = GetTimeWindows(currentIndex, assignment);
         
@@ -650,10 +667,53 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
                 stops.Add(CreateNewStop(stopIndex++, currentNode, currentVehicle, currentLocation, arrivalWindow, waitingWindow, departureWindow));
             }
             
+            // Move to the next index.
             currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
         }
+
+        return stops.ConvertAll(s => s.ToVehicleStop());
+    }
+    
+    /// <summary>
+    /// Creates the trips for a vehicle from a list of stops.
+    /// </summary>
+    /// <param name="stops">The list of stops.</param>
+    /// <param name="currentVehicle">The current vehicle.</param>
+    /// <returns>The trips for the vehicle.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stops"/> or <paramref name="currentVehicle"/> is <see langword="null"/>.</exception>
+    private List<VehicleTrip> CollectTripsForVehicle(in List<VehicleStop> stops, in Vehicle currentVehicle)
+    {
+        ArgumentNullException.ThrowIfNull(stops, nameof(stops));
+        ArgumentNullException.ThrowIfNull(currentVehicle, nameof(currentVehicle));
+
+        // Preallocate the list of trips.
+        var trips = new List<VehicleTrip>(Math.Max(0, stops.Count - 1));
+        var tripIndex = 1;
         
-        return stops;
+        // Iterate over all stops and create trips between them.
+        for (var i = 0; i < stops.Count - 1; i++)
+        {
+            var from = stops[i];
+            var to = stops[i + 1];
+            var fromLocation = from.Location;
+            var toLocation = to.Location;
+
+            var (distance, duration) = RouteMatrix.GetEdge(fromLocation, toLocation) switch
+            {
+                DefinedRouteEdge edge => (edge.Distance, edge.Duration),
+                _ => (long.MaxValue, long.MaxValue)
+            };
+            
+            var tripDistanceCost = MathUtils.MultiplyOrDefault(distance, currentVehicle.DistanceCost ?? 0, long.MaxValue);
+            var tripTimeCost = MathUtils.MultiplyOrDefault(duration, currentVehicle.TimeCost ?? 0, long.MaxValue);
+
+            var trip = new VehicleTrip(tripIndex++, currentVehicle, fromLocation, toLocation, distance, duration,
+                from.DepartureTimeWindow, to.ArrivalTimeWindow, tripDistanceCost, tripTimeCost);
+            
+            trips.Add(trip);
+        }
+        
+        return trips;
     }
     
     
@@ -713,8 +773,15 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <param name="waitingTimeWindow">The waiting time window of the stop.</param>
     /// <param name="departureTimeWindow">The departure time window of the stop.</param>
     /// <returns>The new stop for the vehicle.</returns>
-    private static MutableVehicleStop CreateNewStop(int stopIndex, Node currentNode, Vehicle vehicle, Location? location, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="stopIndex"/> is negative.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="currentNode"/>, <paramref name="vehicle"/>, or <paramref name="location"/> is <see langword="null"/>.</exception>
+    private static MutableVehicleStop CreateNewStop(int stopIndex, Node currentNode, Vehicle vehicle, Location location, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(stopIndex, nameof(stopIndex));
+        ArgumentNullException.ThrowIfNull(currentNode, nameof(currentNode));
+        ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
+        
         var pickups = new HashSet<Shipment>();
         var deliveries = new HashSet<Shipment>();
         pickups.AddIfNotNull(currentNode.GetPickup());

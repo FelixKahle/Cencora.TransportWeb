@@ -49,18 +49,29 @@ public sealed class VehiclePlan
     public string ToDebugString()
     {
         const string tab = "    ";
-        
+    
         var sb = new StringBuilder();
         sb.AppendLine($"- Plan for {Vehicle.Id}");
+    
         foreach (var shift in Shifts)
         {
             sb.AppendLine($"{tab}- Shift {shift.ShiftTimeWindow}");
-            foreach (var stop in shift.Stops)
+        
+            var trips = shift.Trips;
+            var stops = shift.Stops;
+        
+            for (var i = 0; i < stops.Count; i++)
             {
-                sb.AppendLine($"{tab}{tab}- {stop}");
+                sb.AppendLine($"{tab}{tab}- Stop: {stops[i]}");
+
+                // Append trip information if there is a next stop
+                if (i < trips.Count)
+                {
+                    sb.AppendLine($"{tab}{tab}- Trip: {trips[i]}");
+                }
             }
         }
-        
+    
         return sb.ToString();
     }
 }

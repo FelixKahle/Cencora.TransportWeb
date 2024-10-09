@@ -27,12 +27,12 @@ public sealed class Shipment : IEquatable<Shipment>
     /// <summary>
     /// Gets the pickup location of the shipment.
     /// </summary>
-    public Location? PickupLocation { get; }
+    public Location PickupLocation { get; }
 
     /// <summary>
     /// Gets the delivery location of the shipment.
     /// </summary>
-    public Location? DeliveryLocation { get; }
+    public Location DeliveryLocation { get; }
 
     /// <summary>
     /// Gets the penalty for not picking up the shipment.
@@ -78,9 +78,17 @@ public sealed class Shipment : IEquatable<Shipment>
     /// Initializes a new instance of the <see cref="Shipment"/> class.
     /// </summary>
     /// <param name="id">The id of the shipment.</param>
-    public Shipment(Id id)
+    /// <param name="pickupLocation">The pickup location of the shipment.</param>
+    /// <param name="deliveryLocation">The delivery location of the shipment.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="pickupLocation"/> or <paramref name="deliveryLocation"/> is <see langword="null"/>.</exception>
+    public Shipment(Id id, Location pickupLocation, Location deliveryLocation)
     {
+        ArgumentNullException.ThrowIfNull(pickupLocation, nameof(pickupLocation));
+        ArgumentNullException.ThrowIfNull(deliveryLocation, nameof(deliveryLocation));
+        
         Id = id;
+        PickupLocation = pickupLocation;
+        DeliveryLocation = deliveryLocation;
         ShipUnits = new HashSet<ShipUnit>();
         Flags = new FlagContainer();
     }
@@ -100,10 +108,14 @@ public sealed class Shipment : IEquatable<Shipment>
     /// <param name="deliveryHandlingTime">The delivery handling time of the shipment.</param>
     /// <param name="deliveryTimeWindow">The time window for the delivery of the shipment.</param>
     /// <param name="flags">The flags of the shipment.</param>
-    public Shipment(Id id, IReadOnlySet<ShipUnit>? shipUnits, Location? pickupLocation, Location? deliveryLocation, long? shipmentWeight,
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="pickupLocation"/> or <paramref name="deliveryLocation"/> is <see langword="null"/>.</exception>
+    public Shipment(Id id, IReadOnlySet<ShipUnit>? shipUnits, Location pickupLocation, Location deliveryLocation, long? shipmentWeight,
         long? pickupDropPenalty, long? deliveryDropPenalty, long? pickupHandlingTime, ValueRange? pickupTimeWindow,
         long? deliveryHandlingTime, ValueRange? deliveryTimeWindow, IReadOnlyFlagContainer? flags)
     {
+        ArgumentNullException.ThrowIfNull(pickupLocation, nameof(pickupLocation));
+        ArgumentNullException.ThrowIfNull(deliveryLocation, nameof(deliveryLocation));
+        
         Id = id;
         ShipUnits = shipUnits ?? new HashSet<ShipUnit>();
         PickupLocation = pickupLocation;
@@ -149,7 +161,7 @@ public sealed class Shipment : IEquatable<Shipment>
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"Shipment: {Id}";
+        return Id.ToString();
     }
 
     /// <summary>

@@ -8,7 +8,7 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        VehicleRoutingTest test = new VehicleRoutingTest();
+        var test = new VehicleRoutingTest();
         test.Run();
     }
 }

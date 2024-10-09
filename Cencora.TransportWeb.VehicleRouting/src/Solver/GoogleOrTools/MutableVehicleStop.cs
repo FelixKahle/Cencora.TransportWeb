@@ -26,7 +26,7 @@ internal class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComparable<
     /// <summary>
     /// Gets the location of the vehicle stop.
     /// </summary>
-    internal Location? Location { get; }
+    internal Location Location { get; }
 
     /// <summary>
     /// Gets the vehicle of the vehicle stop.
@@ -88,9 +88,10 @@ internal class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComparable<
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <see paramref="index"/> is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <see paramref="vehicle"/> is null.</exception>
-    public MutableVehicleStop(int index, Location? location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
+    /// <exception cref="ArgumentNullException">Thrown when <see paramref="location"/> or <see paramref="vehicle"/> is null.</exception>
+    public MutableVehicleStop(int index, Location location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
 
@@ -116,10 +117,11 @@ internal class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComparable<
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <see paramref="index"/> is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <see paramref="vehicle"/>, <see paramref="pickups"/> or <see paramref="deliveries"/> is null.</exception>
-    public MutableVehicleStop(int index, Location? location, Vehicle vehicle, HashSet<Shipment> pickups, HashSet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
+    /// <exception cref="ArgumentNullException">Thrown when <see paramref="location"/>, <see paramref="vehicle"/>, <see paramref="pickups"/> or <see paramref="deliveries"/> is null.</exception>
+    public MutableVehicleStop(int index, Location location, Vehicle vehicle, HashSet<Shipment> pickups, HashSet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
         ArgumentNullException.ThrowIfNull(pickups, nameof(pickups));
         ArgumentNullException.ThrowIfNull(deliveries, nameof(deliveries));
@@ -181,9 +183,7 @@ internal class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComparable<
     /// <inheritdoc />
     public override string ToString()
     {
-        var location = Location is null ? "unknown location" : Location.Id.ToString();
-        
-        return $"Stop {Index} of vehicle {Vehicle.Id} at {location}";
+        return $"Stop {Index} of vehicle {Vehicle.Id} at {Location}";
     }
     
     /// <summary>

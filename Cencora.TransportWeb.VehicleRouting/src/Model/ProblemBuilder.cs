@@ -238,21 +238,6 @@ public sealed class ProblemBuilder
     /// <param name="factory">The factory that creates the shipment to add.</param>
     /// <returns>The current instance of the <see cref="ProblemBuilder"/> class.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="factory"/> is <c>null</c>.</exception>
-    public ProblemBuilder WithShipment(Func<ShipmentBuilder, Shipment> factory)
-    {
-        ArgumentNullException.ThrowIfNull(factory, nameof(factory));
-
-        var builder = new ShipmentBuilder();
-        var shipment = factory(builder);
-        return WithShipment(shipment);
-    }
-
-    /// <summary>
-    /// Adds a shipment to the problem.
-    /// </summary>
-    /// <param name="factory">The factory that creates the shipment to add.</param>
-    /// <returns>The current instance of the <see cref="ProblemBuilder"/> class.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="factory"/> is <c>null</c>.</exception>
     public ProblemBuilder WithShipment(Func<Shipment> factory)
     {
         ArgumentNullException.ThrowIfNull(factory, nameof(factory));

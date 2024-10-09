@@ -81,7 +81,7 @@ public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTr
     /// <param name="tripDistanceCost">The cost of the vehicle trip based on the distance.</param>
     /// <param name="tripDurationCost">The cost of the vehicle trip based on the duration.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/>, <paramref name="startLocation"/> or <paramref name="endLocation"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/>, <paramref name="startLocation"/> or <paramref name="endLocation"/> is <see langword="null"/>.</exception>
     public VehicleTrip(int index, Vehicle vehicle, Location startLocation, Location endLocation, long distance, long duration, ValueRange departureTimeWindow, ValueRange arrivalTimeWindow, long tripDistanceCost, long tripDurationCost)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
@@ -219,6 +219,6 @@ public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTr
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{Index} trip of {Vehicle} from {StartLocation} to {EndLocation} with distance {Distance} and duration {Duration}";
+        return $"{Index} trip from {StartLocation} to {EndLocation} with distance {Distance} and duration {Duration}";
     }
 }

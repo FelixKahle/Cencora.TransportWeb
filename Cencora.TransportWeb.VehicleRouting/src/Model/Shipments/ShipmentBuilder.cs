@@ -15,8 +15,8 @@ public sealed class ShipmentBuilder : FlaggedBuilder
 {
     private Id _id;
     private readonly HashSet<ShipUnit> _shipUnits = new();
-    private Location? _pickupLocation;
-    private Location? _deliveryLocation;
+    private Location _pickupLocation;
+    private Location _deliveryLocation;
     private long? _shipmentWeight;
     private long? _pickupDropPenalty;
     private long? _deliveryDropPenalty;
@@ -28,9 +28,14 @@ public sealed class ShipmentBuilder : FlaggedBuilder
     /// <summary>
     /// Initializes a new instance of the <see cref="ShipmentBuilder"/> class.
     /// </summary>
-    public ShipmentBuilder()
+    public ShipmentBuilder(Location pickupLocation, Location deliveryLocation)
     {
+        ArgumentNullException.ThrowIfNull(pickupLocation, nameof(pickupLocation));
+        ArgumentNullException.ThrowIfNull(deliveryLocation, nameof(deliveryLocation));
+        
         _id = Id.New();
+        _pickupLocation = pickupLocation;
+        _deliveryLocation = deliveryLocation;
     }
 
     /// <summary>
@@ -194,16 +199,6 @@ public sealed class ShipmentBuilder : FlaggedBuilder
     }
 
     /// <summary>
-    /// Adds an arbitrary pickup location to the shipment.
-    /// </summary>
-    /// <returns>The current instance of the <see cref="ShipmentBuilder"/> class.</returns>
-    public ShipmentBuilder WithArbitraryPickupLocation()
-    {
-        _pickupLocation = null;
-        return this;
-    }
-
-    /// <summary>
     /// Adds a delivery location to the shipment.
     /// </summary>
     /// <param name="location">The delivery location to add.</param>
@@ -242,16 +237,6 @@ public sealed class ShipmentBuilder : FlaggedBuilder
 
         var location = factory();
         _deliveryLocation = location;
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an arbitrary delivery location to the shipment.
-    /// </summary>
-    /// <returns>The current instance of the <see cref="ShipmentBuilder"/> class.</returns>
-    public ShipmentBuilder WithArbitraryDeliveryLocation()
-    {
-        _deliveryLocation = null;
         return this;
     }
 
