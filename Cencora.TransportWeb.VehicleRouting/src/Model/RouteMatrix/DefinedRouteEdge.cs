@@ -85,4 +85,48 @@ public readonly struct DefinedRouteEdge : IRouteEdge, IEquatable<DefinedRouteEdg
     {
         return !left.Equals(right);
     }
+    
+    /// <summary>
+    /// Determines whether one specified instance of <see cref="DefinedRouteEdge"/> is greater than another specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <param name="right">The second <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is greater than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >(DefinedRouteEdge left, DefinedRouteEdge right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified instance of <see cref="DefinedRouteEdge"/> is less than another specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <param name="right">The second <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is less than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <(DefinedRouteEdge left, DefinedRouteEdge right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified instance of <see cref="DefinedRouteEdge"/> is greater than or equal to another specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <param name="right">The second <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is greater than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >=(DefinedRouteEdge left, DefinedRouteEdge right)
+    {
+        return left.CompareTo(right) >= 0;
+    }
+    
+    /// <summary>
+    /// Determines whether one specified instance of <see cref="DefinedRouteEdge"/> is less than or equal to another specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <param name="right">The second <see cref="DefinedRouteEdge"/> to compare.</param>
+    /// <returns><see langword="true"/> if <paramref name="left"/> is less than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <=(DefinedRouteEdge left, DefinedRouteEdge right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
 }

@@ -168,9 +168,9 @@ public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTr
     /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
     /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
     /// <returns><see langword="true"/> if <paramref name="left"/> is less than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
-    public static bool operator <(VehicleTrip left, VehicleTrip right)
+    public static bool operator <(VehicleTrip? left, VehicleTrip? right)
     {
-        return left.CompareTo(right) < 0;
+        return Comparer<VehicleTrip>.Default.Compare(left, right) < 0;
     }
     
     /// <summary>
@@ -179,9 +179,9 @@ public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTr
     /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
     /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
     /// <returns><see langword="true"/> if <paramref name="left"/> is greater than <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
-    public static bool operator >(VehicleTrip left, VehicleTrip right)
+    public static bool operator >(VehicleTrip? left, VehicleTrip? right)
     {
-        return left.CompareTo(right) > 0;
+        return Comparer<VehicleTrip>.Default.Compare(left, right) > 0;
     }
     
     /// <summary>
@@ -190,9 +190,9 @@ public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTr
     /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
     /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
     /// <returns><see langword="true"/> if <paramref name="left"/> is less than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
-    public static bool operator <=(VehicleTrip left, VehicleTrip right)
+    public static bool operator <=(VehicleTrip? left, VehicleTrip? right)
     {
-        return left.CompareTo(right) <= 0;
+        return Comparer<VehicleTrip>.Default.Compare(left, right) <= 0;
     }
     
     /// <summary>
@@ -201,9 +201,9 @@ public sealed class VehicleTrip : IEquatable<VehicleTrip>, IComparable<VehicleTr
     /// <param name="left">The first <see cref="VehicleTrip"/> to compare.</param>
     /// <param name="right">The second <see cref="VehicleTrip"/> to compare.</param>
     /// <returns><see langword="true"/> if <paramref name="left"/> is greater than or equal to <paramref name="right"/>; otherwise, <see langword="false"/>.</returns>
-    public static bool operator >=(VehicleTrip left, VehicleTrip right)
+    public static bool operator >=(VehicleTrip? left, VehicleTrip? right)
     {
-        return left.CompareTo(right) >= 0;
+        return Comparer<VehicleTrip>.Default.Compare(left, right) >= 0;
     }
     
     /// <summary>

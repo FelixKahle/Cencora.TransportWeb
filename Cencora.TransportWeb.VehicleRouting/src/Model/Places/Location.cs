@@ -163,4 +163,48 @@ public sealed class Location : IEquatable<Location>, IComparable<Location>
     {
         return !(left == right);
     }
+    
+    /// <summary>
+    /// Determines whether the first specified instance of <see cref="Location"/> is less than the second specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="Location"/> to compare.</param>
+    /// <param name="right">The second <see cref="Location"/> to compare.</param>
+    /// <returns><see langword="true"/> if the first instance is less than the second instance; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <(Location? left, Location? right)
+    {
+        return Comparer<Location>.Default.Compare(left, right) < 0;
+    }
+    
+    /// <summary>
+    /// Determines whether the first specified instance of <see cref="Location"/> is greater than the second specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="Location"/> to compare.</param>
+    /// <param name="right">The second <see cref="Location"/> to compare.</param>
+    /// <returns><see langword="true"/> if the first instance is greater than the second instance; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >(Location? left, Location? right)
+    {
+        return Comparer<Location>.Default.Compare(left, right) > 0;
+    }
+    
+    /// <summary>
+    /// Determines whether the first specified instance of <see cref="Location"/> is less than or equal to the second specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="Location"/> to compare.</param>
+    /// <param name="right">The second <see cref="Location"/> to compare.</param>
+    /// <returns><see langword="true"/> if the first instance is less than or equal to the second instance; otherwise, <see langword="false"/>.</returns>
+    public static bool operator <=(Location? left, Location? right)
+    {
+        return Comparer<Location>.Default.Compare(left, right) <= 0;
+    }
+    
+    /// <summary>
+    /// Determines whether the first specified instance of <see cref="Location"/> is greater than or equal to the second specified instance.
+    /// </summary>
+    /// <param name="left">The first <see cref="Location"/> to compare.</param>
+    /// <param name="right">The second <see cref="Location"/> to compare.</param>
+    /// <returns><see langword="true"/> if the first instance is greater than or equal to the second instance; otherwise, <see langword="false"/>.</returns>
+    public static bool operator >=(Location? left, Location? right)
+    {
+        return Comparer<Location>.Default.Compare(left, right) >= 0;
+    }
 }

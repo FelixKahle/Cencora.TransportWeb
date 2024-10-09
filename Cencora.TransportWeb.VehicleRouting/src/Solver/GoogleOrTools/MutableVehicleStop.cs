@@ -16,7 +16,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// This is used to create and modify vehicle stops in the solver.
 /// It is later converted to a inmutable vehicle stop.
 /// </remarks>
-internal class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComparable<MutableVehicleStop>
+internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComparable<MutableVehicleStop>
 {
     /// <summary>
     /// Gets the index of the vehicle stop.

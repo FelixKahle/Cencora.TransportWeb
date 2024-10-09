@@ -9,7 +9,7 @@ namespace Cencora.TransportWeb.Common.Flags;
 /// <summary>
 /// Represents a container for flags.
 /// </summary>
-public class FlagContainer : IFlagContainer
+public class FlagContainer : IFlagContainer, IEquatable<FlagContainer>
 {
     /// <summary>
     /// Holds the flags of the flaggable object.
@@ -214,5 +214,55 @@ public class FlagContainer : IFlagContainer
     public static implicit operator FlagContainer(Flag flag)
     {
         return new FlagContainer(flag);
+    }
+
+    /// <inheritdoc/>
+    public bool Equals(FlagContainer? other)
+    {
+        if (ReferenceEquals(null, other))
+        {
+            return false;
+        }
+        
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+        
+        return FlagsSet.SetEquals(other.FlagsSet);
+    }
+
+    /// <inheritdoc/>
+    public override bool Equals(object? obj)
+    {
+        return obj is FlagContainer other && Equals(other);
+    }
+
+    /// <inheritdoc/>
+    public override int GetHashCode()
+    {
+        return FlagsSet.GetHashCode();
+    }
+    
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="FlagContainer"/> are equal.
+    /// </summary>
+    /// <param name="left">The first <see cref="FlagContainer"/> to compare.</param>
+    /// <param name="right">The second <see cref="FlagContainer"/> to compare.</param>
+    /// <returns><see langword="true"/> if the two instances are equal; otherwise, <see langword="false"/>.</returns>
+    public static bool operator ==(FlagContainer? left, FlagContainer? right)
+    {
+        return Equals(left, right);
+    }
+    
+    /// <summary>
+    /// Determines whether two specified instances of <see cref="FlagContainer"/> are not equal.
+    /// </summary>
+    /// <param name="left">The first <see cref="FlagContainer"/> to compare.</param>
+    /// <param name="right">The second <see cref="FlagContainer"/> to compare.</param>
+    /// <returns><see langword="true"/> if the two instances are not equal; otherwise, <see langword="false"/>.</returns>
+    public static bool operator !=(FlagContainer? left, FlagContainer? right)
+    {
+        return !Equals(left, right);
     }
 }
