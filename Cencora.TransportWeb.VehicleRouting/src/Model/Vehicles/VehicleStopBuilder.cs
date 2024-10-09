@@ -236,7 +236,6 @@ public class VehicleStopBuilder
     /// Removes all deliveries from the stop.
     /// </summary>
     /// <returns>The builder instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="deliveries"/> is <see langword="null"/>.</exception>
     public VehicleStopBuilder WithoutDeliveries()
     {
         _deliveries.Clear();
