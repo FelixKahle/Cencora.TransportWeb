@@ -35,9 +35,9 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     // Internal state
     private Problem? _problem;
     private List<Node>? _nodes;
-    private int _nextNodeIndex = 0;
+    private int _nextNodeIndex;
     private List<DummyVehicle>? _vehicles;
-    private int _nextVehicleIndex = 0;
+    private int _nextVehicleIndex;
     private Dictionary<DummyVehicle, VehicleNodeStore>? _vehiclesToNodeStore;
     private Dictionary<Shipment, ShipmentNodeStore>? _shipmentsToNodeStore;
     private IReadOnlyDirectedRouteMatrix? _routeMatrix;

@@ -2,7 +2,6 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using System.Diagnostics;
 using Cencora.TransportWeb.Common.Extensions;
 using Cencora.TransportWeb.Common.MathUtils;
 using Cencora.TransportWeb.VehicleRouting.Common;
