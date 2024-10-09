@@ -619,46 +619,14 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
                 
                 if (isAtLastLocation)
                 {
-                    // We are at the same location, therefore we need to update the last stop.
-                    // Calling last is safe here, as we have already checked if the stops list is empty.
-                    var lastStop = stops.Last();
-                    
-                    // Get the pickups and deliveries of the last stop,
-                    // so we can duplicate them and add the current node's pickups and deliveries.
-                    var pickups = lastStop.Pickups.ToHashSet();
-                    var deliveries = lastStop.Deliveries.ToHashSet();
-                    pickups.AddIfNotNull(currentNode.GetPickup());
-                    deliveries.AddIfNotNull(currentNode.GetDelivery());
-                    
-                    // Construct the updated stop.
-                    var updatedStop = new VehicleStopBuilder(lastStop.Index, lastStop.Vehicle)
-                        .WithLocation(lastLocation)
-                        .WithPickups(pickups)
-                        .WithDeliveries(deliveries)
-                        .WithArrivalTimeWindow(CombineTimeWindows(lastStop.ArrivalTimeWindow, currentArrivalTimeWindow))
-                        .WithDepartureTimeWindow(CombineTimeWindows(lastStop.DepartureTimeWindow,
-                            currentDepartureTimeWindow))
-                        .WithWaitingTime(CombineTimeWindows(lastStop.WaitingTime, currentWaitingTimeWindow))
-                        .Build();
-                    
                     // Update the last stop in the list.
-                    stops[^1] = updatedStop;
-
+                    UpdateLastStop(stops, currentNode, currentArrivalTimeWindow, currentWaitingTimeWindow, currentDepartureTimeWindow);
                 }
                 else
                 {
-                    // Create lists for the pickups and deliveries.
-                    var stop = new VehicleStopBuilder(stopIndex, currentVehicle)
-                        .WithLocation(currentLocation)
-                        .WithPickup(currentNode.GetPickup())
-                        .WithDelivery(currentNode.GetDelivery())
-                        .WithArrivalTimeWindow(currentArrivalTimeWindow)
-                        .WithDepartureTimeWindow(currentDepartureTimeWindow)
-                        .WithWaitingTime(currentWaitingTimeWindow)
-                        .Build();
-                    
-                    // Add the stop to the list of stops.
-                    stops.Add(stop);
+                    // Add a new stop for this location.
+                    AddNewStop(stops, currentVehicle, stopIndex++, currentLocation, currentNode,
+                        currentArrivalTimeWindow, currentWaitingTimeWindow, currentDepartureTimeWindow);
                 }
                 
                 // Move to the next node.
@@ -685,6 +653,73 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var vehiclePlans = vehicleShifts.Select(kvp => new VehiclePlan(kvp.Key, kvp.Value)).ToHashSet();
         var solution = new Solution(vehiclePlans);
         return new SolverOutput(solution);
+    }
+    
+    /// <summary>
+    /// Helper method to update the last stop in the list.
+    /// </summary>
+    /// <param name="stops">The list of stops.</param>
+    /// <param name="currentNode">The current node.</param>
+    /// <param name="arrivalTimeWindow">The arrival time window of the current node.</param>
+    /// <param name="waitingTimeWindow">The waiting time window of the current node.</param>
+    /// <param name="departureTimeWindow">The departure time window of the current node.</param>
+    /// <remarks>
+    /// This method is used to update the last stop in the list of stops.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stops"/> or <paramref name="currentNode"/> is <see langword="null"/>.</exception>
+    private void UpdateLastStop(List<VehicleStop> stops, Node currentNode, 
+        ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    {
+        ArgumentNullException.ThrowIfNull(stops, nameof(stops));
+        ArgumentNullException.ThrowIfNull(currentNode, nameof(currentNode));
+        
+        var lastStop = stops.Last();
+        var updatedPickups = lastStop.Pickups.ToHashSet();
+        var updatedDeliveries = lastStop.Deliveries.ToHashSet();
+
+        updatedPickups.AddIfNotNull(currentNode.GetPickup());
+        updatedDeliveries.AddIfNotNull(currentNode.GetDelivery());
+
+        stops[^1] = new VehicleStopBuilder(lastStop.Index, lastStop.Vehicle)
+            .WithLocation(lastStop.Location)
+            .WithPickups(updatedPickups)
+            .WithDeliveries(updatedDeliveries)
+            .WithArrivalTimeWindow(CombineTimeWindows(lastStop.ArrivalTimeWindow, arrivalTimeWindow))
+            .WithDepartureTimeWindow(CombineTimeWindows(lastStop.DepartureTimeWindow, departureTimeWindow))
+            .WithWaitingTime(CombineTimeWindows(lastStop.WaitingTime, waitingTimeWindow))
+            .Build();
+    }
+    
+    /// <summary>
+    /// Helper method to add a new stop to the list of stops.
+    /// </summary>
+    /// <param name="stops">The list of stops.</param>
+    /// <param name="vehicle">The vehicle of the stop.</param>
+    /// <param name="stopIndex">The index of the stop.</param>
+    /// <param name="location">The location of the stop.</param>
+    /// <param name="node">The node of the stop.</param>
+    /// <param name="arrivalTimeWindow">The arrival time window of the stop.</param>
+    /// <param name="waitingTimeWindow">The waiting time window of the stop.</param>
+    /// <param name="departureTimeWindow">The departure time window of the stop.</param>
+    /// <remarks>
+    /// This method is used to add a new stop to the list of stops.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="stops"/> or <paramref name="vehicle"/> or <paramref name="node"/> is <see langword="null"/>.</exception>
+    private void AddNewStop(List<VehicleStop> stops, Vehicle vehicle, int stopIndex, Location? location, Node node, 
+        ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    {
+        ArgumentNullException.ThrowIfNull(stops, nameof(stops));
+        ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
+        ArgumentNullException.ThrowIfNull(node, nameof(node));
+        
+        stops.Add(new VehicleStopBuilder(stopIndex, vehicle)
+            .WithLocation(location)
+            .WithPickup(node.GetPickup())
+            .WithDelivery(node.GetDelivery())
+            .WithArrivalTimeWindow(arrivalTimeWindow)
+            .WithDepartureTimeWindow(departureTimeWindow)
+            .WithWaitingTime(waitingTimeWindow)
+            .Build());
     }
     
     
