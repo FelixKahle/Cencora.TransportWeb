@@ -45,25 +45,9 @@ public class VehicleRoutingTest
         if (solution.HasSolution)
         {
             var vehiclePlans = solution.Solution?.VehiclePlans ?? throw new InvalidOperationException("Solution is null");
-            
             foreach (var plan in vehiclePlans)
             {
-                foreach (var shift in plan.Shifts)
-                {
-                    var stops = shift.Stops;
-                    foreach (var stop in stops)
-                    {
-                        var location = stop.Location is null ? "null" : stop.Location.Id.ToString();
-                        var arrivalTime = stop.ArrivalTimeWindow;
-                        var departureTime = stop.DepartureTimeWindow;
-                        var handlingTime = stop.TotalStopTime;
-                        var pickup = string.Join(", ", stop.Pickups);
-                        var delivery = string.Join(", ", stop.Deliveries);
-                        
-                        var debug = $"{plan.Vehicle}: {location}, Arrival: {arrivalTime}, Departure: {departureTime}, Time: {handlingTime}, Pickup: {pickup}, Delivery: {delivery}";
-                        Console.WriteLine(debug);
-                    }
-                }
+                Console.WriteLine(plan.ToDebugString());
             }
         }
     }
@@ -146,7 +130,7 @@ public class VehicleRoutingTest
             {
                 var secondLocation = locations[j];
                 
-                builder.WithEdge(firstLocation, secondLocation, new DefinedRouteEdge(DistanceTimeMatrix[i, j], DistanceTimeMatrix[i, j]));;
+                builder.WithEdge(firstLocation, secondLocation, new DefinedRouteEdge(DistanceTimeMatrix[i, j], DistanceTimeMatrix[i, j]));
             }
         }
         

@@ -2,6 +2,8 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.VehicleRouting.Common;
+
 namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
@@ -18,6 +20,11 @@ public class VehicleShift
     /// Gets the shift of the vehicle shift.
     /// </summary>
     public Shift Shift { get;  }
+    
+    /// <summary>
+    /// Gets the time window of the shift.
+    /// </summary>
+    public ValueRange ShiftTimeWindow => Shift.ShiftTimeWindow;
     
     /// <summary>
     /// Gets the stops of the vehicle shift.

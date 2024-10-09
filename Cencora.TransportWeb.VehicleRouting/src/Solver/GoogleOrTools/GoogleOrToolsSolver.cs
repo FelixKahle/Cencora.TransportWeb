@@ -11,7 +11,6 @@ using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 using Google.OrTools.ConstraintSolver;
-using Google.OrTools.Sat;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
@@ -415,6 +414,9 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         IndexDimension = RoutingModel.GetMutableDimension(IndexDimensionName);
     }
 
+    /// <summary>
+    /// Sets up the arc cost evaluators of the solver.
+    /// </summary>
     private void SetupArcCostEvaluators()
     {
         // TODO:
@@ -630,8 +632,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var stops = new List<MutableVehicleStop>();
         var currentIndex = RoutingModel.Start(vehicleIndex);
         var stopIndex = 1;
-        
-        Console.WriteLine($"Vehicle: {currentVehicle}");
 
         while (RoutingModel.IsEnd(currentIndex) == false)
         {
@@ -652,8 +652,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             
             currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
         }
-
-        Console.WriteLine($"Stops: {stops.Count}");
+        
         return stops;
     }
     

@@ -2,6 +2,8 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using System.Text;
+
 namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 /// <summary>
@@ -38,5 +40,27 @@ public sealed class VehiclePlan
     public override string ToString()
     {
         return $"Plan for {Vehicle.Id}";
+    }
+
+    /// <summary>
+    /// Returns a debug string of the vehicle plan.
+    /// </summary>
+    /// <returns>The debug string.</returns>
+    public string ToDebugString()
+    {
+        const string tab = "    ";
+        
+        var sb = new StringBuilder();
+        sb.AppendLine($"- Plan for {Vehicle.Id}");
+        foreach (var shift in Shifts)
+        {
+            sb.AppendLine($"{tab}- Shift {shift.ShiftTimeWindow}");
+            foreach (var stop in shift.Stops)
+            {
+                sb.AppendLine($"{tab}{tab}- {stop}");
+            }
+        }
+        
+        return sb.ToString();
     }
 }

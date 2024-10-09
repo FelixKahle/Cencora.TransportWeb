@@ -247,8 +247,10 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <inheritdoc/>
     public override string ToString()
     {
-        var location = Location is null ? "unknown location" : Location.Id.ToString();
+        var location = Location is null ? "unknown" : Location.ToString();
+        var pickups = string.Join(", ", Pickups.Select(p => p.ToString()));
+        var deliveries = string.Join(", ", Deliveries.Select(d => d.ToString()));
         
-        return $"Stop {Index} of vehicle {Vehicle.Id} at {location}";
+        return $"{Index} stop at {location} with [{pickups}] pickups and [{deliveries}] deliveries. Arrival: {ArrivalTimeWindow}, Departure: {DepartureTimeWindow}, Handling: {TotalHandlingTime}, Waiting: {WaitingTime}";
     }
 }
