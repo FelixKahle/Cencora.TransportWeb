@@ -459,6 +459,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// </remarks>
     private void AddTimeWindowConstraints()
     {
+        // Add time window constraints for the nodes.
         for (var i = 0; i < NodeCount; i++)
         {
             var node = Nodes[i];
@@ -474,6 +475,21 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             
             TimeDimension.CumulVar(index).SetRange(range.Value.Min, range.Value.Max);
             RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
+        }
+        
+        // Also add time window constraints for the vehicles.
+        for (var i = 0; i < VehicleCount; i++)
+        {
+            var vehicle = Vehicles[i];
+            var availableTime = vehicle.AvailableTimeWindow;
+
+            var startIndex = RoutingModel.Start(i);
+            var endIndex = RoutingModel.End(i);
+            
+            TimeDimension.CumulVar(startIndex).SetRange(availableTime.Min, availableTime.Max);
+            TimeDimension.CumulVar(endIndex).SetRange(availableTime.Min, availableTime.Max);
+            RoutingModel.AddToAssignment(TimeDimension.SlackVar(startIndex));
+            RoutingModel.AddToAssignment(TimeDimension.SlackVar(endIndex));
         }
     }
 
