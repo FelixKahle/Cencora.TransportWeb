@@ -48,6 +48,3 @@ msbuild.wrn
 
 # MacOS
 *.DS_Store
-
-# Test
-Cencora.TransportWeb.Cli/
