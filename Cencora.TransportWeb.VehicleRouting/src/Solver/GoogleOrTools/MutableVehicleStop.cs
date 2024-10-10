@@ -14,7 +14,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// </summary>
 /// <remarks>
 /// This is used to create and modify vehicle stops in the solver.
-/// It is later converted to a inmutable vehicle stop.
+/// It is later converted to an immutable vehicle stop.
 /// </remarks>
 internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComparable<MutableVehicleStop>
 {
@@ -26,7 +26,7 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
     /// <summary>
     /// Gets the location of the vehicle stop.
     /// </summary>
-    internal Location? Location { get; }
+    internal Location Location { get; }
 
     /// <summary>
     /// Gets the vehicle of the vehicle stop.
@@ -59,11 +59,6 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
     internal ValueRange WaitingTime;
 
     /// <summary>
-    /// Gets the break time of the vehicle stop.
-    /// </summary>
-    internal long BreakTime;
-
-    /// <summary>
     /// Gets the total service time of handling the pickups.
     /// </summary>
     internal long PickupsHandlingTime => Pickups.Sum(p => p.PickupHandlingTime ?? 0);
@@ -94,10 +89,11 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
     /// <param name="breakTime">The break time of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <see paramref="index"/> is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <see paramref="vehicle"/> is null.</exception>
-    public MutableVehicleStop(int index, Location location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime, long breakTime)
+    /// <exception cref="ArgumentNullException">Thrown when <see paramref="location"/> or <see paramref="vehicle"/> is null.</exception>
+    public MutableVehicleStop(int index, Location location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
 
         Index = index;
@@ -108,7 +104,6 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
         ArrivalTimeWindow = arrivalTimeWindow;
         DepartureTimeWindow = departureTimeWindow;
         WaitingTime = waitingTime;
-        BreakTime = breakTime;
     }
     
     /// <summary>
@@ -122,12 +117,12 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
     /// <param name="arrivalTimeWindow">The arrival time window of the vehicle stop.</param>
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
-    /// <param name="breakTime">The break time of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <see paramref="index"/> is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <see paramref="vehicle"/>, <see paramref="pickups"/> or <see paramref="deliveries"/> is null.</exception>
-    public MutableVehicleStop(int index, Location? location, Vehicle vehicle, HashSet<Shipment> pickups, HashSet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime, long breakTime)
+    /// <exception cref="ArgumentNullException">Thrown when <see paramref="location"/>, <see paramref="vehicle"/>, <see paramref="pickups"/> or <see paramref="deliveries"/> is null.</exception>
+    public MutableVehicleStop(int index, Location location, Vehicle vehicle, HashSet<Shipment> pickups, HashSet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
         ArgumentNullException.ThrowIfNull(pickups, nameof(pickups));
         ArgumentNullException.ThrowIfNull(deliveries, nameof(deliveries));
@@ -140,7 +135,6 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
         ArrivalTimeWindow = arrivalTimeWindow;
         DepartureTimeWindow = departureTimeWindow;
         WaitingTime = waitingTime;
-        BreakTime = breakTime;
     }
 
     /// <inheritdoc />
@@ -199,7 +193,7 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
     /// <returns>The vehicle stop.</returns>
     public VehicleStop ToVehicleStop()
     {
-        return new VehicleStop(Index, Location, Vehicle, Pickups, Deliveries, ArrivalTimeWindow, DepartureTimeWindow, WaitingTime, BreakTime);
+        return new VehicleStop(Index, Location, Vehicle, Pickups, Deliveries, ArrivalTimeWindow, DepartureTimeWindow, WaitingTime);
     }
     
     /// <summary>

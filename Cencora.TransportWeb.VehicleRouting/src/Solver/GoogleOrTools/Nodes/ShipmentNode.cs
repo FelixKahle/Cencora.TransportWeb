@@ -140,12 +140,6 @@ internal sealed class ShipmentNode : Node
             _ => null
         };
     }
-    
-    /// <inheritdoc/>
-    internal override long GetBreakTime()
-    {
-        return 0;
-    }
 
     /// <inheritdoc/>
     public override string ToString()

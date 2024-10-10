@@ -157,12 +157,6 @@ public abstract class Node : IEquatable<Node>
     internal abstract ValueRange? GetTimeWindow();
 
     /// <summary>
-    /// Gets the break time of the node.
-    /// </summary>
-    /// <returns>The break time of the node.</returns>
-    internal abstract long GetBreakTime();
-
-    /// <summary>
     /// Gets a value indicating whether the node has a time window.
     /// </summary>
     /// <returns><see langword="true"/> if the node has a time window; otherwise, <see langword="false"/>.</returns>

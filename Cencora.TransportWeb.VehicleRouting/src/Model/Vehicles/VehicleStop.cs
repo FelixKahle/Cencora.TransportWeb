@@ -21,7 +21,7 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <summary>
     /// Gets the location of the vehicle stop.
     /// </summary>
-    public Location? Location { get; }
+    public Location Location { get; }
 
     /// <summary>
     /// Gets the vehicle of the vehicle stop.
@@ -54,11 +54,6 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     public ValueRange WaitingTime { get; }
 
     /// <summary>
-    /// Gets the break time of the vehicle stop.
-    /// </summary>
-    public long BreakTime { get; }
-
-    /// <summary>
     /// Gets the total service time of handling the pickups.
     /// </summary>
     public long PickupsHandlingTime => Pickups.Sum(p => p.PickupHandlingTime ?? 0);
@@ -87,12 +82,12 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <param name="arrivalTimeWindow">The arrival time window of the vehicle stop.</param>
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
-    /// <param name="breakTime">The break time of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/> is null.</exception>
-    public VehicleStop(int index, Location? location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime, long breakTime)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="location"/> or <paramref name="vehicle"/> is null.</exception>
+    public VehicleStop(int index, Location location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
 
         Index = index;
@@ -103,7 +98,6 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
         ArrivalTimeWindow = arrivalTimeWindow;
         DepartureTimeWindow = departureTimeWindow;
         WaitingTime = waitingTime;
-        BreakTime = breakTime;
     }
 
     /// <summary>
@@ -117,12 +111,12 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
     /// <param name="arrivalTimeWindow">The arrival time window of the vehicle stop.</param>
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
-    /// <param name="breakTime">The break time of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the index is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/>, <paramref name="pickups"/>, or <paramref name="deliveries"/> is null.</exception>
-    public VehicleStop(int index, Location? location, Vehicle vehicle, IReadOnlySet<Shipment> pickups, IReadOnlySet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime, long breakTime)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="location"/>, <paramref name="vehicle"/>, <paramref name="pickups"/>, or <paramref name="deliveries"/> is null.</exception>
+    public VehicleStop(int index, Location location, Vehicle vehicle, IReadOnlySet<Shipment> pickups, IReadOnlySet<Shipment> deliveries, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
         ArgumentNullException.ThrowIfNull(pickups, nameof(pickups));
         ArgumentNullException.ThrowIfNull(deliveries, nameof(deliveries));
@@ -135,7 +129,6 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
         ArrivalTimeWindow = arrivalTimeWindow;
         DepartureTimeWindow = departureTimeWindow;
         WaitingTime = waitingTime;
-        BreakTime = breakTime;
     }
 
     /// <inheritdoc/>
@@ -259,6 +252,6 @@ public sealed class VehicleStop : IEquatable<VehicleStop>, IComparable<VehicleSt
         var pickups = string.Join(", ", Pickups.Select(p => p.ToString()));
         var deliveries = string.Join(", ", Deliveries.Select(d => d.ToString()));
         
-        return $"{Index} stop at {Location} with [{pickups}] pickups and [{deliveries}] deliveries. Arrival: {ArrivalTimeWindow}, Departure: {DepartureTimeWindow}, Handling: {TotalHandlingTime}, Waiting: {WaitingTime}, Break: {BreakTime}";
+        return $"{Index} stop at {Location} with [{pickups}] pickups and [{deliveries}] deliveries. Arrival: {ArrivalTimeWindow}, Departure: {DepartureTimeWindow}, Handling: {TotalHandlingTime}, Waiting: {WaitingTime}";
     }
 }

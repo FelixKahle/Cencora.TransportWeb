@@ -125,12 +125,6 @@ internal sealed class VehicleNode : Node
     }
 
     /// <inheritdoc/>
-    internal override long GetBreakTime()
-    {
-        return 0;
-    }
-
-    /// <inheritdoc/>
     public override string ToString()
     {
         var nodeType = GetNodeTypeString();

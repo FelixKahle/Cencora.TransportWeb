@@ -241,12 +241,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
                 Nodes.Add(startNode);
                 Nodes.Add(endNode);
                 VehiclesToNodeStore.Add(dummyVehicle, new VehicleNodeStore(startNode, endNode));
-
-                foreach (var currentBreak in shift.Breaks)
-                {
-                    var breakNode = CreateBreakNode(dummyVehicle, currentBreak);
-                    Nodes.Add(breakNode);
-                }
             }
         }
     }
@@ -617,20 +611,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     }
 
     /// <summary>
-    /// Creates a break node.
-    /// </summary>
-    /// <param name="dummyVehicle">The dummy vehicle.</param>
-    /// <param name="breakToPerform">The break to perform.</param>
-    /// <returns>The break node.</returns>
-    private BreakNode CreateBreakNode(DummyVehicle dummyVehicle, Break breakToPerform)
-    {
-        ArgumentNullException.ThrowIfNull(dummyVehicle, nameof(dummyVehicle));
-        ArgumentNullException.ThrowIfNull(breakToPerform, nameof(breakToPerform));
-        
-        return new BreakNode(GetNextNodeIndex(), dummyVehicle, breakToPerform);
-    }
-
-    /// <summary>
     /// Creates a <see cref="SolverOutput"/> from an assignment.
     /// </summary>
     /// <param name="assignment">The assignment.</param>
@@ -704,6 +684,13 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var currentNodeIndex = IndexManager.IndexToNode(currentIndex);
             var currentNode = Nodes[currentNodeIndex];
             var currentLocation = currentNode.GetLocation();
+            
+            // Move to the next index.
+            if (currentLocation is null)
+            {
+                currentIndex = GetNextRoutingIndex(assignment, currentIndex);
+                continue;
+            }
 
             var (arrivalWindow, waitingWindow, departureWindow) = GetTimeWindows(currentIndex, assignment);
         
@@ -717,10 +704,24 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             }
             
             // Move to the next index.
-            currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
+            currentIndex = GetNextRoutingIndex(assignment, currentIndex);
         }
 
         return stops.ConvertAll(s => s.ToVehicleStop());
+    }
+
+    /// <summary>
+    /// Gets the next routing index.
+    /// </summary>
+    /// <param name="assignment">The assignment.</param>
+    /// <param name="currentIndex">The current index.</param>
+    /// <returns>The next routing index.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="assignment"/> is <see langword="null"/>.</exception>
+    private long GetNextRoutingIndex(Assignment assignment, long currentIndex)
+    {
+        ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
+        
+        return assignment.Value(RoutingModel.NextVar(currentIndex));
     }
     
     /// <summary>
@@ -746,11 +747,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var to = stops[i + 1];
             var fromLocation = from.Location;
             var toLocation = to.Location;
-            
-            if (fromLocation is null || toLocation is null)
-            {
-                continue;
-            }
 
             var (distance, duration) = RouteMatrix.GetEdge(fromLocation, toLocation) switch
             {
@@ -830,20 +826,20 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <param name="departureTimeWindow">The departure time window of the stop.</param>
     /// <returns>The new stop for the vehicle.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="stopIndex"/> is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="currentNode"/>, <paramref name="vehicle"/> is <see langword="null"/>.</exception>
-    private static MutableVehicleStop CreateNewStop(int stopIndex, Node currentNode, Vehicle vehicle, Location? location, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="currentNode"/>, <paramref name="vehicle"/>, or <paramref name="location"/> is <see langword="null"/>.</exception>
+    private static MutableVehicleStop CreateNewStop(int stopIndex, Node currentNode, Vehicle vehicle, Location location, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(stopIndex, nameof(stopIndex));
         ArgumentNullException.ThrowIfNull(currentNode, nameof(currentNode));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
+        ArgumentNullException.ThrowIfNull(location, nameof(location));
         
         var pickups = new HashSet<Shipment>();
         var deliveries = new HashSet<Shipment>();
         pickups.AddIfNotNull(currentNode.GetPickup());
         deliveries.AddIfNotNull(currentNode.GetDelivery());
-        var breakTime = currentNode.GetBreakTime();
 
-        return new MutableVehicleStop(stopIndex, location, vehicle, pickups, deliveries, arrivalTimeWindow, departureTimeWindow, waitingTimeWindow, breakTime);
+        return new MutableVehicleStop(stopIndex, location, vehicle, pickups, deliveries, arrivalTimeWindow, departureTimeWindow, waitingTimeWindow);
     }
     
     /// <summary>
