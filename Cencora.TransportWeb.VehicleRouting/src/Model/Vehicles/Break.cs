@@ -3,6 +3,7 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Common;
+using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
 namespace Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
@@ -22,6 +23,11 @@ public readonly struct Break : IEquatable<Break>, IComparable<Break>
     public long Duration { get; }
 
     /// <summary>
+    /// The location of the break.
+    /// </summary>
+    public Location? Location { get; }
+
+    /// <summary>
     /// The option of the break.
     /// </summary>
     public BreakOption Option { get; }
@@ -32,10 +38,11 @@ public readonly struct Break : IEquatable<Break>, IComparable<Break>
     /// <param name="allowedTimeWindow">The time window in which the break is allowed to be taken.</param>
     /// <param name="duration">The duration of the break.</param>
     /// <param name="option">The option of the break.</param>
+    /// <param name="location">The location of the break.</param>
     /// <remarks>
     /// The duration of the break is adjusted so that it cannot exceed the allowed time window.
     /// </remarks>
-    public Break(ValueRange allowedTimeWindow, long duration, BreakOption option)
+    public Break(ValueRange allowedTimeWindow, long duration, BreakOption option, Location? location = null)
     {
         // Adjust the duration so that it cannot exceed the allowed time window.
         // Furthermore, ensure that the duration is not negative.
@@ -44,6 +51,7 @@ public readonly struct Break : IEquatable<Break>, IComparable<Break>
         AllowedTimeWindow = allowedTimeWindow;
         Duration = adjustedDuration;
         Option = option;
+        Location = location;
     }
 
     /// <inheritdoc/>

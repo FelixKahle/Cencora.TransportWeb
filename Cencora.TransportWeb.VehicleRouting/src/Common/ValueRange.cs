@@ -22,7 +22,7 @@ public readonly struct ValueRange : IEquatable<ValueRange>, IFormattable, ICompa
     /// <summary>
     /// The difference between the minimum and maximum value.
     /// </summary>
-    public long Difference => Max - Min;
+    public long Difference => Math.Abs(Max - Min);
 
     /// <summary>
     /// The length of the range.

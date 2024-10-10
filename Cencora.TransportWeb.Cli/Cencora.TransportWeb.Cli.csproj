@@ -11,4 +11,8 @@
       <ProjectReference Include="..\Cencora.TransportWeb.VehicleRouting\Cencora.TransportWeb.VehicleRouting.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0-rc.2.24473.5" />
+    </ItemGroup>
+
 </Project>

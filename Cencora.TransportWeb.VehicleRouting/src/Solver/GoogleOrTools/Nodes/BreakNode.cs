@@ -5,29 +5,14 @@
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
+using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 
 /// <summary>
-/// Enumerates the types of vehicle nodes.
+/// Represents a node in the vehicle routing problem associated with a break.
 /// </summary>
-internal enum VehicleNodeType
-{
-    /// <summary>
-    /// The node is a start node.
-    /// </summary>
-    Start,
-
-    /// <summary>
-    /// The node is an end node.
-    /// </summary>
-    End,
-}
-
-/// <summary>
-/// Represents a node in the vehicle routing problem associated with a vehicle.
-/// </summary>
-internal sealed class VehicleNode : Node
+internal sealed class BreakNode : Node
 {
     /// <summary>
     /// The vehicle associated with the node.
@@ -35,37 +20,30 @@ internal sealed class VehicleNode : Node
     internal DummyVehicle Vehicle { get; }
 
     /// <summary>
-    /// The location of the node, <see langword="null"/> if the node is not associated with a location.
+    /// The break.
     /// </summary>
-    internal Location? Location { get; }
-
+    internal Break Break;
+    
     /// <summary>
-    /// The type of the node.
-    /// </summary>
-    internal VehicleNodeType Type { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="VehicleNode"/> class.
+    /// Initializes a new instance of the <see cref="BreakNode"/> class.
     /// </summary>
     /// <param name="index">The index of the node in the list of nodes of the solver.</param>
     /// <param name="vehicle">The vehicle associated with the node.</param>
-    /// <param name="location">The location of the node.</param>
-    /// <param name="type">The type of the node.</param>
+    /// <param name="breakToPerform">The break to perform.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicle"/> is <see langword="null"/>.</exception>
-    internal VehicleNode(int index, DummyVehicle vehicle, Location? location, VehicleNodeType type)
+    public BreakNode(int index, DummyVehicle vehicle, Break breakToPerform)
         : base(index)
     {
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
 
         Vehicle = vehicle;
-        Location = location;
-        Type = type;
+        Break = breakToPerform;
     }
 
     /// <inheritdoc/>
     internal override Location? GetLocation()
     {
-        return Location;
+        return Break.Location;
     }
 
     /// <inheritdoc/>
@@ -79,7 +57,7 @@ internal sealed class VehicleNode : Node
     {
         return null;
     }
-    
+
     /// <inheritdoc/>
     internal override Shipment? GetDelivery()
     {
@@ -101,42 +79,24 @@ internal sealed class VehicleNode : Node
     /// <inheritdoc/>
     internal override long GetTimeDemand()
     {
-        return 0;
+        return Break.Duration;
     }
 
     /// <inheritdoc/>
     internal override ValueRange? GetTimeWindow()
     {
-        return null;
-    }
-
-    /// <summary>
-    /// Returns a string representation of the node type.
-    /// </summary>
-    /// <returns>A string representation of the node type.</returns>
-    private string GetNodeTypeString()
-    {
-        return Type switch
-        {
-            VehicleNodeType.Start => "Start",
-            VehicleNodeType.End => "End",
-            _ => "Unknown"
-        };
+        return Break.AllowedTimeWindow;
     }
 
     /// <inheritdoc/>
     internal override long GetBreakTime()
     {
-        return 0;
+        return Break.Duration;
     }
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        var nodeType = GetNodeTypeString();
-
-        return Location is null
-            ? $"{nodeType} Node {Index} of Vehicle {Vehicle.Id}"
-            : $"{nodeType} Node {Index} of Vehicle {Vehicle.Id} at {Location}";
+        return $"BreakNode: {Index}";
     }
 }

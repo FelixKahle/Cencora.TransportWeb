@@ -37,7 +37,7 @@ public class VehicleRoutingTest
     public void Run()
     {
         var problem = BuildProblem();
-        using var solver = new GoogleOrToolsSolver(new GoogleOrToolsSolverOptions(TimeSpan.FromSeconds(2)));
+        using var solver = new GoogleOrToolsSolver(new GoogleOrToolsSolverOptions(TimeSpan.FromSeconds(2)), new ConsoleLogger<GoogleOrToolsSolver>());
         var solution = solver.Solve(problem);
         
         Console.WriteLine($"Has solution: {solution.HasSolution}");
@@ -70,13 +70,9 @@ public class VehicleRoutingTest
     private List<Vehicle> BuildVehicles(List<Location> locations)
     {
         var shift1 = new ShiftBuilder()
-            .WithShiftTimeWindow(new ValueRange(0, 700))
-            .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
-            .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
-            .Build();
-        
-        var shift2 = new ShiftBuilder()
-            .WithShiftTimeWindow(new ValueRange(700, 900))
+            .WithShiftTimeWindow(new ValueRange(0, 2000))
+            .WithBreak(new Break(new ValueRange(0, 700), 30, BreakOption.Mandatory))
+            .WithMaxDuration(400)
             .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .Build();
@@ -84,7 +80,6 @@ public class VehicleRoutingTest
         var vehicle = new VehicleBuilder()
             .WithId("First Vehicle")
             .WithShift(shift1)
-            .WithShift(shift2)
             .WithDistanceCost(10)
             .WithTimeCost(10)
             .WithFixedCost(10)
@@ -93,13 +88,8 @@ public class VehicleRoutingTest
             .Build();
         
         var shift3 = new ShiftBuilder()
-            .WithShiftTimeWindow(new ValueRange(0, 700))
-            .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
-            .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
-            .Build();
-        
-        var shift4 = new ShiftBuilder()
-            .WithShiftTimeWindow(new ValueRange(700, 900))
+            .WithShiftTimeWindow(new ValueRange(200, 2000))
+            .WithBreak(new Break(new ValueRange(200, 2000), 1, BreakOption.Mandatory))
             .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .Build();
@@ -107,7 +97,6 @@ public class VehicleRoutingTest
         var secondVehicle = new VehicleBuilder()
             .WithId("Second Vehicle")
             .WithShift(shift3)
-            .WithShift(shift4)
             .WithDistanceCost(10)
             .WithTimeCost(10)
             .WithFixedCost(10)

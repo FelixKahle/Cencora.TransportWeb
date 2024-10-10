@@ -13,6 +13,8 @@ using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 using Google.OrTools.ConstraintSolver;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 
@@ -21,6 +23,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
 /// </summary>
 public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
 {
+    private readonly ILogger<GoogleOrToolsSolver> _logger;
     private readonly GoogleOrToolsSolverOptions _options;
     
     /// <summary>
@@ -29,6 +32,21 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <param name="options">The options for the solver.</param>
     public GoogleOrToolsSolver(GoogleOrToolsSolverOptions options)
     {
+        _logger = NullLogger<GoogleOrToolsSolver>.Instance;
+        _options = options;
+    }
+    
+    /// <summary>
+    /// Creates a new instance of the <see cref="GoogleOrToolsSolver"/> class.
+    /// </summary>
+    /// <param name="options">The options for the solver.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is <see langword="null"/>.</exception>
+    public GoogleOrToolsSolver(GoogleOrToolsSolverOptions options, ILogger<GoogleOrToolsSolver> logger)
+    {
+        ArgumentNullException.ThrowIfNull(logger, nameof(logger));
+        
+        _logger = logger;
         _options = options;
     }
     
@@ -56,11 +74,16 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
             searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
             
+            _logger.LogInformation("Solving the vehicle routing problem...");
+            
             using var solution = RoutingModel.SolveWithParameters(searchParameters);
+            
+            _logger.LogInformation("Finished solving the vehicle routing problem");
             return CreateOutput(solution);
         }
         catch (Exception e)
         {
+            _logger.LogError(e, "An error occurred while solving the vehicle routing problem");
             throw new VehicleRoutingSolverException("An error occurred while solving the vehicle routing problem", e);
         }
     }
@@ -218,6 +241,12 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
                 Nodes.Add(startNode);
                 Nodes.Add(endNode);
                 VehiclesToNodeStore.Add(dummyVehicle, new VehicleNodeStore(startNode, endNode));
+
+                foreach (var currentBreak in shift.Breaks)
+                {
+                    var breakNode = CreateBreakNode(dummyVehicle, currentBreak);
+                    Nodes.Add(breakNode);
+                }
             }
         }
     }
@@ -462,34 +491,31 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         // Add time window constraints for the nodes.
         for (var i = 0; i < NodeCount; i++)
         {
-            var node = Nodes[i];
-            var index = IndexManager.NodeToIndex(i);
+            var index = IndexManager.IndexToNode(i);
+            var node = Nodes[index];
             var range = node.GetTimeWindow();
             
-            // If the range is null or the index is out of bounds, we skip the current node.
-            // Start and end nodes have an index of -1, so we need to check for that as well.
-            if (range is null || index < 0 || index >= NodeCount)
+            // Add the slack variable to the assignment.
+            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
+            
+            // If the node has no time window, we skip it.
+            if (range is null)
             {
                 continue;
             }
             
             TimeDimension.CumulVar(index).SetRange(range.Value.Min, range.Value.Max);
-            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
         }
         
-        // Also add time window constraints for the vehicles.
+        // Add time window constraints for the vehicles.
         for (var i = 0; i < VehicleCount; i++)
         {
             var vehicle = Vehicles[i];
-            var availableTime = vehicle.AvailableTimeWindow;
-
-            var startIndex = RoutingModel.Start(i);
-            var endIndex = RoutingModel.End(i);
+            var shiftTimeWindow = vehicle.AvailableTimeWindow;
             
-            TimeDimension.CumulVar(startIndex).SetRange(availableTime.Min, availableTime.Max);
-            TimeDimension.CumulVar(endIndex).SetRange(availableTime.Min, availableTime.Max);
-            RoutingModel.AddToAssignment(TimeDimension.SlackVar(startIndex));
-            RoutingModel.AddToAssignment(TimeDimension.SlackVar(endIndex));
+            var index = RoutingModel.Start(i);
+            TimeDimension.CumulVar(index).SetRange(shiftTimeWindow.Min, shiftTimeWindow.Max);
+            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
         }
     }
 
@@ -517,7 +543,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // The following line adds the requirement that each item must be picked up and delivered by the same vehicle.
             solver.Add(solver.MakeEquality(RoutingModel.VehicleVar(pickupIndex), RoutingModel.VehicleVar(deliveryIndex)));
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
-            solver.Add(solver.MakeLessOrEqual(TimeDimension.CumulVar(pickupIndex), TimeDimension.CumulVar(deliveryIndex)));
+            solver.Add(solver.MakeLessOrEqual(IndexDimension.CumulVar(pickupIndex), IndexDimension.CumulVar(deliveryIndex)));
         }
     }
 
@@ -543,6 +569,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var distanceCost = MathUtils.AddOrDefault(vehicle.DistanceCost ?? 0, shift.DistanceCost ?? 0, long.MaxValue);
         var timeCost = MathUtils.AddOrDefault(vehicle.TimeCost ?? 0, shift.TimeCost ?? 0, long.MaxValue);
         var waitingTimeCost = MathUtils.AddOrDefault(vehicle.WaitingTimeCost ?? 0, shift.WaitingTimeCost ?? 0, long.MaxValue);
+        var maxDuration = Math.Min(shift.MaxDuration ?? long.MaxValue, shift.ShiftTimeWindow.Difference);
         
         return new DummyVehicleBuilder(GetNextVehicleIndex(), vehicle, shift)
             .WithFixedCost(fixedCost)
@@ -555,7 +582,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             .WithMaxWeight(vehicle.MaxWeight ?? long.MaxValue)
             .WithMaxTotalWeight(long.MaxValue)
             .WithMaxDistance(shift.MaxDistance ?? long.MaxValue)
-            .WithMaxDuration(shift.MaxDuration ?? long.MaxValue)
+            .WithMaxDuration(maxDuration)
             .Build();
     }
 
@@ -587,6 +614,20 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         ArgumentNullException.ThrowIfNull(dummyVehicle, nameof(dummyVehicle));
         
         return new VehicleNode(GetNextNodeIndex(), dummyVehicle, location, nodeType);
+    }
+
+    /// <summary>
+    /// Creates a break node.
+    /// </summary>
+    /// <param name="dummyVehicle">The dummy vehicle.</param>
+    /// <param name="breakToPerform">The break to perform.</param>
+    /// <returns>The break node.</returns>
+    private BreakNode CreateBreakNode(DummyVehicle dummyVehicle, Break breakToPerform)
+    {
+        ArgumentNullException.ThrowIfNull(dummyVehicle, nameof(dummyVehicle));
+        ArgumentNullException.ThrowIfNull(breakToPerform, nameof(breakToPerform));
+        
+        return new BreakNode(GetNextNodeIndex(), dummyVehicle, breakToPerform);
     }
 
     /// <summary>
@@ -664,13 +705,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var currentNode = Nodes[currentNodeIndex];
             var currentLocation = currentNode.GetLocation();
 
-            // We are at an arbitrary location, so we skip it.
-            if (currentLocation is null)
-            {
-                currentIndex = assignment.Value(RoutingModel.NextVar(currentIndex));
-                continue;
-            }
-
             var (arrivalWindow, waitingWindow, departureWindow) = GetTimeWindows(currentIndex, assignment);
         
             if (IsSameLocationAsLastStop(stops, currentLocation))
@@ -712,6 +746,11 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var to = stops[i + 1];
             var fromLocation = from.Location;
             var toLocation = to.Location;
+            
+            if (fromLocation is null || toLocation is null)
+            {
+                continue;
+            }
 
             var (distance, duration) = RouteMatrix.GetEdge(fromLocation, toLocation) switch
             {
@@ -740,6 +779,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <returns>The time windows (arrival, waiting, and departure) for the given index.</returns>
     private (ValueRange arrival, ValueRange waiting, ValueRange departure) GetTimeWindows(long index, in Assignment assignment)
     {
+        ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
+        
         var arrivalTimeVar = TimeDimension.CumulVar(index);
         var earliestArrival = assignment.Min(arrivalTimeVar);
         var latestArrival = assignment.Max(arrivalTimeVar);
@@ -789,20 +830,20 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <param name="departureTimeWindow">The departure time window of the stop.</param>
     /// <returns>The new stop for the vehicle.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="stopIndex"/> is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="currentNode"/>, <paramref name="vehicle"/>, or <paramref name="location"/> is <see langword="null"/>.</exception>
-    private static MutableVehicleStop CreateNewStop(int stopIndex, Node currentNode, Vehicle vehicle, Location location, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="currentNode"/>, <paramref name="vehicle"/> is <see langword="null"/>.</exception>
+    private static MutableVehicleStop CreateNewStop(int stopIndex, Node currentNode, Vehicle vehicle, Location? location, ValueRange arrivalTimeWindow, ValueRange waitingTimeWindow, ValueRange departureTimeWindow)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(stopIndex, nameof(stopIndex));
         ArgumentNullException.ThrowIfNull(currentNode, nameof(currentNode));
         ArgumentNullException.ThrowIfNull(vehicle, nameof(vehicle));
-        ArgumentNullException.ThrowIfNull(location, nameof(location));
         
         var pickups = new HashSet<Shipment>();
         var deliveries = new HashSet<Shipment>();
         pickups.AddIfNotNull(currentNode.GetPickup());
         deliveries.AddIfNotNull(currentNode.GetDelivery());
+        var breakTime = currentNode.GetBreakTime();
 
-        return new MutableVehicleStop(stopIndex, location, vehicle, pickups, deliveries, arrivalTimeWindow, departureTimeWindow, waitingTimeWindow);
+        return new MutableVehicleStop(stopIndex, location, vehicle, pickups, deliveries, arrivalTimeWindow, departureTimeWindow, waitingTimeWindow, breakTime);
     }
     
     /// <summary>

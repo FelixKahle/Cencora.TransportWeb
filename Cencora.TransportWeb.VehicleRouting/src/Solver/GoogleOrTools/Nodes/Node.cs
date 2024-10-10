@@ -11,7 +11,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
 /// <summary>
 /// Represents a node in the vehicle routing problem.
 /// </summary>
-internal abstract class Node : IEquatable<Node>
+public abstract class Node : IEquatable<Node>
 {
     /// <summary>
     /// The index of the node in the list of nodes of the solver.
@@ -155,6 +155,12 @@ internal abstract class Node : IEquatable<Node>
     /// the node does not have a time window.
     /// </remarks>
     internal abstract ValueRange? GetTimeWindow();
+
+    /// <summary>
+    /// Gets the break time of the node.
+    /// </summary>
+    /// <returns>The break time of the node.</returns>
+    internal abstract long GetBreakTime();
 
     /// <summary>
     /// Gets a value indicating whether the node has a time window.
