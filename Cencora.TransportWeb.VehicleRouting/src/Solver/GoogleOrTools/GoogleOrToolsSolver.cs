@@ -151,20 +151,23 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         SetupDistanceCallback();
         SetupWeightCallback();
         SetupCumulativeWeightCallback();
-        SetupIndexCallback();
+        //SetupIndexCallback();
         
         // Set up the dimensions of the solver.
         SetupTimeDimension();
         SetupDistanceDimension();
         SetupWeightDimension();
         SetupCumulativeWeightDimension();
-        SetupIndexDimension();
+        //SetupIndexDimension();
         
         // Add time window constraints to the solver.
         AddTimeWindowConstraints();
         
         // Link pickup and delivery.
         LinkNodes();
+        
+        // Setup vehicle breaks.
+        SetupVehicleBreaks();
         
         // Set the objective functions for the vehicles.
         SetupVehicleObjectiveFunctions();
@@ -483,14 +486,11 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     private void AddTimeWindowConstraints()
     {
         // Add time window constraints for the nodes.
-        for (var i = 0; i < NodeCount; i++)
+        for (var i = 0; i < IndexManager.GetNumberOfIndices(); i++)
         {
             var index = IndexManager.IndexToNode(i);
             var node = Nodes[index];
             var range = node.GetTimeWindow();
-            
-            // Add the slack variable to the assignment.
-            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
             
             // If the node has no time window, we skip it.
             if (range is null)
@@ -499,6 +499,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             }
             
             TimeDimension.CumulVar(index).SetRange(range.Value.Min, range.Value.Max);
+            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
         }
         
         // Add time window constraints for the vehicles.
@@ -519,12 +520,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <exception cref="InvalidOperationException">Thrown if the solver is <see langword="null"/>.</exception>
     private void LinkNodes()
     {
-        var solver = RoutingModel.solver();
-        if (solver is null)
-        {
-            throw new InvalidOperationException("The solver is null");
-        }
-
         foreach (var store in ShipmentsToNodeStore.Values)
         {
             var pickupNode = store.Pickup;
@@ -535,10 +530,62 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             
             RoutingModel.AddPickupAndDelivery(pickupIndex, deliveryIndex);
             // The following line adds the requirement that each item must be picked up and delivered by the same vehicle.
-            solver.Add(solver.MakeEquality(RoutingModel.VehicleVar(pickupIndex), RoutingModel.VehicleVar(deliveryIndex)));
+            Solver.Add(Solver.MakeEquality(RoutingModel.VehicleVar(pickupIndex), RoutingModel.VehicleVar(deliveryIndex)));
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
-            solver.Add(solver.MakeLessOrEqual(IndexDimension.CumulVar(pickupIndex), IndexDimension.CumulVar(deliveryIndex)));
+            Solver.Add(Solver.MakeLessOrEqual(TimeDimension.CumulVar(pickupIndex), TimeDimension.CumulVar(deliveryIndex)));
         }
+    }
+
+    /// <summary>
+    /// Sets up the vehicle breaks of the solver.
+    /// </summary>
+    private void SetupVehicleBreaks()
+    {
+        var nodeDemands = GetNodeTimeDemands();
+        _logger.LogInformation(string.Join(", ", nodeDemands));
+
+        var breakIndex = 0;
+        for (var i = 0; i < VehicleCount; i++)
+        {
+            var vehicle = Vehicles[i];
+            var breaks = vehicle.Breaks;
+
+            var intervalVarVector = new IntervalVarVector(breaks.Count);
+            foreach (var currentBreak in breaks)
+            {
+                var allowedBreakTimeWindow = currentBreak.AllowedTimeWindow;
+                var breakDuration = currentBreak.Duration;
+                var optional = currentBreak.Option == BreakOption.Optional;
+                var currentBreakIndex = breakIndex++;
+                var intervalVarName = $"Break_{i}_{currentBreakIndex}";
+                
+                var intervalVar = Solver.MakeFixedDurationIntervalVar(allowedBreakTimeWindow.Min, allowedBreakTimeWindow.Max, breakDuration, optional, intervalVarName);
+                intervalVarVector.Add(intervalVar);
+            }
+            
+            TimeDimension.SetBreakIntervalsOfVehicle(intervalVarVector, i, nodeDemands);
+        }
+    }
+
+    /// <summary>
+    /// Gets an array of time demands for the nodes.
+    /// </summary>
+    /// <returns>An array of time demands for the nodes.</returns>
+    private long[] GetNodeTimeDemands()
+    {
+        // https://github.com/google/or-tools/issues/2578
+        var count = IndexManager.GetNumberOfIndices();
+
+        var timeDemands = new long[count];
+        for (var i = 0; i < count; i++)
+        {
+            var nodeIndex = IndexManager.IndexToNode(i);
+            var node = Nodes[nodeIndex];
+            _logger.LogInformation(node.ToString());
+            timeDemands[i] = node.GetTimeDemand();
+        }
+        
+        return timeDemands;
     }
 
     /// <summary>

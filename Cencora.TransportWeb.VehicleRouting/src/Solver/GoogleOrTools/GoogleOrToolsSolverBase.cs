@@ -155,6 +155,11 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     {
         RoutingModel = new RoutingModel(IndexManager);
     }
+    
+    /// <summary>
+    /// Gets the solver of the routing model.
+    /// </summary>
+    private protected Google.OrTools.ConstraintSolver.Solver Solver => RoutingModel.solver() ?? throw new InvalidOperationException("The solver is null.");
 
     /// <summary>
     /// Initializes the routing model of the solver.
