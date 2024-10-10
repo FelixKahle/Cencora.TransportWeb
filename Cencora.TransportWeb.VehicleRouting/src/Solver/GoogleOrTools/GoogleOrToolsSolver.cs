@@ -120,7 +120,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var (vehicleStartNodeIndices, vehicleEndNodeIndices) = GetVehicleNodeIndices();
 
         // Initialize the Google OR-Tools interfaces.
-        InitializeRoutingIndexManager(Nodes.Count, Vehicles.Count, vehicleStartNodeIndices, vehicleEndNodeIndices);
+        InitializeRoutingIndexManager(NodeCount, VehicleCount, vehicleStartNodeIndices, vehicleEndNodeIndices);
         InitializeRoutingModel();
     }
 
@@ -146,14 +146,14 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         //SetupDistanceCallback();
         //SetupWeightCallback();
         //SetupCumulativeWeightCallback();
-        //SetupIndexCallback();
+        SetupIndexCallback();
         
         // Set up the dimensions of the solver.
         SetupTimeDimension();
         //SetupDistanceDimension();
         //SetupWeightDimension();
         //SetupCumulativeWeightDimension();
-        //SetupIndexDimension();
+        SetupIndexDimension();
         
         // Add time window constraints to the solver.
         AddTimeWindowConstraints();
@@ -487,7 +487,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // If the node has no time window, we skip it.
             if (range is null)
             {
-                _logger.LogInformation($"Node {node} has no time window");
                 continue;
             }
             
@@ -525,8 +524,28 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // The following line adds the requirement that each item must be picked up and delivered by the same vehicle.
             Solver.Add(Solver.MakeEquality(RoutingModel.VehicleVar(pickupIndex), RoutingModel.VehicleVar(deliveryIndex)));
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
-            Solver.Add(Solver.MakeLessOrEqual(TimeDimension.CumulVar(pickupIndex), TimeDimension.CumulVar(deliveryIndex)));
+            Solver.Add(Solver.MakeLessOrEqual(IndexDimension.CumulVar(pickupIndex), IndexDimension.CumulVar(deliveryIndex)));
         }
+    }
+
+    /// <summary>
+    /// Gets the time spent at all nodes except the vehicle end nodes.
+    /// </summary>
+    /// <returns>The time spent at all nodes except the vehicle end nodes.</returns>
+    private long[] GetNodeTimeDemands()
+    {
+        // https://github.com/google/or-tools/issues/2578
+        var count = RoutingModel.Size();
+        
+        var timeDemands = new long[count];
+        for (var i = 0; i < count; i++)
+        {
+            var nodeIndex = IndexManager.IndexToNode(i);
+            var node = Nodes[nodeIndex];
+            timeDemands[i] = node.GetTimeDemand();
+        }
+        
+        return timeDemands;
     }
 
     /// <summary>
