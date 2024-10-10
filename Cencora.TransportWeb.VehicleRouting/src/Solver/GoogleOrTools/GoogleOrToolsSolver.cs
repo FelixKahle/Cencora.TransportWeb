@@ -73,12 +73,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
             searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
             searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
-            
-            _logger.LogInformation("Solving the vehicle routing problem...");
-            
             using var solution = RoutingModel.SolveWithParameters(searchParameters);
-            
-            _logger.LogInformation("Finished solving the vehicle routing problem");
             return CreateOutput(solution);
         }
         catch (Exception e)
@@ -143,21 +138,21 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         // as some methods depend on the successful execution of others.
         
         // Set up the fixed costs of the vehicles.
-        SetupVehicleCosts();
+        //SetupVehicleCosts();
         
         // Setup all the solver callbacks.
         SetupArcCostEvaluators();
         SetupTimeCallback();
-        SetupDistanceCallback();
-        SetupWeightCallback();
-        SetupCumulativeWeightCallback();
+        //SetupDistanceCallback();
+        //SetupWeightCallback();
+        //SetupCumulativeWeightCallback();
         //SetupIndexCallback();
         
         // Set up the dimensions of the solver.
         SetupTimeDimension();
-        SetupDistanceDimension();
-        SetupWeightDimension();
-        SetupCumulativeWeightDimension();
+        //SetupDistanceDimension();
+        //SetupWeightDimension();
+        //SetupCumulativeWeightDimension();
         //SetupIndexDimension();
         
         // Add time window constraints to the solver.
@@ -165,9 +160,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         
         // Link pickup and delivery.
         LinkNodes();
-        
-        // Setup vehicle breaks.
-        SetupVehicleBreaks();
         
         // Set the objective functions for the vehicles.
         SetupVehicleObjectiveFunctions();
@@ -486,15 +478,16 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     private void AddTimeWindowConstraints()
     {
         // Add time window constraints for the nodes.
-        for (var i = 0; i < IndexManager.GetNumberOfIndices(); i++)
+        for (var i = 0; i < NodeCount; i++)
         {
-            var index = IndexManager.IndexToNode(i);
-            var node = Nodes[index];
+            var node = Nodes[i];
+            var index = IndexManager.NodeToIndex(i);
             var range = node.GetTimeWindow();
             
             // If the node has no time window, we skip it.
             if (range is null)
             {
+                _logger.LogInformation($"Node {node} has no time window");
                 continue;
             }
             
@@ -534,58 +527,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
             Solver.Add(Solver.MakeLessOrEqual(TimeDimension.CumulVar(pickupIndex), TimeDimension.CumulVar(deliveryIndex)));
         }
-    }
-
-    /// <summary>
-    /// Sets up the vehicle breaks of the solver.
-    /// </summary>
-    private void SetupVehicleBreaks()
-    {
-        var nodeDemands = GetNodeTimeDemands();
-        _logger.LogInformation(string.Join(", ", nodeDemands));
-
-        var breakIndex = 0;
-        for (var i = 0; i < VehicleCount; i++)
-        {
-            var vehicle = Vehicles[i];
-            var breaks = vehicle.Breaks;
-
-            var intervalVarVector = new IntervalVarVector(breaks.Count);
-            foreach (var currentBreak in breaks)
-            {
-                var allowedBreakTimeWindow = currentBreak.AllowedTimeWindow;
-                var breakDuration = currentBreak.Duration;
-                var optional = currentBreak.Option == BreakOption.Optional;
-                var currentBreakIndex = breakIndex++;
-                var intervalVarName = $"Break_{i}_{currentBreakIndex}";
-                
-                var intervalVar = Solver.MakeFixedDurationIntervalVar(allowedBreakTimeWindow.Min, allowedBreakTimeWindow.Max, breakDuration, optional, intervalVarName);
-                intervalVarVector.Add(intervalVar);
-            }
-            
-            TimeDimension.SetBreakIntervalsOfVehicle(intervalVarVector, i, nodeDemands);
-        }
-    }
-
-    /// <summary>
-    /// Gets an array of time demands for the nodes.
-    /// </summary>
-    /// <returns>An array of time demands for the nodes.</returns>
-    private long[] GetNodeTimeDemands()
-    {
-        // https://github.com/google/or-tools/issues/2578
-        var count = IndexManager.GetNumberOfIndices();
-
-        var timeDemands = new long[count];
-        for (var i = 0; i < count; i++)
-        {
-            var nodeIndex = IndexManager.IndexToNode(i);
-            var node = Nodes[nodeIndex];
-            _logger.LogInformation(node.ToString());
-            timeDemands[i] = node.GetTimeDemand();
-        }
-        
-        return timeDemands;
     }
 
     /// <summary>
