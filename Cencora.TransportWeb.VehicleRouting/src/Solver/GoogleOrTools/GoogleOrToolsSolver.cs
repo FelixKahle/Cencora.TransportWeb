@@ -68,6 +68,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             // Prepare the solver for solving the problem.
             PrepareSolver();
             
+            //_logger.LogInformation(GetSolverStateString());
+            
             // Solve the problem.
             var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
             searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
@@ -138,21 +140,21 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         // as some methods depend on the successful execution of others.
         
         // Set up the fixed costs of the vehicles.
-        //SetupVehicleCosts();
+        SetupVehicleCosts();
         
         // Setup all the solver callbacks.
         SetupArcCostEvaluators();
         SetupTimeCallback();
-        //SetupDistanceCallback();
-        //SetupWeightCallback();
-        //SetupCumulativeWeightCallback();
+        SetupDistanceCallback();
+        SetupWeightCallback();
+        SetupCumulativeWeightCallback();
         SetupIndexCallback();
         
         // Set up the dimensions of the solver.
         SetupTimeDimension();
-        //SetupDistanceDimension();
-        //SetupWeightDimension();
-        //SetupCumulativeWeightDimension();
+        SetupDistanceDimension(); 
+        SetupWeightDimension();
+        SetupCumulativeWeightDimension();
         SetupIndexDimension();
         
         // Add time window constraints to the solver.
@@ -160,6 +162,9 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         
         // Link pickup and delivery.
         LinkNodes();
+        
+        // Setup vehicle breaks.
+        SetupVehicleBreaks();
         
         // Set the objective functions for the vehicles.
         SetupVehicleObjectiveFunctions();
@@ -284,7 +289,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <summary>
     /// Sets up the time dimension of the solver.
     /// </summary>
-    /// <param name="maxSlackTime"></param>
+    /// <param name="maxSlackTime">The maximum slack time. Defaults to <see cref="long.MaxValue"/>.</param>
     private void SetupTimeDimension(long maxSlackTime = long.MaxValue)
     {
         var adjustedMaxSlackTime = Math.Max(0, maxSlackTime);
@@ -295,12 +300,8 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         for (var i = 0; i < VehicleCount; i++)
         {
             var vehicle = Vehicles[i];
-
             var timeCost = vehicle.TimeCost;
-            var waitingTimeCost = vehicle.WaitingTimeCost;
-            
-            TimeDimension.SetSlackCostCoefficientForVehicle(timeCost, i);
-            TimeDimension.SetSpanCostCoefficientForVehicle(waitingTimeCost, i);
+            TimeDimension.SetSpanCostCoefficientForVehicle(timeCost, i);
         }
     }
 
@@ -372,9 +373,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var weightCost = vehicle.WeightCost;
             
             CumulativeWeightDimension.SetSpanCostCoefficientForVehicle(weightCost, i);
-            // Theoretically we do not need to do this, as we disallow any slack on this dimension.
-            // For good practice and because it will not cause any harm, we keep it here.
-            CumulativeWeightDimension.SetSlackCostCoefficientForVehicle(weightCost, i);
         }
     }
 
@@ -410,9 +408,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var distanceCost = vehicle.DistanceCost;
             
             DistanceDimension.SetSpanCostCoefficientForVehicle(distanceCost, i);
-            // Theoretically we do not need to do this, as we disallow any slack on this dimension.
-            // For good practice and because it will not cause any harm, we keep it here.
-            DistanceDimension.SetSlackCostCoefficientForVehicle(distanceCost, i);
         }
     }
     
@@ -481,17 +476,28 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         for (var i = 0; i < NodeCount; i++)
         {
             var node = Nodes[i];
-            var index = IndexManager.NodeToIndex(i);
             var range = node.GetTimeWindow();
+            var index = IndexManager.NodeToIndex(i);
             
-            // If the node has no time window, we skip it.
+            // Copy the slack var to the assignment,
+            // so we can later retrieve the slack time of the node.
+            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
+            
+            // Skip the start and end nodes.
+            // Start nodes get their time windows from the vehicles
+            // and end nodes do not have time windows.
+            if (RoutingModel.IsStart(index) || RoutingModel.IsEnd(index))
+            {
+                continue;
+            }
+            
+            // Skip nodes without time windows.
             if (range is null)
             {
                 continue;
             }
             
             TimeDimension.CumulVar(index).SetRange(range.Value.Min, range.Value.Max);
-            RoutingModel.AddToAssignment(TimeDimension.SlackVar(index));
         }
         
         // Add time window constraints for the vehicles.
@@ -529,14 +535,36 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     }
 
     /// <summary>
-    /// Gets the time spent at all nodes except the vehicle end nodes.
+    /// Sets up the vehicle breaks of the solver.
     /// </summary>
-    /// <returns>The time spent at all nodes except the vehicle end nodes.</returns>
+    private void SetupVehicleBreaks()
+    {
+        var nodeTimeDemands = GetNodeTimeDemands();
+
+        var breakIndex = 0;
+        for (var i = 0; i < VehicleCount; i++)
+        {
+            var vehicle = Vehicles[i];
+
+            var intervalVars = new IntervalVarVector();
+            foreach (var currentBreak in vehicle.Breaks)
+            {
+                var breakTimeWindow = currentBreak.AllowedTimeWindow;
+                var breakDuration = currentBreak.Duration;
+                var breakOptional = currentBreak.Option == BreakOption.Optional;
+                var breakName = $"Break_{breakIndex++}";
+                
+                var intervalVar = Solver.MakeFixedDurationIntervalVar(breakTimeWindow.Min, breakTimeWindow.Max, breakDuration, breakOptional, breakName);
+                intervalVars.Add(intervalVar);
+            }
+            
+            TimeDimension.SetBreakIntervalsOfVehicle(intervalVars, i, nodeTimeDemands);
+        }
+    }
     private long[] GetNodeTimeDemands()
     {
         // https://github.com/google/or-tools/issues/2578
         var count = RoutingModel.Size();
-        
         var timeDemands = new long[count];
         for (var i = 0; i < count; i++)
         {
@@ -544,7 +572,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var node = Nodes[nodeIndex];
             timeDemands[i] = node.GetTimeDemand();
         }
-        
         return timeDemands;
     }
 
@@ -569,7 +596,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         var baseCost = MathUtils.AddOrDefault(adjustedFixedCost, shift.BaseCost ?? 0, long.MaxValue);
         var distanceCost = MathUtils.AddOrDefault(vehicle.DistanceCost ?? 0, shift.DistanceCost ?? 0, long.MaxValue);
         var timeCost = MathUtils.AddOrDefault(vehicle.TimeCost ?? 0, shift.TimeCost ?? 0, long.MaxValue);
-        var waitingTimeCost = MathUtils.AddOrDefault(vehicle.WaitingTimeCost ?? 0, shift.WaitingTimeCost ?? 0, long.MaxValue);
         var maxDuration = Math.Min(shift.MaxDuration ?? long.MaxValue, shift.ShiftTimeWindow.Difference);
         
         return new DummyVehicleBuilder(GetNextVehicleIndex(), vehicle, shift)
@@ -577,7 +603,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             .WithBaseCost(baseCost)
             .WithDistanceCost(distanceCost)
             .WithTimeCost(timeCost)
-            .WithWaitingTimeCost(waitingTimeCost)
             .WithWeightCost(vehicle.WeightCost ?? 0)
             .WithCostPerWeightDistance(vehicle.CostPerWeightDistance ?? 0)
             .WithMaxWeight(vehicle.MaxWeight ?? long.MaxValue)
@@ -684,7 +709,11 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
         
         var stops = new List<MutableVehicleStop>();
         var currentIndex = RoutingModel.Start(vehicleIndex);
+        
+        // Keep track of the stop index.
+        // For cleaner code, we use a function to get the next stop index.
         var stopIndex = 1;
+        var getNextStopIndex = new Func<int>(() => stopIndex++);
         
         while (!RoutingModel.IsEnd(currentIndex))
         {
@@ -707,7 +736,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             }
             else
             {
-                stops.Add(CreateNewStop(stopIndex++, currentNode, currentVehicle, currentLocation, arrivalWindow, waitingWindow, departureWindow));
+                stops.Add(CreateNewStop(getNextStopIndex(), currentNode, currentVehicle, currentLocation, arrivalWindow, waitingWindow, departureWindow));
             }
             
             // Move to the next index.
@@ -745,7 +774,11 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
 
         // Preallocate the list of trips.
         var trips = new List<VehicleTrip>(Math.Max(0, stops.Count - 1));
+        
+        // Keep track of the trip index.
+        // Fo cleaner code, we use a function to get the next trip index.
         var tripIndex = 1;
+        var getNextTripIndex = new Func<int>(() => tripIndex++);
         
         // Iterate over all stops and create trips between them.
         for (var i = 0; i < stops.Count - 1; i++)
@@ -764,7 +797,7 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
             var tripDistanceCost = MathUtils.MultiplyOrDefault(distance, currentVehicle.DistanceCost ?? 0, long.MaxValue);
             var tripTimeCost = MathUtils.MultiplyOrDefault(duration, currentVehicle.TimeCost ?? 0, long.MaxValue);
 
-            var trip = new VehicleTrip(tripIndex++, currentVehicle, fromLocation, toLocation, distance, duration,
+            var trip = new VehicleTrip(getNextTripIndex(), currentVehicle, fromLocation, toLocation, distance, duration,
                 from.DepartureTimeWindow, to.ArrivalTimeWindow, tripDistanceCost, tripTimeCost);
             
             trips.Add(trip);
@@ -902,6 +935,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{nameof(GoogleOrToolsSolver)}";
+        return "Google OR-Tools Vehicle Routing Solver";
     }
 }

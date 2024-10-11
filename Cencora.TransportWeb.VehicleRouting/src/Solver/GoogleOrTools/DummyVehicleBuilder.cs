@@ -18,7 +18,6 @@ internal sealed class DummyVehicleBuilder
     private long _baseCost;
     private long _distanceCost;
     private long _timeCost;
-    private long _waitingTimeCost;
     private long _weightCost;
     private long _costPerWeightDistance;
     private long _maxWeight;
@@ -130,16 +129,6 @@ internal sealed class DummyVehicleBuilder
         _timeCost = timeCost;
         return this;
     }
-    
-    /// <summary>
-    /// Adds the waiting time cost.
-    /// </summary>
-    /// <param name="waitingTimeCost">The waiting time cost.</param>
-    internal DummyVehicleBuilder WithWaitingTimeCost(long waitingTimeCost)
-    {
-        _waitingTimeCost = waitingTimeCost;
-        return this;
-    }
 
     /// <summary>
     /// Adds the weight cost.
@@ -215,7 +204,7 @@ internal sealed class DummyVehicleBuilder
     internal DummyVehicle Build()
     {
         return new DummyVehicle(_index, _vehicle, _shift, _fixedCost, _baseCost, _distanceCost,
-            _timeCost, _waitingTimeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxTotalWeight, _maxDuration,
+            _timeCost, _weightCost, _costPerWeightDistance, _maxWeight, _maxTotalWeight, _maxDuration,
             _maxDistance);
     }
 

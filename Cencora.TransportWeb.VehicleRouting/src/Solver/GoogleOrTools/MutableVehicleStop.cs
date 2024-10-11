@@ -87,7 +87,6 @@ internal sealed class MutableVehicleStop : IEquatable<MutableVehicleStop>, IComp
     /// <param name="arrivalTimeWindow">The arrival time window of the vehicle stop.</param>
     /// <param name="departureTimeWindow">The departure time window of the vehicle stop.</param>
     /// <param name="waitingTime">The waiting time of the vehicle stop.</param>
-    /// <param name="breakTime">The break time of the vehicle stop.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <see paramref="index"/> is negative.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <see paramref="location"/> or <see paramref="vehicle"/> is null.</exception>
     public MutableVehicleStop(int index, Location location, Vehicle vehicle, ValueRange arrivalTimeWindow, ValueRange departureTimeWindow, ValueRange waitingTime)

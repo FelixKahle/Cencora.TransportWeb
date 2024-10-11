@@ -72,6 +72,7 @@ public class VehicleRoutingTest
         var shift1 = new ShiftBuilder()
             .WithShiftTimeWindow(new ValueRange(0, 2000))
             .WithBreak(new Break(new ValueRange(0, 2000), 10, BreakOption.Mandatory))
+            .WithMaxDuration(long.MaxValue)
             .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .Build();
@@ -89,6 +90,7 @@ public class VehicleRoutingTest
         var shift3 = new ShiftBuilder()
             .WithShiftTimeWindow(new ValueRange(200, 2000))
             .WithBreak(new Break(new ValueRange(200, 2000), 10, BreakOption.Mandatory))
+            .WithMaxDuration(long.MaxValue)
             .WithStartLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .WithEndLocation(locations.Find(l => l.Id == "0") ?? throw new InvalidOperationException("Location not found"))
             .Build();
