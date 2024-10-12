@@ -21,6 +21,11 @@ public sealed class Vehicle : IEquatable<Vehicle>
     /// Gets the shifts of the vehicle.
     /// </summary>
     public IReadOnlySet<Shift> Shifts { get; }
+    
+    /// <summary>
+    /// Gets the number of shifts of the vehicle.
+    /// </summary>
+    public int ShiftCount => Shifts.Count;
 
     /// <summary>
     /// Gets the flags of the vehicle.
