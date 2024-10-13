@@ -9,13 +9,13 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callba
 /// <summary>
 /// Interface for a transit callback.
 /// </summary>
-internal interface ITransitCallback : ICallback
+internal interface ITransitCallback
 {
     /// <summary>
-    /// The callback.
+    /// Callback for the transit.
     /// </summary>
-    /// <param name="from">The node to start from.</param>
-    /// <param name="to">The node to end at.</param>
-    /// <returns>The transit time between the two nodes.</returns>
-    long Callback(Node from, Node to);
+    /// <param name="fromNode">The node from which the transit starts.</param>
+    /// <param name="toNode">The node to which the transit goes.</param>
+    /// <returns>The transit cost.</returns>
+    long Callback(Node fromNode, Node toNode);
 }

@@ -37,9 +37,7 @@ public class VehicleRoutingTest
 
     public void RunTwo()
     {
-        var problem = BuildProblem();
-        var testSolver = new OrToolsSolver();
-        var testSolution = testSolver.Solve(problem);
+        
     }
 
     public void Run()

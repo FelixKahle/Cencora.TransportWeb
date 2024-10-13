@@ -2,86 +2,93 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 
 /// <summary>
-/// Default implementation of the <see cref="ICallbackRegistrant"/> interface.
+/// Default implementation of <see cref="ICallbackRegistrant"/>.
 /// </summary>
 internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
 {
-    /// <summary>
-    /// The solver interface.
-    /// </summary>
     private readonly SolverInterface _solverInterface;
-    
-    /// <summary>
-    /// The state.
-    /// </summary>
-    private readonly SolverState _state;
-
-    /// <summary>
-    /// The callbacks.
-    /// </summary>
-    private readonly List<ICallback> _callbacks;
+    private readonly SolverModel _solverModel;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCallbackRegistrant"/> class.
     /// </summary>
     /// <param name="solverInterface">The solver interface.</param>
-    /// <param name="state">The state.</param>
+    /// <param name="solverModel">The solver model.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="solverInterface"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    internal DefaultCallbackRegistrant(SolverInterface solverInterface, SolverState state)
+    internal DefaultCallbackRegistrant(SolverInterface solverInterface, SolverModel solverModel)
     {
         ArgumentNullException.ThrowIfNull(solverInterface, nameof(solverInterface));
-        ArgumentNullException.ThrowIfNull(state, nameof(state));
+        ArgumentNullException.ThrowIfNull(solverModel, nameof(solverModel));
         
         _solverInterface = solverInterface;
-        _state = state;
-        _callbacks = new List<ICallback>();
+        _solverModel = solverModel;
     }
     
     /// <inheritdoc/>
-    public int RegisterCallback(ITransitCallback callback)
+    public Callback RegisterCallback(Func<Node, Node, long> callback)
     {
-        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
-        
-        _callbacks.Add(callback);
-        
-        return _solverInterface.Model.RegisterTransitCallback((from, to) =>
+        var index = _solverInterface.RegisterTransitCallback((fromIndex, toIndex) =>
         {
-            var fromNodeIndex = _solverInterface.IndexManager.IndexToNode(from);
-            var toNodeIndex = _solverInterface.IndexManager.IndexToNode(to);
-            var fromNode = _state.Nodes[fromNodeIndex];
-            var toNode = _state.Nodes[toNodeIndex];
-
-            var value = callback.Callback(fromNode, toNode);
-            return value;
+            var fromNodeIndex = _solverInterface.IndexToNode(fromIndex);
+            var toNodeIndex = _solverInterface.IndexToNode(toIndex);
+            
+            var fromNode = _solverModel.Nodes[fromNodeIndex];
+            var toNode = _solverModel.Nodes[toNodeIndex];
+            
+            return callback(fromNode, toNode);
         });
+        
+        return new Callback(index);
     }
 
     /// <inheritdoc/>
-    public int RegisterCallback(IUnaryTransitCallback callback)
+    public Callback RegisterCallback(Func<Node, long> callback)
     {
-        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
-        
-        _callbacks.Add(callback);
-        
-        return _solverInterface.Model.RegisterUnaryTransitCallback((from) =>
+        var index = _solverInterface.RegisterTransitCallback((index) =>
         {
-            var fromNodeIndex = _solverInterface.IndexManager.IndexToNode(from);
-            var fromNode = _state.Nodes[fromNodeIndex];
-
-            var value = callback.Callback(fromNode);
-            return value;
+            var nodeIndex = _solverInterface.IndexToNode(index);
+            var node = _solverModel.Nodes[nodeIndex];
+            
+            return callback(node);
         });
+        
+        return new Callback(index);
     }
-    
+
     /// <inheritdoc/>
-    public int GetCallbackCount()
+    public Callback RegisterCallback(ITransitCallback transitCallback)
     {
-        return _callbacks.Count;
+        var index = _solverInterface.RegisterTransitCallback((fromIndex, toIndex) =>
+        {
+            var fromNodeIndex = _solverInterface.IndexToNode(fromIndex);
+            var toNodeIndex = _solverInterface.IndexToNode(toIndex);
+            
+            var fromNode = _solverModel.Nodes[fromNodeIndex];
+            var toNode = _solverModel.Nodes[toNodeIndex];
+            
+            return transitCallback.Callback(fromNode, toNode);
+        });
+        
+        return new Callback(index);
+    }
+
+    /// <inheritdoc/>
+    public Callback RegisterCallback(IUnaryTransitCallback unaryTransitCallback)
+    {
+        var index = _solverInterface.RegisterTransitCallback((index) =>
+        {
+            var nodeIndex = _solverInterface.IndexToNode(index);
+            var node = _solverModel.Nodes[nodeIndex];
+            
+            return unaryTransitCallback.Callback(node);
+        });
+        
+        return new Callback(index);
     }
 }

@@ -15,9 +15,9 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Vehicles;
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 
 /// <summary>
-/// Represents the state of a Google OR-Tools solver.
+/// Represents the model of the solver.
 /// </summary>
-internal sealed class SolverState
+internal sealed class SolverModel
 {
     private readonly List<Node> _nodes;
     private readonly List<DummyVehicle> _vehicles;
@@ -55,11 +55,11 @@ internal sealed class SolverState
     internal IReadOnlyDictionary<DummyVehicle, VehicleNodeStore> VehicleNodeStores => _vehicleNodeStores;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SolverState"/> class.
+    /// Initializes a new instance of the <see cref="SolverModel"/> class.
     /// </summary>
     /// <param name="problem">The problem to solve.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="problem"/> is <see langword="null"/>.</exception>
-    internal SolverState(Problem problem)
+    internal SolverModel(Problem problem)
     {
         ArgumentNullException.ThrowIfNull(problem, nameof(problem));
 

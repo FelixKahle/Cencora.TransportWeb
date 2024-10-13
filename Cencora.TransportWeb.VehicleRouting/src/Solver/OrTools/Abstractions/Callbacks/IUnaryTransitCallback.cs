@@ -7,13 +7,14 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 
 /// <summary>
-/// Represents a unary transit callback.
+/// Interface for a unary transit callback.
 /// </summary>
-internal interface IUnaryTransitCallback : ICallback
+internal interface IUnaryTransitCallback
 {
     /// <summary>
-    /// The callback.
+    /// Callback for the transit.
     /// </summary>
-    /// <param name="node">The node.</param>
+    /// <param name="node">The node to which the transit goes.</param>
+    /// <returns>The transit cost.</returns>
     long Callback(Node node);
 }
