@@ -2,45 +2,52 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
-using Google.OrTools.ConstraintSolver;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 
 /// <summary>
-/// Base class for solver configurators.
+/// The solver configurator base class.
 /// </summary>
 internal abstract class SolverConfiguratorBase : ISolverConfigurator
 {
     /// <summary>
-    /// The index manager.
+    /// The solver state.
     /// </summary>
-    private protected RoutingIndexManager IndexManager { get; }
+    internal SolverState State { get; }
     
     /// <summary>
-    /// The routing model.
+    /// The callback registrant.
     /// </summary>
-    private protected RoutingModel Model { get; }
+    internal ICallbackRegistrant CallbackRegistrant { get; }
     
     /// <summary>
-    /// The solver.
+    /// The dimension registrant.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the solver is not initialized.</exception>
-    private protected Google.OrTools.ConstraintSolver.Solver Solver => Model.solver() ?? throw new InvalidOperationException("The solver is not initialized.");
+    internal IDimensionRegistrant DimensionRegistrant { get; }
     
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverConfiguratorBase"/> class.
     /// </summary>
-    /// <param name="state">The state of the solver.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    internal SolverConfiguratorBase(SolverState state)
+    /// <param name="state">The solver state.</param>
+    /// <param name="callbackRegistrant">The callback registrant.</param>
+    /// <param name="dimensionRegistrant">The dimension registrant.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is null.</exception>
+    protected SolverConfiguratorBase(SolverState state, ICallbackRegistrant callbackRegistrant,
+        IDimensionRegistrant dimensionRegistrant)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
+        ArgumentNullException.ThrowIfNull(callbackRegistrant, nameof(callbackRegistrant));
+        ArgumentNullException.ThrowIfNull(dimensionRegistrant, nameof(dimensionRegistrant));
         
-        IndexManager = state.IndexManager;
-        Model = state.Model;
+        State = state;
+        CallbackRegistrant = callbackRegistrant;
+        DimensionRegistrant = dimensionRegistrant;
     }
     
     /// <inheritdoc/>
-    public abstract void Configure(SolverState state);
+    public abstract void Configure(SolverState state, ICallbackRegistrant callbackRegistrant,
+        IDimensionRegistrant dimensionRegistrant);
 }

@@ -35,10 +35,17 @@ public class VehicleRoutingTest
         { 7, 14, 9, 16, 14, 8, 5, 10, 6, 5, 4, 10, 8, 6, 2, 9, 0 },
     };
 
+    public void RunTwo()
+    {
+        var problem = BuildProblem();
+        var testSolver = new OrToolsSolver();
+        var testSolution = testSolver.Solve(problem);
+    }
+
     public void Run()
     {
         var problem = BuildProblem();
-        using var solver = new OrToolsSolver(new SolverOptions(TimeSpan.FromSeconds(2)), new ConsoleLogger<OrToolsSolver>());
+        using var solver = new GoogleOrToolsSolver(new SolverOptions(TimeSpan.FromSeconds(2)), new ConsoleLogger<GoogleOrToolsSolver>());
         var solution = solver.Solve(problem);
         
         Console.WriteLine($"Has solution: {solution.HasSolution}");

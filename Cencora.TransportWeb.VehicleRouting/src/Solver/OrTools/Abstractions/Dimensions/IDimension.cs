@@ -3,6 +3,7 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
+using Google.OrTools.ConstraintSolver;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 
@@ -31,4 +32,9 @@ internal interface IDimension
     /// Gets a flag indicating whether the dimension needs to start from zero.
     /// </summary>
     bool ShouldStartAtZero();
+
+    /// <summary>
+    /// Gets the dimension.
+    /// </summary>
+    RoutingDimension GetDimension();
 }

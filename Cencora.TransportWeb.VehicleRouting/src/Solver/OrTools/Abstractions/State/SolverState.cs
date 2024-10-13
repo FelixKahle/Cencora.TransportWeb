@@ -11,29 +11,18 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Vehicles;
-using Google.OrTools.ConstraintSolver;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 
 /// <summary>
 /// Represents the state of a Google OR-Tools solver.
 /// </summary>
-internal sealed class SolverState : IDisposable
+internal sealed class SolverState
 {
     private readonly List<Node> _nodes;
     private readonly List<DummyVehicle> _vehicles;
     private readonly Dictionary<Shipment, ShipmentNodeStore> _shipmentNodeStores;
     private readonly Dictionary<DummyVehicle, VehicleNodeStore> _vehicleNodeStores;
-    
-    /// <summary>
-    /// The routing model of the solver.
-    /// </summary>
-    internal RoutingModel Model { get; }
-    
-    /// <summary>
-    /// The index manager of the solver.
-    /// </summary>
-    internal RoutingIndexManager IndexManager { get; }
 
     /// <summary>
     /// The nodes of the solver.
@@ -119,37 +108,12 @@ internal sealed class SolverState : IDisposable
                 _vehicleNodeStores.Add(dummyVehicle, new VehicleNodeStore(vehicleNode, endNode));
             }
         }
-        
-        var (startNodeIndices, endNodeIndices) = GetVehicleNodeIndices(_vehicles, _vehicleNodeStores);
-        
-        // Create the routing model and index manager.
-        IndexManager = new RoutingIndexManager(nodeCount, dummyVehicleCount, startNodeIndices, endNodeIndices);
-        Model = new RoutingModel(IndexManager);
-    }
-
-    /// <inheritdoc/>
-    public void Dispose()
-    {
-        Model.Dispose();
-        IndexManager.Dispose();
-        
-        _nodes.Clear();
-        _nodes.TrimExcess();
-        
-        _vehicles.Clear();
-        _vehicles.TrimExcess();
-        
-        _shipmentNodeStores.Clear();
-        _shipmentNodeStores.TrimExcess();
-        
-        _vehicleNodeStores.Clear();
-        _vehicleNodeStores.TrimExcess();
     }
     
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"Google OR-Tools OrToolsSolver State: {NodeCount} nodes, {VehicleCount} vehicles";
+        return $"Google OR-Tools GoogleOrToolsSolver State: {NodeCount} nodes, {VehicleCount} vehicles";
     }
     
     /// <summary>
@@ -226,26 +190,5 @@ internal sealed class SolverState : IDisposable
             .WithMaxDistance(shift.MaxDistance ?? long.MaxValue)
             .WithMaxDuration(maxDuration)
             .Build();
-    }
-    
-    /// <summary>
-    /// Gets the start and end node indices of the vehicles.
-    /// </summary>
-    /// <returns>The start and end node indices of the vehicles.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicles"/> or <paramref name="vehicleNodeStores"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException">Thrown when the number of start and end node indices does not match.</exception>
-    private static (int[] StartNodeIndices, int[] EndNodeIndices) GetVehicleNodeIndices(IReadOnlyList<DummyVehicle> vehicles, IReadOnlyDictionary<DummyVehicle, VehicleNodeStore> vehicleNodeStores)
-    {
-        ArgumentNullException.ThrowIfNull(vehicles, nameof(vehicles));
-        ArgumentNullException.ThrowIfNull(vehicleNodeStores, nameof(vehicleNodeStores));
-        
-        var vehicleNodeIndices = vehicles
-            .Select(v => (StartNode: vehicleNodeStores[v].StartNode.Index, EndNode: vehicleNodeStores[v].EndNode.Index))
-            .ToArray();
-
-        var startNodeIndices = vehicleNodeIndices.Select(x => x.StartNode).ToArray();
-        var endNodeIndices = vehicleNodeIndices.Select(x => x.EndNode).ToArray();
-
-        return (startNodeIndices, endNodeIndices);
     }
 }

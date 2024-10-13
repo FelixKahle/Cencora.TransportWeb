@@ -5,7 +5,7 @@
 namespace Cencora.TransportWeb.VehicleRouting.Solver;
 
 /// <summary>
-/// Represents an exception specific to the Vehicle Routing OrToolsSolver.
+/// Represents an exception specific to the Vehicle Routing GoogleOrToolsSolver.
 /// </summary>
 public class VehicleRoutingSolverException : Exception
 {

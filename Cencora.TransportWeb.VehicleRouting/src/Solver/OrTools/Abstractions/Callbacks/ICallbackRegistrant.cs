@@ -22,4 +22,9 @@ internal interface ICallbackRegistrant
     /// <param name="callback">The callback.</param>
     /// <returns>The index of the callback.</returns> 
     int RegisterCallback(IUnaryTransitCallback callback);
+    
+    /// <summary>
+    /// Gets the number of registered callbacks.
+    /// </summary>
+    int GetCallbackCount();
 }
