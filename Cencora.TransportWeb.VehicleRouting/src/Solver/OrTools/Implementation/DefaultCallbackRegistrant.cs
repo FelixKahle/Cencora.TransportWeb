@@ -2,12 +2,15 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
+
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Implementation;
 
 /// <summary>
-/// Configurator for callbacks.
+/// Default implementation of the <see cref="ICallbackRegistrant"/> interface.
 /// </summary>
-internal class DefaultCallbackConfigurator : ICallbackConfigurator
+internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
 {
     /// <summary>
     /// The state.
@@ -15,11 +18,11 @@ internal class DefaultCallbackConfigurator : ICallbackConfigurator
     private readonly SolverState _state;
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultCallbackConfigurator"/> class.
+    /// Initializes a new instance of the <see cref="DefaultCallbackRegistrant"/> class.
     /// </summary>
     /// <param name="state">The state.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    internal DefaultCallbackConfigurator(SolverState state)
+    internal DefaultCallbackRegistrant(SolverState state)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
         

@@ -2,7 +2,9 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
+
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 
 /// <summary>
 /// Interface for configurators that configure the solver.

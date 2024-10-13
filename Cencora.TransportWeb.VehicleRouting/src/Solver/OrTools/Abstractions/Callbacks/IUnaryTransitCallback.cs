@@ -2,14 +2,14 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 
 /// <summary>
 /// Represents a unary transit callback.
 /// </summary>
-public interface IUnaryTransitCallback
+internal interface IUnaryTransitCallback : ICallback
 {
     /// <summary>
     /// The callback.

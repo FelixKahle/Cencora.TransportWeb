@@ -12,7 +12,7 @@ public sealed class ZeroBasedIndexCreator : IIndexCreator
     /// <summary>
     /// The current index.
     /// </summary>
-    private int _currentIndex = 0;
+    private int _currentIndex;
     
     /// <inheritdoc/>
     public int GetNext()

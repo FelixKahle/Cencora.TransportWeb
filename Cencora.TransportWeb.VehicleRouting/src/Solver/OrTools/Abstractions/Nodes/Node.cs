@@ -5,14 +5,14 @@
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 
 /// <summary>
 /// Represents a node in the vehicle routing problem.
 /// </summary>
-public abstract class Node : IEquatable<Node>
+internal abstract class Node : INode, IEquatable<Node>
 {
     /// <summary>
     /// The index of the node in the list of nodes of the solver.
@@ -65,15 +65,35 @@ public abstract class Node : IEquatable<Node>
         return $"Node: {Index}";
     }
 
-    /// <summary>
-    /// Gets the location of the node.
-    /// </summary>
-    /// <returns>The location of the node.</returns>
-    /// <remarks>
-    /// This can be <see langword="null"/>. This will make the node
-    /// to an arbitrary node.
-    /// </remarks>
-    internal abstract Location? GetLocation();
+    /// <inheritdoc/>
+    public int GetIndex()
+    {
+        return Index;
+    }
+
+    /// <inheritdoc/>
+    public abstract Location? GetLocation();
+    
+    /// <inheritdoc/>
+    public abstract Shipment? GetShipment();
+    
+    /// <inheritdoc/>
+    public abstract Shipment? GetPickup();
+    
+    /// <inheritdoc/>
+    public abstract Shipment? GetDelivery();
+    
+    /// <inheritdoc/>
+    public abstract DummyVehicle? GetDummyVehicle();
+    
+    /// <inheritdoc/>
+    public abstract long GetWeightDemand();
+    
+    /// <inheritdoc/>
+    public abstract long GetTimeDemand();
+    
+    /// <inheritdoc/>
+    public abstract ValueRange? GetTimeWindow();
 
     /// <summary>
     /// Gets a value indicating whether the node is arbitrary.
@@ -82,80 +102,16 @@ public abstract class Node : IEquatable<Node>
     internal bool IsArbitrary => GetLocation() is null;
 
     /// <summary>
-    /// Gets the shipment of the node.
-    /// </summary>
-    /// <returns>The shipment of the node.</returns>
-    /// <remarks>
-    /// This can be <see langword="null"/>. If this returns <see langword="null"/>,
-    /// the node does not have a shipment.
-    /// </remarks>
-    internal abstract Shipment? GetShipment();
-
-    /// <summary>
-    /// Gets the pickup of the node.
-    /// </summary>
-    /// <returns>The pickup of the node.</returns>
-    /// <remarks>
-    /// This can be <see langword="null"/>. If this returns <see langword="null"/>,
-    /// the node does not have a pickup.
-    /// </remarks>
-    internal abstract Shipment? GetPickup();
-    
-    /// <summary>
-    /// Gets the delivery of the node.
-    /// </summary>
-    /// <returns>The delivery of the node.</returns>
-    /// <remarks>
-    /// This can be <see langword="null"/>. If this returns <see langword="null"/>,
-    /// the node does not have a delivery.
-    /// </remarks>
-    internal abstract Shipment? GetDelivery();
-
-    /// <summary>
     /// Gets a value indicating whether the node has a shipment.
     /// </summary>
     /// <returns><see langword="true"/> if the node has a shipment; otherwise, <see langword="false"/>.</returns>
     internal bool HasShipment => GetShipment() is not null;
 
     /// <summary>
-    /// Gets the dummy vehicle of the node.
-    /// </summary>
-    /// <returns>The dummy vehicle of the node.</returns>
-    /// <remarks>
-    /// This can be <see langword="null"/>. If this returns <see langword="null"/>,
-    /// the node does not have a dummy vehicle.
-    /// </remarks>
-    internal abstract DummyVehicle? GetDummyVehicle();
-
-    /// <summary>
     /// Gets a value indicating whether the node has a dummy vehicle.
     /// </summary>
     /// <returns><see langword="true"/> if the node has a dummy vehicle; otherwise, <see langword="false"/>.</returns>
     internal bool HasDummyVehicle => GetDummyVehicle() is not null;
-
-    /// <summary>
-    /// Gets the demand of the node.
-    /// </summary>
-    /// <returns>The demand of the node.</returns>
-    /// <remarks>
-    /// This can be negative if a shipment is dropped off at the node.
-    /// </remarks>
-    internal abstract long GetWeightDemand();
-
-    /// <summary>
-    /// Gets the time demand of the node.
-    /// </summary>
-    internal abstract long GetTimeDemand();
-
-    /// <summary>
-    /// Gets the time window of the node.
-    /// </summary>
-    /// <returns>The time window of the node.</returns>
-    /// <remarks>
-    /// This can be <see langword="null"/>. If this returns <see langword="null"/>,
-    /// the node does not have a time window.
-    /// </remarks>
-    internal abstract ValueRange? GetTimeWindow();
 
     /// <summary>
     /// Gets a value indicating whether the node has a time window.

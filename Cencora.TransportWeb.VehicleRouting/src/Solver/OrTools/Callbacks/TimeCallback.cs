@@ -3,34 +3,38 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Callbacks;
 
 /// <summary>
-/// Transit callback for time.
+/// Represents a callback for the time.
 /// </summary>
-internal class TimeTransitCallback : ITransitCallback
+internal sealed class TimeCallback : TransitCallbackBase
 {
     /// <summary>
     /// The route matrix.
     /// </summary>
-    private IDirectedRouteMatrix _routeMatrix;
+    private readonly IReadOnlyDirectedRouteMatrix _routeMatrix;
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="TimeTransitCallback"/> class.
+    /// Initializes a new instance of the <see cref="TimeCallback"/> class.
     /// </summary>
+    /// <param name="registrant">The callback registrant.</param>
     /// <param name="routeMatrix">The route matrix.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="routeMatrix"/> is <see langword="null"/>.</exception>
-    internal TimeTransitCallback(IDirectedRouteMatrix routeMatrix)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="registrant"/> or <paramref name="routeMatrix"/> is null.</exception>
+    internal TimeCallback(ICallbackRegistrant registrant, IReadOnlyDirectedRouteMatrix routeMatrix) 
+        : base(registrant)
     {
+        ArgumentNullException.ThrowIfNull(registrant, nameof(registrant));
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
         
         _routeMatrix = routeMatrix;
     }
     
     /// <inheritdoc/>
-    public long Callback(Node from, Node to)
+    public override long Callback(Node from, Node to)
     {
         ArgumentNullException.ThrowIfNull(from, nameof(from));
         ArgumentNullException.ThrowIfNull(to, nameof(to));

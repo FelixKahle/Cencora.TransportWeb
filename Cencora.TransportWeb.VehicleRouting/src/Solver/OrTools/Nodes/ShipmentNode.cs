@@ -5,7 +5,8 @@
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 
@@ -64,7 +65,7 @@ internal sealed class ShipmentNode : Node
     }
 
     /// <inheritdoc/>
-    internal override Location? GetLocation()
+    public override Location? GetLocation()
     {
         return Type switch
         {
@@ -75,13 +76,13 @@ internal sealed class ShipmentNode : Node
     }
 
     /// <inheritdoc/>
-    internal override Shipment GetShipment()
+    public override Shipment GetShipment()
     {
         return Shipment;
     }
 
     /// <inheritdoc/>
-    internal override Shipment? GetPickup()
+    public override Shipment? GetPickup()
     {
         return Type switch
         {
@@ -92,7 +93,7 @@ internal sealed class ShipmentNode : Node
     }
 
     /// <inheritdoc/>
-    internal override Shipment? GetDelivery()
+    public override Shipment? GetDelivery()
     {
         return Type switch
         {
@@ -103,13 +104,13 @@ internal sealed class ShipmentNode : Node
     }
 
     /// <inheritdoc/>
-    internal override DummyVehicle? GetDummyVehicle()
+    public override DummyVehicle? GetDummyVehicle()
     {
         return null;
     }
 
     /// <inheritdoc/>
-    internal override long GetWeightDemand()
+    public override long GetWeightDemand()
     {
         return Type switch
         {
@@ -121,7 +122,7 @@ internal sealed class ShipmentNode : Node
     }
 
     /// <inheritdoc/>
-    internal override long GetTimeDemand()
+    public override long GetTimeDemand()
     {
         return Type switch
         {
@@ -132,7 +133,7 @@ internal sealed class ShipmentNode : Node
     }
 
     /// <inheritdoc/>
-    internal override ValueRange? GetTimeWindow()
+    public override ValueRange? GetTimeWindow()
     {
         return Type switch
         {

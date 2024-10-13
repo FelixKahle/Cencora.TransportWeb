@@ -2,7 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Base;
 
 /// <summary>
 /// Options for the Google OR-Tools solver.

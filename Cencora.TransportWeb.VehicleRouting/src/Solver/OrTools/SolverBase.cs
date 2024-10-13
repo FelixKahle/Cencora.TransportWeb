@@ -5,8 +5,10 @@
 using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Vehicles;
 using Google.OrTools.ConstraintSolver;
 
 // ReSharper disable MemberCanBePrivate.Global

@@ -2,12 +2,12 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 
 /// <summary>
-/// Configurator for callbacks.
+/// Registrant for callbacks.
 /// </summary>
-internal interface ICallbackConfigurator
+internal interface ICallbackRegistrant
 {
      /// <summary>
      /// Registers a transit callback.

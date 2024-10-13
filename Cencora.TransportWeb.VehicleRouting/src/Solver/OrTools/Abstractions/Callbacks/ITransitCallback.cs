@@ -2,14 +2,14 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 
 /// <summary>
 /// Interface for a transit callback.
 /// </summary>
-internal interface ITransitCallback
+internal interface ITransitCallback : ICallback
 {
     /// <summary>
     /// The callback.

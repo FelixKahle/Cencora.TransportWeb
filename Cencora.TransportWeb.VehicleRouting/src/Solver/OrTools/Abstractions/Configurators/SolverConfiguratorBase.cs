@@ -2,9 +2,10 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 using Google.OrTools.ConstraintSolver;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 
 /// <summary>
 /// Base class for solver configurators.

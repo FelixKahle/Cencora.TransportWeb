@@ -13,6 +13,7 @@
 
     <ItemGroup>
       <Folder Include="src\" />
+      <Folder Include="src\Solver\OrTools\Configurators\" />
     </ItemGroup>
 
     <ItemGroup>

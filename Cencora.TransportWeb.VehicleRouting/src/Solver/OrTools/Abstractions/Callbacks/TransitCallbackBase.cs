@@ -3,9 +3,9 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 
 /// <summary>
 /// Represents a callback for the transit.
@@ -20,25 +20,13 @@ internal abstract class TransitCallbackBase : ITransitCallback, IEquatable<Trans
     /// <summary>
     /// Initializes a new instance of the <see cref="TransitCallbackBase"/> class.
     /// </summary>
-    /// <param name="state">The state of the solver.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    internal TransitCallbackBase(SolverState state)
+    /// <param name="callbackRegistrant">The callback configurator.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="callbackRegistrant"/> is <see langword="null"/>.</exception>
+    internal TransitCallbackBase(ICallbackRegistrant callbackRegistrant)
     {
-        ArgumentNullException.ThrowIfNull(state, nameof(state));
-
-        Index = new DefaultCallbackConfigurator(state).RegisterCallback(this);
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TransitCallbackBase"/> class.
-    /// </summary>
-    /// <param name="callbackConfigurator">The callback configurator.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="callbackConfigurator"/> is <see langword="null"/>.</exception>
-    internal TransitCallbackBase(ICallbackConfigurator callbackConfigurator)
-    {
-        ArgumentNullException.ThrowIfNull(callbackConfigurator, nameof(callbackConfigurator));
+        ArgumentNullException.ThrowIfNull(callbackRegistrant, nameof(callbackRegistrant));
         
-        Index = callbackConfigurator.RegisterCallback(this);
+        Index = callbackRegistrant.RegisterCallback(this);
     }
 
     /// <inheritdoc/>
@@ -71,7 +59,13 @@ internal abstract class TransitCallbackBase : ITransitCallback, IEquatable<Trans
     {
         return Index;
     }
-    
+
+    /// <inheritdoc/>
+    public int GetCallbackIndex()
+    {
+        return Index;
+    }
+
     /// <summary>
     /// Converts a <see cref="TransitCallbackBase"/> to an <see cref="int"/>.
     /// </summary>
