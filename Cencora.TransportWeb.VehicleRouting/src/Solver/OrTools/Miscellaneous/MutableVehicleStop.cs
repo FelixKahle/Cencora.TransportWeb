@@ -7,7 +7,7 @@ using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
 
 /// <summary>
 /// Represents a mutable vehicle stop.

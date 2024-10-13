@@ -10,39 +10,40 @@ using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 using Google.OrTools.ConstraintSolver;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
 /// <summary>
-/// Solver implementation using Google OR-Tools.
+/// OrToolsSolver implementation using Google OR-Tools.
 /// </summary>
-public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
+public sealed class OrToolsSolver : SolverBase, ISolver
 {
-    private readonly ILogger<GoogleOrToolsSolver> _logger;
-    private readonly GoogleOrToolsSolverOptions _options;
+    private readonly ILogger<OrToolsSolver> _logger;
+    private readonly SolverOptions _options;
     
     /// <summary>
-    /// Creates a new instance of the <see cref="GoogleOrToolsSolver"/> class.
+    /// Creates a new instance of the <see cref="OrToolsSolver"/> class.
     /// </summary>
     /// <param name="options">The options for the solver.</param>
-    public GoogleOrToolsSolver(GoogleOrToolsSolverOptions options)
+    public OrToolsSolver(SolverOptions options)
     {
-        _logger = NullLogger<GoogleOrToolsSolver>.Instance;
+        _logger = NullLogger<OrToolsSolver>.Instance;
         _options = options;
     }
     
     /// <summary>
-    /// Creates a new instance of the <see cref="GoogleOrToolsSolver"/> class.
+    /// Creates a new instance of the <see cref="OrToolsSolver"/> class.
     /// </summary>
     /// <param name="options">The options for the solver.</param>
     /// <param name="logger">The logger.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="logger"/> is <see langword="null"/>.</exception>
-    public GoogleOrToolsSolver(GoogleOrToolsSolverOptions options, ILogger<GoogleOrToolsSolver> logger)
+    public OrToolsSolver(SolverOptions options, ILogger<OrToolsSolver> logger)
     {
         ArgumentNullException.ThrowIfNull(logger, nameof(logger));
         
@@ -935,6 +936,6 @@ public sealed class GoogleOrToolsSolver : GoogleOrToolsSolverBase, ISolver
     /// <inheritdoc/>
     public override string ToString()
     {
-        return "Google OR-Tools Vehicle Routing Solver";
+        return "Google OR-Tools Vehicle Routing OrToolsSolver";
     }
 }

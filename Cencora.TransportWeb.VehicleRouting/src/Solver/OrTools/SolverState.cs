@@ -7,15 +7,16 @@ using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 using Google.OrTools.ConstraintSolver;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
 /// <summary>
 /// Represents the state of a Google OR-Tools solver.
 /// </summary>
-internal sealed class GoogleOrToolsSolverState : IDisposable
+internal sealed class SolverState : IDisposable
 {
     private readonly List<Node> _nodes;
     private readonly List<DummyVehicle> _vehicles;
@@ -63,11 +64,11 @@ internal sealed class GoogleOrToolsSolverState : IDisposable
     internal IReadOnlyDictionary<DummyVehicle, VehicleNodeStore> VehicleNodeStores => _vehicleNodeStores;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="GoogleOrToolsSolverState"/> class.
+    /// Initializes a new instance of the <see cref="SolverState"/> class.
     /// </summary>
     /// <param name="problem">The problem to solve.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="problem"/> is <see langword="null"/>.</exception>
-    internal GoogleOrToolsSolverState(Problem problem)
+    internal SolverState(Problem problem)
     {
         ArgumentNullException.ThrowIfNull(problem, nameof(problem));
 
@@ -146,7 +147,7 @@ internal sealed class GoogleOrToolsSolverState : IDisposable
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"Google OR-Tools Solver State: {NodeCount} nodes, {VehicleCount} vehicles";
+        return $"Google OR-Tools OrToolsSolver State: {NodeCount} nodes, {VehicleCount} vehicles";
     }
     
     /// <summary>

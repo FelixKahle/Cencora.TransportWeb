@@ -43,6 +43,6 @@ public sealed class SolverOutput
     /// <inheritdoc/>
     public override string ToString()
     {
-        return HasSolution ? "Solver output with solution" : "Solver output without solution";
+        return HasSolution ? "OrToolsSolver output with solution" : "OrToolsSolver output without solution";
     }
 }

@@ -7,7 +7,7 @@ using Cencora.TransportWeb.Common.Id;
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
 
 /// <summary>
 /// Represents a dummy vehicle.

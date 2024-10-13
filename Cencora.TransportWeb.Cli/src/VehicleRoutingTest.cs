@@ -8,7 +8,7 @@ using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
 namespace Cencora.TransportWeb.Cli;
 
@@ -37,7 +37,7 @@ public class VehicleRoutingTest
     public void Run()
     {
         var problem = BuildProblem();
-        using var solver = new GoogleOrToolsSolver(new GoogleOrToolsSolverOptions(TimeSpan.FromSeconds(2)), new ConsoleLogger<GoogleOrToolsSolver>());
+        using var solver = new OrToolsSolver(new SolverOptions(TimeSpan.FromSeconds(2)), new ConsoleLogger<OrToolsSolver>());
         var solution = solver.Solve(problem);
         
         Console.WriteLine($"Has solution: {solution.HasSolution}");

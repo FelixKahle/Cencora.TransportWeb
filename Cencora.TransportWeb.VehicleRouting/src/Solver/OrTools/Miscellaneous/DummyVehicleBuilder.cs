@@ -4,7 +4,7 @@
 
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
 
 /// <summary>
 /// Builder for a dummy vehicle.

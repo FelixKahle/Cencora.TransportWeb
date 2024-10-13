@@ -2,9 +2,9 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
 /// <summary>
 /// Stores the start and end node of a vehicle.

@@ -5,7 +5,7 @@
 namespace Cencora.TransportWeb.VehicleRouting.Solver;
 
 /// <summary>
-/// Represents an exception specific to the Vehicle Routing Solver.
+/// Represents an exception specific to the Vehicle Routing OrToolsSolver.
 /// </summary>
 public class VehicleRoutingSolverException : Exception
 {
@@ -24,5 +24,33 @@ public class VehicleRoutingSolverException : Exception
     /// <param name="innerException">The exception that is the cause of the current exception.</param>
     public VehicleRoutingSolverException(string message, Exception innerException) : base(message, innerException)
     {
+    }
+    
+    /// <summary>
+    /// Throws an exception if the specified condition is <see langword="true"/>.
+    /// </summary>
+    /// <param name="condition">The condition to check.</param>
+    /// <param name="message">The message to include in the exception.</param>
+    /// <exception cref="VehicleRoutingSolverException">Thrown if <paramref name="condition"/> is <see langword="true"/>.</exception>
+    public static void ThrowIf(bool condition, string message)
+    {
+        if (condition)
+        {
+            throw new VehicleRoutingSolverException(message);
+        }
+    }
+    
+    /// <summary>
+    /// Throws an exception if the specified condition is <see langword="false"/>.
+    /// </summary>
+    /// <param name="condition">The condition to check.</param>
+    /// <param name="message">The message to include in the exception.</param>
+    /// <exception cref="VehicleRoutingSolverException">Thrown if <paramref name="condition"/> is <see langword="false"/>.</exception>
+    public static void ThrowIfNot(bool condition, string message)
+    {
+        if (!condition)
+        {
+            throw new VehicleRoutingSolverException(message);
+        }
     }
 }

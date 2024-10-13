@@ -5,22 +5,23 @@
 using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
-using Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 using Google.OrTools.ConstraintSolver;
 
 // ReSharper disable MemberCanBePrivate.Global
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
 /// <summary>
 /// Base class for Google OR-Tools solver implementations.
 /// </summary>
 /// <remarks>
 /// The base class is responsible for the internal state keeping of the solver.
-/// This seperates the solver logic from the internal state management,
+/// This separates the solver logic from the internal state management,
 /// and disallows the direct access to the internal collections and interfaces.
 /// </remarks>
-public abstract class GoogleOrToolsSolverBase : IDisposable
+public abstract class SolverBase : IDisposable
 {
     private protected const string TimeDimensionName = "TimeDimension";
     private protected const string WeightDimensionName = "WeightDimension";
@@ -566,6 +567,6 @@ public abstract class GoogleOrToolsSolverBase : IDisposable
     /// <inheritdoc/>
     public override string ToString()
     {
-        return $"{nameof(GoogleOrToolsSolverBase)}";
+        return $"{nameof(SolverBase)}";
     }
 }

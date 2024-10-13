@@ -2,12 +2,12 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
 /// <summary>
 /// Options for the Google OR-Tools solver.
 /// </summary>
-public struct GoogleOrToolsSolverOptions
+public struct SolverOptions
 {
     /// <summary>
     /// The maximum time the solver is allowed to run.
@@ -15,11 +15,11 @@ public struct GoogleOrToolsSolverOptions
     public TimeSpan MaximumComputeTime { get; }
     
     /// <summary>
-    /// Creates a new instance of the <see cref="GoogleOrToolsSolverOptions"/> struct.
+    /// Creates a new instance of the <see cref="SolverOptions"/> struct.
     /// </summary>
     /// <param name="maximumComputeTime">The maximum time the solver is allowed to run.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when the maximumComputeTime is negative.</exception>
-    public GoogleOrToolsSolverOptions(TimeSpan maximumComputeTime)
+    public SolverOptions(TimeSpan maximumComputeTime)
     {
         if (maximumComputeTime < TimeSpan.Zero)
         {

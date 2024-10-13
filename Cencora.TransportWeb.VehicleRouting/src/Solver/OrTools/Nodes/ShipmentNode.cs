@@ -5,8 +5,9 @@
 using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Miscellaneous;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.GoogleOrTools.Nodes;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 
 /// <summary>
 /// Enumerates the types of shipment nodes.
