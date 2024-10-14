@@ -7,7 +7,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 /// <summary>
 /// The state of the solver.
 /// </summary>
-internal readonly struct SolverState
+internal readonly struct SolverState : IDisposable
 {
     /// <summary>
     /// The solver model.
@@ -45,5 +45,11 @@ internal readonly struct SolverState
         
         SolverModel = solverModel;
         SolverInterface = solverInterface;
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        SolverInterface.Dispose();
     }
 }

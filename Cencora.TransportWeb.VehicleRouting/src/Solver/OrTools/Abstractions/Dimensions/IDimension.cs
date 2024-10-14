@@ -7,22 +7,31 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 
 /// <summary>
-/// Interface for a dimension.
+/// Represents a dimension.
 /// </summary>
 internal interface IDimension
 {
     /// <summary>
-    /// The callback of the dimension.
+    /// Gets the callback.
     /// </summary>
-    ICallback GetCallback();
+    /// <returns>The callback of the dimension.</returns>
+    SolverCallback GetCallback();
     
     /// <summary>
-    /// Gets the maximum slack of the dimension.
+    /// Gets the name.
     /// </summary>
+    /// <returns>The name of the dimension.</returns>
+    string GetName();
+    
+    /// <summary>
+    /// Gets the maximum slack.
+    /// </summary>
+    /// <returns>The maximum slack of the dimension.</returns>
     long GetMaxSlack();
     
     /// <summary>
     /// Flag indicating whether the dimension should start at zero.
     /// </summary>
+    /// <returns><see langword="true"/> if the dimension should start at zero; otherwise, <see langword="false"/>.</returns>
     bool ShouldStartAtZero();
 }

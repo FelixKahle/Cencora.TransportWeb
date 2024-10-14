@@ -7,6 +7,4 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callba
 /// <summary>
 /// Interface for a callback.
 /// </summary>
-internal interface ICallback
-{
-}
+internal interface ICallback;

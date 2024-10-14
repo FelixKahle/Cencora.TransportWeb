@@ -5,7 +5,7 @@
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 
 /// <summary>
-/// Interface for a single capacity dimension.
+/// Represents a single capacity dimension.
 /// </summary>
 internal interface ISingleCapacityDimension : IDimension
 {

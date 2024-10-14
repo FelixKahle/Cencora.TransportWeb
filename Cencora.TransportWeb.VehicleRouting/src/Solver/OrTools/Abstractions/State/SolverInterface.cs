@@ -2,12 +2,9 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using System.Collections.Immutable;
-using Cencora.TransportWeb.VehicleRouting.Common;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 using Google.OrTools.ConstraintSolver;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
@@ -31,21 +28,21 @@ internal sealed class SolverInterface : IDisposable
     /// The model of the solver.
     /// </summary>
     internal SolverModel SolverModel { get; }
+
+    /// <summary>
+    /// The callback registrant of the solver.
+    /// </summary>
+    internal ICallbackRegistrant CallbackRegistrant { get; }
     
+    /// <summary>
+    /// The dimension registrant of the solver.
+    /// </summary>
+    internal IDimensionRegistrant DimensionRegistrant { get; }
+
     /// <summary>
     /// The solver of the model.
     /// </summary>
     internal Google.OrTools.ConstraintSolver.Solver Solver => RoutingModel.solver() ?? throw new VehicleRoutingSolverException("Failed to get solver.");
-
-    /// <summary>
-    /// The callbacks of the solver.
-    /// </summary>
-    internal SolverCallbackManager CallbackManager { get; }
-    
-    /// <summary>
-    /// The dimension manager of the solver.
-    /// </summary>
-    internal SolverDimensionManager DimensionManager { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverInterface"/> class.
@@ -56,32 +53,88 @@ internal sealed class SolverInterface : IDisposable
     {
         ArgumentNullException.ThrowIfNull(model, nameof(model));
         
-        var (startNodeIndices, endNodeIndices) = GetVehicleNodeIndices(model.Vehicles, model.VehicleNodeStores);
+        // Compute the vehicle node indices.
+        var vehicleNodeIndices = new VehicleNodeIndices(model.Vehicles, model.VehicleNodeStores);
+        
+        // Assign the values to the properties.
         SolverModel = model;
-        IndexManager = new RoutingIndexManager(model.NodeCount, model.VehicleCount, startNodeIndices, endNodeIndices);
+        IndexManager = new RoutingIndexManager(model.NodeCount, model.VehicleCount, vehicleNodeIndices.StartNodeIndices, vehicleNodeIndices.EndNodeIndices);
         RoutingModel = new RoutingModel(IndexManager);
-        CallbackManager = new SolverCallbackManager(model, IndexManager, RoutingModel);
-        DimensionManager = new SolverDimensionManager(model, RoutingModel, CallbackManager);
+        CallbackRegistrant = new DefaultCallbackRegistrant(model, IndexManager, RoutingModel);
+        DimensionRegistrant = new DefaultDimensionRegistrant(model, RoutingModel);
     }
 
     /// <summary>
-    /// Gets the start and end node indices of the vehicles.
+    /// Gets the node index from the given index.
     /// </summary>
-    /// <returns>The start and end node indices of the vehicles.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicles"/> or <paramref name="vehicleNodeStores"/> is <see langword="null"/>.</exception>
-    private static (int[] StartNodeIndices, int[] EndNodeIndices) GetVehicleNodeIndices(ImmutableList<DummyVehicle> vehicles, ImmutableDictionary<DummyVehicle, VehicleNodeStore> vehicleNodeStores)
+    /// <param name="index">The index.</param>
+    /// <returns>The node index.</returns>
+    internal int IndexToNodeIndex(long index)
     {
-        ArgumentNullException.ThrowIfNull(vehicles, nameof(vehicles));
-        ArgumentNullException.ThrowIfNull(vehicleNodeStores, nameof(vehicleNodeStores));
+        ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         
-        var vehicleNodeIndices = vehicles
-            .Select(v => (StartNode: vehicleNodeStores[v].StartNode.Index, EndNode: vehicleNodeStores[v].EndNode.Index))
-            .ToArray();
-
-        var startNodeIndices = vehicleNodeIndices.Select(x => x.StartNode).ToArray();
-        var endNodeIndices = vehicleNodeIndices.Select(x => x.EndNode).ToArray();
-
-        return (startNodeIndices, endNodeIndices);
+        return IndexManager.IndexToNode(index);
+    }
+    
+    /// <summary>
+    /// Gets the node from the given index.
+    /// </summary>
+    /// <param name="index">The index.</param>
+    /// <returns>The node.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="index"/> is negative.</exception>
+    internal Node IndexToNode(long index)
+    {
+        return SolverModel.Nodes[IndexToNodeIndex(index)];
+    }
+    
+    /// <summary>
+    /// Gets the index from the given node index.
+    /// </summary>
+    /// <param name="nodeIndex">The node index.</param>
+    /// <returns>The index.</returns>
+    internal long NodeToIndex(int nodeIndex)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(nodeIndex, nameof(nodeIndex));
+        
+        return IndexManager.NodeToIndex(nodeIndex);
+    }
+    
+    /// <summary>
+    /// Gets the index from the given node.
+    /// </summary>
+    /// <param name="node">The node.</param>
+    /// <returns>The index.</returns>
+    internal long NodeToIndex(Node node)
+    {
+        ArgumentNullException.ThrowIfNull(node, nameof(node));
+        
+        return NodeToIndex(node.Index);
+    }
+    
+    /// <summary>
+    /// Registers the specified callback.
+    /// </summary>
+    /// <param name="callback">The callback.</param>
+    /// <returns>The internal solver callback.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="callback"/> is <see langword="null"/>.</exception>
+    internal SolverCallback RegisterCallback(ITransitCallback callback)
+    {
+        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
+        
+        return CallbackRegistrant.RegisterCallback(callback);
+    }
+    
+    /// <summary>
+    /// Registers the specified callback.
+    /// </summary>
+    /// <param name="callback">The callback.</param>
+    /// <returns>The internal solver callback.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="callback"/> is <see langword="null"/>.</exception>
+    internal SolverCallback RegisterCallback(IUnaryTransitCallback callback)
+    {
+        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
+        
+        return CallbackRegistrant.RegisterCallback(callback);
     }
 
     /// <inheritdoc/>

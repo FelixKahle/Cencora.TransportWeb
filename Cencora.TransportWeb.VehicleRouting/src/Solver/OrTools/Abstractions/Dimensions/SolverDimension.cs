@@ -14,12 +14,12 @@ internal readonly struct SolverDimension : IEquatable<SolverDimension>
     /// <summary>
     /// Gets the name of the dimension.
     /// </summary>
-    public string Name { get; }
+    internal string Name { get; }
     
     /// <summary>
     /// Gets the dimension.
     /// </summary>
-    public RoutingDimension Dimension { get; }
+    internal RoutingDimension Dimension { get; }
     
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverDimension"/> struct.
