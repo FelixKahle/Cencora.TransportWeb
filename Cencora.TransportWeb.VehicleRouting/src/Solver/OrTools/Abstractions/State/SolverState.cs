@@ -8,6 +8,7 @@ using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
@@ -128,6 +129,7 @@ internal sealed class SolverState : IDisposable
             }
         }
         
+        // Create the index manager and model.
         var (startNodeIndices, endNodeIndices) = GetVehicleNodeIndices(_vehicles, _vehicleNodeStores);
         IndexManager = new RoutingIndexManager(nodeCount, dummyVehicleCount, startNodeIndices, endNodeIndices);
         Model = new RoutingModel(IndexManager);
@@ -154,15 +156,13 @@ internal sealed class SolverState : IDisposable
     /// <returns>The registered callback.</returns>
     internal Callback RegisterCallback(ITransitCallback callback)
     {
-        var callbackIndex = Model.RegisterTransitCallback((fromIndex, toIndex) =>
+        Callback newCallback = Model.RegisterTransitCallback((fromIndex, toIndex) =>
         {
             var fromNode = IndexToNode(fromIndex);
             var toNode = IndexToNode(toIndex);
             return callback.Callback(_nodes[fromNode], _nodes[toNode]);
         });
-        var newCallback = new Callback(callbackIndex, callback);
         _callbacks.Add(callback, newCallback);
-        
         return newCallback;
     }
 
@@ -173,15 +173,63 @@ internal sealed class SolverState : IDisposable
     /// <returns>The registered callback.</returns>
     internal Callback RegisterCallback(IUnaryTransitCallback callback)
     {
-        var callbackIndex = Model.RegisterUnaryTransitCallback((fromIndex) =>
+        Callback newCallback = Model.RegisterUnaryTransitCallback((fromIndex) =>
         {
             var fromNode = IndexToNode(fromIndex);
             return callback.Callback(_nodes[fromNode]);
         });
-        var newCallback = new Callback(callbackIndex, callback);
         _callbacks.Add(callback, newCallback);
-        
         return newCallback;
+    }
+    
+    /// <summary>
+    /// Checks if a callback is registered.
+    /// </summary>
+    /// <param name="callback">The callback to check.</param>
+    /// <returns><see langword="true"/> if the callback is registered; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="callback"/> is <see langword="null"/>.</exception>
+    internal bool IsCallbackRegistered(ICallback callback)
+    {
+        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
+        
+        return _callbacks.ContainsKey(callback);
+    }
+    
+    /// <summary>
+    /// Gets a callback.
+    /// </summary>
+    /// <param name="callback">The callback to get.</param>
+    /// <returns>The callback.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="callback"/> is <see langword="null"/>.</exception>
+    /// <exception cref="KeyNotFoundException">Thrown when the callback is not registered.</exception>
+    internal Callback GetCallback(ICallback callback)
+    {
+        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
+        
+        return _callbacks[callback];
+    }
+
+    /// <summary>
+    /// Registers a dimension.
+    /// </summary>
+    /// <param name="dimension">The dimension to register.</param>
+    /// <returns>The registered dimension.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="dimension"/> is <see langword="null"/>.</exception>
+    /// <exception cref="VehicleRoutingSolverException">Thrown when the dimension could not be created.</exception>
+    /// <exception cref="VehicleRoutingSolverException">Thrown when the dimension could not be retrieved.</exception>
+    /// <exception cref="KeyNotFoundException">Thrown when the callback is not registered.</exception>
+    internal Dimension RegisterDimension(ISingleCapacityDimension dimension)
+    {
+        ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
+        
+        var callback = GetCallback(dimension.Callback);
+        var created = Model.AddDimension(callback, dimension.MaxSlack(), dimension.Capacity(), dimension.ShouldStartAtZero(), dimension.Name());
+        if (!created)
+        {
+            throw new VehicleRoutingSolverException($"Failed to create dimension {dimension.Name()}.");
+        }
+        var createdDimension = Model.GetMutableDimension(dimension.Name()) ?? throw new VehicleRoutingSolverException($"Failed to get dimension {dimension.Name()}.");
+        return new Dimension(dimension.Name(), createdDimension);
     }
     
     /// <inheritdoc/>

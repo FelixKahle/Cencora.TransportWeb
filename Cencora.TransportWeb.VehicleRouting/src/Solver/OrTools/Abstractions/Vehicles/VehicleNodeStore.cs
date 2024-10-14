@@ -4,7 +4,7 @@
 
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 
-namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Vehicles;
+namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 
 /// <summary>
 /// Stores the start and end node of a vehicle.

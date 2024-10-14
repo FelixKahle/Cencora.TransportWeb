@@ -15,24 +15,15 @@ internal readonly struct Callback : IEquatable<Callback>
     internal int Index { get; }
     
     /// <summary>
-    /// The callback function.
-    /// </summary>
-    internal ICallback CallbackFunction { get; }
-    
-    /// <summary>
     /// Initializes a new instance of the <see cref="Callback"/> struct.
     /// </summary>
     /// <param name="index">The callback function</param>
-    /// <param name="callback">The internal callback.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="callback"/> is <see langword="null"/>.</exception>
-    internal Callback(int index, ICallback callback)
+    internal Callback(int index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
-        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
         
         Index = index;
-        CallbackFunction = callback;
     }
 
     /// <inheritdoc/>
@@ -67,6 +58,16 @@ internal readonly struct Callback : IEquatable<Callback>
     public static implicit operator int (Callback callback)
     {
         return callback.Index;
+    }
+    
+    /// <summary>
+    /// Implicitly converts an <see cref="int"/> to a <see cref="Callback"/>.
+    /// </summary>
+    /// <param name="index">The index of the callback.</param>
+    /// <returns>The callback.</returns>
+    public static implicit operator Callback (int index)
+    {
+        return new Callback(index);
     }
     
     /// <summary>
