@@ -15,7 +15,7 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
     private readonly SolverModel _model;
     private readonly RoutingModel _routingModel;
     private readonly Dictionary<IDimension, SolverDimension> _dimensions = new();
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultDimensionRegistrant"/> class.
     /// </summary>
@@ -25,11 +25,11 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
     {
         ArgumentNullException.ThrowIfNull(model, nameof(model));
         ArgumentNullException.ThrowIfNull(routingModel, nameof(routingModel));
-        
+
         _model = model;
         _routingModel = routingModel;
     }
-    
+
     /// <inheritdoc/>
     public SolverDimension RegisterDimension(ISingleCapacityDimension dimension)
     {
@@ -40,7 +40,7 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
         var maxSlack = dimension.GetMaxSlack();
         var shouldStartAtZero = dimension.ShouldStartAtZero();
         var name = dimension.GetName();
-        
+
         // Register the dimension and check if it was successful.
         var success = _routingModel.AddDimension(callback, maxSlack, capacity, shouldStartAtZero, name);
         if (!success)
@@ -63,13 +63,13 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
         var maxSlacks = dimension.GetMaxSlack();
         var shouldStartAtZeros = dimension.ShouldStartAtZero();
         var name = dimension.GetName();
-        
+
         // Check if the number of capacities matches the number of vehicles.
         if (capacities.Length != _model.VehicleCount)
         {
             throw new VehicleRoutingSolverException("The number of capacities must match the number of vehicles.");
         }
-        
+
         // Register the dimension and check if it was successful.
         var success = _routingModel.AddDimensionWithVehicleCapacity(callback, maxSlacks, capacities, shouldStartAtZeros, name);
         if (!success)
@@ -81,4 +81,9 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
         _dimensions.TryAdd(dimension, createdDimension);
         return createdDimension;
     }
+
+    /// <summary>
+    /// Gets the number of registered dimensions.
+    /// </summary>
+    internal int DimensionCount => _dimensions.Count;
 }
