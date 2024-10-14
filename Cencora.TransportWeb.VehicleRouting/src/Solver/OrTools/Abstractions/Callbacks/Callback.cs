@@ -15,15 +15,24 @@ internal readonly struct Callback : IEquatable<Callback>
     internal int Index { get; }
     
     /// <summary>
+    /// The callback function.
+    /// </summary>
+    internal ICallback CallbackFunction { get; }
+    
+    /// <summary>
     /// Initializes a new instance of the <see cref="Callback"/> struct.
     /// </summary>
-    /// <param name="index">The index of the callback.</param>
+    /// <param name="index">The callback function</param>
+    /// <param name="callback">The internal callback.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative.</exception>
-    internal Callback(int index)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="callback"/> is <see langword="null"/>.</exception>
+    internal Callback(int index, ICallback callback)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
         
         Index = index;
+        CallbackFunction = callback;
     }
 
     /// <inheritdoc/>

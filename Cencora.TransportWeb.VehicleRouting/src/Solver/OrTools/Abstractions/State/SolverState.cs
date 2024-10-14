@@ -7,22 +7,35 @@ using Cencora.TransportWeb.VehicleRouting.Model;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Vehicles;
+using Google.OrTools.ConstraintSolver;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 
 /// <summary>
-/// Represents the model of the solver.
+/// Represents the state of the solver.
 /// </summary>
-internal sealed class SolverModel
+internal sealed class SolverState : IDisposable
 {
     private readonly List<Node> _nodes;
     private readonly List<DummyVehicle> _vehicles;
     private readonly Dictionary<Shipment, ShipmentNodeStore> _shipmentNodeStores;
     private readonly Dictionary<DummyVehicle, VehicleNodeStore> _vehicleNodeStores;
+    private readonly Dictionary<ICallback, Callback> _callbacks;
+
+    /// <summary>
+    /// Gets the index manager of the solver.
+    /// </summary>
+    internal RoutingIndexManager IndexManager { get; }
+    
+    /// <summary>
+    /// Gets the model of the solver.
+    /// </summary>
+    internal RoutingModel Model { get; }
 
     /// <summary>
     /// The nodes of the solver.
@@ -45,6 +58,11 @@ internal sealed class SolverModel
     internal int VehicleCount => _vehicles.Count;
     
     /// <summary>
+    /// The number of registered callbacks.
+    /// </summary>
+    internal int CallbackCount => _callbacks.Count;
+    
+    /// <summary>
     /// The shipment node stores of the solver.
     /// </summary>
     internal IReadOnlyDictionary<Shipment, ShipmentNodeStore> ShipmentNodeStores => _shipmentNodeStores;
@@ -55,11 +73,11 @@ internal sealed class SolverModel
     internal IReadOnlyDictionary<DummyVehicle, VehicleNodeStore> VehicleNodeStores => _vehicleNodeStores;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SolverModel"/> class.
+    /// Initializes a new instance of the <see cref="SolverState"/> class.
     /// </summary>
     /// <param name="problem">The problem to solve.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="problem"/> is <see langword="null"/>.</exception>
-    internal SolverModel(Problem problem)
+    internal SolverState(Problem problem)
     {
         ArgumentNullException.ThrowIfNull(problem, nameof(problem));
 
@@ -71,6 +89,7 @@ internal sealed class SolverModel
         _vehicles = new List<DummyVehicle>(dummyVehicleCount);
         _shipmentNodeStores = new Dictionary<Shipment, ShipmentNodeStore>(problem.ShipmentCount);
         _vehicleNodeStores = new Dictionary<DummyVehicle, VehicleNodeStore>(dummyVehicleCount);
+        _callbacks = new Dictionary<ICallback, Callback>();
         
         // Create shipment nodes.
         foreach (var shipment in problem.Shipments)
@@ -108,6 +127,61 @@ internal sealed class SolverModel
                 _vehicleNodeStores.Add(dummyVehicle, new VehicleNodeStore(vehicleNode, endNode));
             }
         }
+        
+        var (startNodeIndices, endNodeIndices) = GetVehicleNodeIndices(_vehicles, _vehicleNodeStores);
+        IndexManager = new RoutingIndexManager(nodeCount, dummyVehicleCount, startNodeIndices, endNodeIndices);
+        Model = new RoutingModel(IndexManager);
+    }
+    
+    /// <summary>
+    /// Converts a solver specific index to a node index.
+    /// </summary>
+    /// <param name="index">The solver specific index.</param>
+    /// <returns>The node index.</returns>
+    internal int IndexToNode(long index) => IndexManager.IndexToNode(index);
+    
+    /// <summary>
+    /// Converts a node index to a solver specific index.
+    /// </summary>
+    /// <param name="node">The node index.</param>
+    /// <returns>The solver specific index.</returns>
+    internal long NodeToIndex(Node node) => IndexManager.NodeToIndex(node);
+
+    /// <summary>
+    /// Registers a callback.
+    /// </summary>
+    /// <param name="callback">The callback to register.</param>
+    /// <returns>The registered callback.</returns>
+    internal Callback RegisterCallback(ITransitCallback callback)
+    {
+        var callbackIndex = Model.RegisterTransitCallback((fromIndex, toIndex) =>
+        {
+            var fromNode = IndexToNode(fromIndex);
+            var toNode = IndexToNode(toIndex);
+            return callback.Callback(_nodes[fromNode], _nodes[toNode]);
+        });
+        var newCallback = new Callback(callbackIndex, callback);
+        _callbacks.Add(callback, newCallback);
+        
+        return newCallback;
+    }
+
+    /// <summary>
+    /// Registers a callback.
+    /// </summary>
+    /// <param name="callback">The callback to register.</param>
+    /// <returns>The registered callback.</returns>
+    internal Callback RegisterCallback(IUnaryTransitCallback callback)
+    {
+        var callbackIndex = Model.RegisterUnaryTransitCallback((fromIndex) =>
+        {
+            var fromNode = IndexToNode(fromIndex);
+            return callback.Callback(_nodes[fromNode]);
+        });
+        var newCallback = new Callback(callbackIndex, callback);
+        _callbacks.Add(callback, newCallback);
+        
+        return newCallback;
     }
     
     /// <inheritdoc/>
@@ -190,5 +264,39 @@ internal sealed class SolverModel
             .WithMaxDistance(shift.MaxDistance ?? long.MaxValue)
             .WithMaxDuration(maxDuration)
             .Build();
+    }
+    
+    /// <summary>
+    /// Gets the start and end node indices of the vehicles.
+    /// </summary>
+    /// <returns>The start and end node indices of the vehicles.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="vehicles"/> or <paramref name="vehicleNodeStores"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when the number of start and end node indices does not match.</exception>
+    private static (int[] StartNodeIndices, int[] EndNodeIndices) GetVehicleNodeIndices(IReadOnlyList<DummyVehicle> vehicles, IReadOnlyDictionary<DummyVehicle, VehicleNodeStore> vehicleNodeStores)
+    {
+        ArgumentNullException.ThrowIfNull(vehicles, nameof(vehicles));
+        ArgumentNullException.ThrowIfNull(vehicleNodeStores, nameof(vehicleNodeStores));
+        
+        var vehicleNodeIndices = vehicles
+            .Select(v => (StartNode: vehicleNodeStores[v].StartNode.Index, EndNode: vehicleNodeStores[v].EndNode.Index))
+            .ToArray();
+
+        var startNodeIndices = vehicleNodeIndices.Select(x => x.StartNode).ToArray();
+        var endNodeIndices = vehicleNodeIndices.Select(x => x.EndNode).ToArray();
+
+        return (startNodeIndices, endNodeIndices);
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        IndexManager.Dispose();
+        Model.Dispose();
+        
+        _nodes.Clear();
+        _vehicles.Clear();
+        _shipmentNodeStores.Clear();
+        _vehicleNodeStores.Clear();
+        _callbacks.Clear();
     }
 }

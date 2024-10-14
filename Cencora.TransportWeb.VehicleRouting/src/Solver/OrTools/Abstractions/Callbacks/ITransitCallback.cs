@@ -9,7 +9,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callba
 /// <summary>
 /// Interface for a transit callback.
 /// </summary>
-internal interface ITransitCallback
+internal interface ITransitCallback : ICallback
 {
     /// <summary>
     /// Callback for the transit.
