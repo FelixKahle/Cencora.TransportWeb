@@ -9,7 +9,6 @@ using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Base;
 
 namespace Cencora.TransportWeb.Cli;
 
@@ -37,7 +36,10 @@ public class VehicleRoutingTest
 
     public void RunTwo()
     {
-        
+        var problem = BuildProblem();
+
+        var solver = new OrToolsSolver();
+        var solution = solver.Solve(problem);
     }
 
     public void Run()

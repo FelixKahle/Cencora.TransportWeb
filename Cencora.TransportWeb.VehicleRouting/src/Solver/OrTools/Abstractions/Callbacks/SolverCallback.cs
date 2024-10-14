@@ -12,7 +12,7 @@ internal readonly struct SolverCallback : IEquatable<SolverCallback>
     /// <summary>
     /// Gets the index of the solver callback.
     /// </summary>
-    internal int Index { get; }
+    internal int Index { get; } = -1;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverCallback"/> struct.

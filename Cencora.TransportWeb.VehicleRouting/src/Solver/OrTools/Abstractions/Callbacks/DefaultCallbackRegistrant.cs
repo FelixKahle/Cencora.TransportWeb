@@ -16,6 +16,7 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     private readonly SolverModel _model;
     private readonly RoutingIndexManager _indexManager;
     private readonly RoutingModel _routingModel;
+    private readonly Dictionary<ICallback, SolverCallback> _callbacks = new();
     
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCallbackRegistrant"/> class.
@@ -40,13 +41,16 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     {
         ArgumentNullException.ThrowIfNull(callback, nameof(callback));
         
-        return _routingModel.RegisterTransitCallback((fromIndex, toIndex) =>
+        var createdCallback = _routingModel.RegisterTransitCallback((fromIndex, toIndex) =>
         {
             var fromNode = _indexManager.IndexToNode(_model, fromIndex);
             var toNode = _indexManager.IndexToNode(_model, toIndex);
             
             return callback.GetTransit(fromNode, toNode);
         });
+        
+        _callbacks.TryAdd(callback, createdCallback);
+        return createdCallback;
     }
 
     /// <inheritdoc/>
@@ -54,11 +58,14 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     {
         ArgumentNullException.ThrowIfNull(callback, nameof(callback));
         
-        return _routingModel.RegisterUnaryTransitCallback(index =>
+        var createdCallback = _routingModel.RegisterUnaryTransitCallback(index =>
         {
             var node = _indexManager.IndexToNode(_model, index);
             
             return callback.GetTransit(node);
         });
+        
+        _callbacks.TryAdd(callback, createdCallback);
+        return createdCallback;
     }
 }

@@ -10,7 +10,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 /// <summary>
 /// The node indices of the vehicles.
 /// </summary>
-internal struct VehicleNodeIndices
+internal readonly struct VehicleNodeIndices
 {
     /// <summary>
     /// Gets the start node indices.

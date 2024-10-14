@@ -12,12 +12,12 @@ internal readonly struct SolverState : IDisposable
     /// <summary>
     /// The solver model.
     /// </summary>
-    public SolverModel SolverModel { get; }
+    internal SolverModel SolverModel { get; }
     
     /// <summary>
     /// The solver interface.
     /// </summary>
-    public SolverInterface SolverInterface { get; }
+    internal SolverInterface SolverInterface { get; }
     
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverState"/> struct.
@@ -30,21 +30,6 @@ internal readonly struct SolverState : IDisposable
         
         SolverModel = solverModel;
         SolverInterface = new SolverInterface(solverModel);
-    }
-    
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SolverState"/> struct.
-    /// </summary>
-    /// <param name="solverModel">The solver model.</param>
-    /// <param name="solverInterface">The solver interface.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="solverModel"/> is <see langword="null"/>.</exception>
-    public SolverState(SolverModel solverModel, SolverInterface solverInterface)
-    {
-        ArgumentNullException.ThrowIfNull(solverModel, nameof(solverModel));
-        ArgumentNullException.ThrowIfNull(solverInterface, nameof(solverInterface));
-        
-        SolverModel = solverModel;
-        SolverInterface = solverInterface;
     }
 
     /// <inheritdoc/>

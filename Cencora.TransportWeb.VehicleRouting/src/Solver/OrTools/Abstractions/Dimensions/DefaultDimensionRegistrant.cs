@@ -14,6 +14,7 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
 {
     private readonly SolverModel _model;
     private readonly RoutingModel _routingModel;
+    private readonly Dictionary<IDimension, SolverDimension> _dimensions = new();
     
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultDimensionRegistrant"/> class.
@@ -47,7 +48,9 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
             throw new VehicleRoutingSolverException($"The dimension '{name}' could not be registered.");
         }
 
-        return new SolverDimension(name, _routingModel.GetMutableDimension(name));
+        var createdDimension = new SolverDimension(name, _routingModel.GetMutableDimension(name));
+        _dimensions.TryAdd(dimension, createdDimension);
+        return createdDimension;
     }
 
     /// <inheritdoc/>
@@ -74,6 +77,8 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
             throw new VehicleRoutingSolverException($"The dimension '{name}' could not be registered.");
         }
 
-        return new SolverDimension(name, _routingModel.GetMutableDimension(name));
+        var createdDimension = new SolverDimension(name, _routingModel.GetMutableDimension(name));
+        _dimensions.TryAdd(dimension, createdDimension);
+        return createdDimension;
     }
 }

@@ -19,8 +19,10 @@ internal static class IndexManagerExtensions
     /// <param name="model">The model.</param>
     /// <param name="index">The index.</param>
     /// <returns>The node.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="indexManager"/> or <paramref name="model"/> is <see langword="null"/>.</exception>
     internal static Node IndexToNode(this RoutingIndexManager indexManager, SolverModel model, long index)
     {
+        ArgumentNullException.ThrowIfNull(indexManager, nameof(indexManager));
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(model, nameof(model));
         
@@ -35,8 +37,10 @@ internal static class IndexManagerExtensions
     /// <param name="model">The model.</param>
     /// <param name="node">The node.</param>
     /// <returns>The index.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="indexManager"/>, <paramref name="model"/>, or <paramref name="node"/> is <see langword="null"/>.</exception>
     internal static long NodeToIndex(this RoutingIndexManager indexManager, SolverModel model, Node node)
     {
+        ArgumentNullException.ThrowIfNull(indexManager, nameof(indexManager));
         ArgumentNullException.ThrowIfNull(node, nameof(node));
         ArgumentNullException.ThrowIfNull(model, nameof(model));
         

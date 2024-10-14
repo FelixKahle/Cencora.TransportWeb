@@ -136,6 +136,32 @@ internal sealed class SolverInterface : IDisposable
         
         return CallbackRegistrant.RegisterCallback(callback);
     }
+    
+    /// <summary>
+    /// Registers the specified dimension.
+    /// </summary>
+    /// <param name="dimension">The dimension.</param>
+    /// <returns>The internal solver dimension.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="dimension"/> is <see langword="null"/>.</exception>
+    internal SolverDimension RegisterDimension(ISingleCapacityDimension dimension)
+    {
+        ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
+        
+        return DimensionRegistrant.RegisterDimension(dimension);
+    }
+    
+    /// <summary>
+    /// Registers the specified dimension.
+    /// </summary>
+    /// <param name="dimension">The dimension.</param>
+    /// <returns>The internal solver dimension.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="dimension"/> is <see langword="null"/>.</exception>
+    internal SolverDimension RegisterDimension(IMultiCapacityDimension dimension)
+    {
+        ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
+        
+        return DimensionRegistrant.RegisterDimension(dimension);
+    }
 
     /// <inheritdoc/>
     public void Dispose()

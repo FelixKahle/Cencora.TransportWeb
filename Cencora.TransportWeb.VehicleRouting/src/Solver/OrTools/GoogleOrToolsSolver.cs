@@ -12,7 +12,6 @@ using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Base;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Vehicles;
 using Google.OrTools.ConstraintSolver;
