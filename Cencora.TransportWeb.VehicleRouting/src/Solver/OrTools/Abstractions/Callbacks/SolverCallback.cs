@@ -5,21 +5,21 @@
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 
 /// <summary>
-/// A callback.
+/// A solver callback.
 /// </summary>
-internal readonly struct Callback : IEquatable<Callback>
+internal readonly struct SolverCallback : IEquatable<SolverCallback>
 {
     /// <summary>
-    /// Gets the index of the callback.
+    /// Gets the index of the solver callback.
     /// </summary>
     internal int Index { get; }
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="Callback"/> struct.
+    /// Initializes a new instance of the <see cref="SolverCallback"/> struct.
     /// </summary>
     /// <param name="index">The callback function</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative.</exception>
-    internal Callback(int index)
+    internal SolverCallback(int index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         
@@ -27,7 +27,7 @@ internal readonly struct Callback : IEquatable<Callback>
     }
 
     /// <inheritdoc/>
-    public bool Equals(Callback other)
+    public bool Equals(SolverCallback other)
     {
         return Index.Equals(other.Index);
     }
@@ -35,7 +35,7 @@ internal readonly struct Callback : IEquatable<Callback>
     /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
-        return obj is Callback other && Equals(other);
+        return obj is SolverCallback other && Equals(other);
     }
     
     /// <inheritdoc/>
@@ -51,43 +51,43 @@ internal readonly struct Callback : IEquatable<Callback>
     }
     
     /// <summary>
-    /// Implicitly converts a <see cref="Callback"/> to an <see cref="int"/>.
+    /// Implicitly converts a <see cref="SolverCallback"/> to an <see cref="int"/>.
     /// </summary>
-    /// <param name="callback">The callback to convert.</param>
-    /// <returns>The index of the callback.</returns>
-    public static implicit operator int (Callback callback)
+    /// <param name="solverCallback">The callback to convert.</param>
+    /// <returns>The index of the solverCallback.</returns>
+    public static implicit operator int (SolverCallback solverCallback)
     {
-        return callback.Index;
+        return solverCallback.Index;
     }
     
     /// <summary>
-    /// Implicitly converts an <see cref="int"/> to a <see cref="Callback"/>.
+    /// Implicitly converts an <see cref="int"/> to a <see cref="SolverCallback"/>.
     /// </summary>
     /// <param name="index">The index of the callback.</param>
     /// <returns>The callback.</returns>
-    public static implicit operator Callback (int index)
+    public static implicit operator SolverCallback (int index)
     {
-        return new Callback(index);
+        return new SolverCallback(index);
     }
     
     /// <summary>
-    /// Determines whether two <see cref="Callback"/> instances are equal.
+    /// Determines whether two <see cref="SolverCallback"/> instances are equal.
     /// </summary>
-    /// <param name="left">The first <see cref="Callback"/> to compare.</param>
-    /// <param name="right">The second <see cref="Callback"/> to compare.</param>
+    /// <param name="left">The first <see cref="SolverCallback"/> to compare.</param>
+    /// <param name="right">The second <see cref="SolverCallback"/> to compare.</param>
     /// <returns><see langword="true"/> if the instances are equal; otherwise, <see langword="false"/>.</returns>
-    public static bool operator ==(Callback left, Callback right)
+    public static bool operator ==(SolverCallback left, SolverCallback right)
     {
         return left.Equals(right);
     }
     
     /// <summary>
-    /// Determines whether two <see cref="Callback"/> instances are not equal.
+    /// Determines whether two <see cref="SolverCallback"/> instances are not equal.
     /// </summary>
-    /// <param name="left">The first <see cref="Callback"/> to compare.</param>
-    /// <param name="right">The second <see cref="Callback"/> to compare.</param>
+    /// <param name="left">The first <see cref="SolverCallback"/> to compare.</param>
+    /// <param name="right">The second <see cref="SolverCallback"/> to compare.</param>
     /// <returns><see langword="true"/> if the instances are not equal; otherwise, <see langword="false"/>.</returns>
-    public static bool operator !=(Callback left, Callback right)
+    public static bool operator !=(SolverCallback left, SolverCallback right)
     {
         return !left.Equals(right);
     }

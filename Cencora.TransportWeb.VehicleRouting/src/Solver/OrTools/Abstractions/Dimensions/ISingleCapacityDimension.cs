@@ -5,12 +5,12 @@
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 
 /// <summary>
-/// Represents a dimension with a single capacity.
+/// Interface for a single capacity dimension.
 /// </summary>
 internal interface ISingleCapacityDimension : IDimension
 {
     /// <summary>
-    /// The capacity of the dimension.
+    /// Gets the capacity of the dimension.
     /// </summary>
-    long Capacity();
+    long GetCapacity();
 }
