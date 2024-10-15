@@ -12,7 +12,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
 /// </summary>
 internal sealed class NodeDimension : ISingleCapacityDimension
 {
-    private SolverCallback _nodeCallback { get; }
+    private readonly SolverCallback _nodeCallback;
     
     /// <summary>
     /// The name.

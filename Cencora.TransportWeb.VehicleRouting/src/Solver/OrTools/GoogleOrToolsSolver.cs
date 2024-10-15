@@ -18,6 +18,7 @@ using Google.OrTools.ConstraintSolver;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+// ReSharper disable UnusedMember.Local
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 

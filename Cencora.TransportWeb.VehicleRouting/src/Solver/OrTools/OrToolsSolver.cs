@@ -3,7 +3,6 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Model;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Implementation;

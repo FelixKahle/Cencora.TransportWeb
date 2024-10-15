@@ -6,44 +6,42 @@ using Cencora.TransportWeb.Common.MathUtils;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Vehicles;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Callbacks;
 
 /// <summary>
 /// Arc cost evaluator callback.
 /// </summary>
-internal sealed class ArcCostEvaluatorCallback : ITransitCallback
+internal sealed class ArcCostEvaluatorCallback : IArcCostEvaluator
 {
     private readonly IReadOnlyDirectedRouteMatrix _routeMatrix;
-    private readonly long _distanceCost;
-    private readonly long _timeCost;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="ArcCostEvaluatorCallback"/> class.
     /// </summary>
     /// <param name="routeMatrix">The route matrix.</param>
-    /// <param name="distanceCost">The distance cost.</param>
-    /// <param name="timeCost">The time cost.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="routeMatrix"/> is <see langword="null"/>.</exception>
-    internal ArcCostEvaluatorCallback(IReadOnlyDirectedRouteMatrix routeMatrix, long distanceCost, long timeCost)
+    internal ArcCostEvaluatorCallback(IReadOnlyDirectedRouteMatrix routeMatrix)
     {
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
         
         _routeMatrix = routeMatrix;
-        _distanceCost = distanceCost;
-        _timeCost = timeCost;
     }
     
-    
-    public long GetTransit(Node fromNode, Node toNode)
+    /// <inheritdoc/>
+    public long GetCost(DummyVehicle vehicle, Node fromNode, Node toNode)
     {
+        var distanceCost = vehicle.DistanceCost;
+        var timeCost = vehicle.TimeCost;
+        
         var distance = GetDistance(fromNode, toNode);
         var duration = GetDuration(fromNode, toNode);
-                
-        var totalDistanceCost = MathUtils.MultiplyOrDefault(distance, _distanceCost, long.MaxValue);
-        var totalTimeCost = MathUtils.MultiplyOrDefault(duration, _timeCost, long.MaxValue);
-                
-        return MathUtils.AddOrDefault(totalDistanceCost, totalTimeCost, long.MaxValue);
+        
+        var totalDistanceCost = MathUtils.MultiplyOrDefault(distance, distanceCost, long.MaxValue);
+        var totalDurationCost = MathUtils.MultiplyOrDefault(duration, timeCost, long.MaxValue);
+        
+        return MathUtils.AddOrDefault(totalDistanceCost, totalDurationCost, long.MaxValue);
     }
 
     /// <summary>

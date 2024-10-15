@@ -128,6 +128,40 @@ internal sealed class SolverInterface : IDisposable
     }
     
     /// <summary>
+    /// Sets the arc cost evaluator of the vehicle.
+    /// </summary>
+    /// <param name="callback">The callback.</param>
+    /// <param name="vehicleIndex">The vehicle index.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="callback"/> is <see langword="null"/>.</exception>
+    internal void SetArcCostEvaluatorOfVehicle(SolverCallback callback, int vehicleIndex)
+    {
+        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
+        ArgumentOutOfRangeException.ThrowIfNegative(vehicleIndex, nameof(vehicleIndex));
+        
+        RoutingModel.SetArcCostEvaluatorOfVehicle(callback, vehicleIndex);
+    }
+
+    /// <summary>
+    /// Sets the arc cost evaluator.
+    /// </summary>
+    /// <param name="evaluator">The evaluator.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="evaluator"/> is <see langword="null"/>.</exception>
+    internal void SetArcCostEvaluator(IArcCostEvaluator evaluator)
+    {
+        ArgumentNullException.ThrowIfNull(evaluator, nameof(evaluator));
+        
+        for (var i = 0; i < SolverModel.VehicleCount; i++)
+        {
+            var vehicle = SolverModel.Vehicles[i];
+            
+            var callback = new ArcCostEvaluatorCallback(evaluator, vehicle);
+            var solverCallback = RegisterCallback(callback);
+            
+            SetArcCostEvaluatorOfVehicle(solverCallback, i);
+        }
+    }
+    
+    /// <summary>
     /// Registers the specified dimension.
     /// </summary>
     /// <param name="dimension">The dimension.</param>
