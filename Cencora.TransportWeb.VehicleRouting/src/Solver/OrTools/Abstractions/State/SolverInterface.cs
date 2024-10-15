@@ -71,7 +71,7 @@ internal sealed class SolverInterface<TKey> : IDisposable
     /// </summary>
     /// <param name="index">The index.</param>
     /// <returns>The node index.</returns>
-    internal int IndexToNodeIndex(long index)
+    private int IndexToNodeIndex(long index)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         

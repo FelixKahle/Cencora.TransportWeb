@@ -25,11 +25,11 @@ internal static class IndexManagerExtensions
         ArgumentNullException.ThrowIfNull(indexManager, nameof(indexManager));
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         ArgumentNullException.ThrowIfNull(model, nameof(model));
-        
+
         var nodeIndex = indexManager.IndexToNode(index);
         return model.Nodes[nodeIndex];
     }
-    
+
     /// <summary>
     /// Converts the given node to an index.
     /// </summary>
@@ -43,8 +43,7 @@ internal static class IndexManagerExtensions
         ArgumentNullException.ThrowIfNull(indexManager, nameof(indexManager));
         ArgumentNullException.ThrowIfNull(node, nameof(node));
         ArgumentNullException.ThrowIfNull(model, nameof(model));
-        
-        var nodeIndex = model.Nodes.IndexOf(node);
-        return indexManager.NodeToIndex(nodeIndex);
+
+        return indexManager.NodeToIndex(node);
     }
 }

@@ -169,10 +169,9 @@ internal sealed class TimeConfigurator : ConfiguratorBase<Dimension>
         // https://github.com/google/or-tools/issues/2578
         var count = state.SolverInterface.RoutingModel.Size();
         var timeDemands = new long[count];
-        for (var i = 0; i < count; i++)
+        for (long i = 0; i < count; i++)
         {
-            var nodeIndex = state.SolverInterface.IndexToNodeIndex(i);
-            var node = state.SolverModel.Nodes[nodeIndex];
+            var node = state.SolverInterface.IndexToNode(i);
             timeDemands[i] = node.GetTimeDemand();
         }
         return timeDemands;
