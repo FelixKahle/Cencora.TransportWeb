@@ -7,7 +7,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 /// <summary>
 /// Options for the Google OR-Tools solver.
 /// </summary>
-public struct SolverOptions
+public readonly struct SolverOptions
 {
     /// <summary>
     /// The maximum time the solver is allowed to run.
