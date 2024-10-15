@@ -8,7 +8,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimens
 /// Represents a dimension registrant.
 /// </summary>
 /// <typeparam name="TKey">The type of the key.</typeparam>
-internal interface IDimensionRegistry<in TKey>
+internal interface IDimensionRegistry<in TKey> : IDisposable
     where TKey : notnull
 {
     /// <summary>

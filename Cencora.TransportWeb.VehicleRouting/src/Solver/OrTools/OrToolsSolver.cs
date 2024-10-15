@@ -85,7 +85,7 @@ public class OrToolsSolver : ISolver
     public SolverOutput Solve(Problem problem)
     {
         var model = _solverModelFactory.Create(problem);
-        var state = new SolverState<Dimension>(model);
+        using var state = new SolverState<Dimension>(model);
         var configurators = GetConfigurators(problem, state);
         Configure(state, configurators);
         var searchParameters = GetSearchParameters();

@@ -45,6 +45,7 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
+*qodana.yaml
 
 # MacOS
 *.DS_Store

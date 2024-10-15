@@ -9,7 +9,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimens
 /// <summary>
 /// Represents a dimension in the solver.
 /// </summary>
-internal readonly struct SolverDimension : IEquatable<SolverDimension>, IDisposable
+internal struct SolverDimension : IEquatable<SolverDimension>, IDisposable
 {
     /// <summary>
     /// Gets the name of the dimension.
@@ -25,6 +25,11 @@ internal readonly struct SolverDimension : IEquatable<SolverDimension>, IDisposa
     /// Gets the dimension.
     /// </summary>
     internal RoutingDimension RoutingDimension { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the dimension has been disposed.
+    /// </summary>
+    internal bool Disposed { get; private set; } = false;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverDimension"/> struct.
@@ -66,7 +71,13 @@ internal readonly struct SolverDimension : IEquatable<SolverDimension>, IDisposa
     /// <inheritdoc/>
     public void Dispose()
     {
+        if (Disposed)
+        {
+            return;
+        }
+        
         RoutingDimension.Dispose();
+        Disposed = true;
     }
 
     /// <summary>

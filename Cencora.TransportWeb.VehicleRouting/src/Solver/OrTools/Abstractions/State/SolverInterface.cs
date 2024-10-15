@@ -205,5 +205,6 @@ internal sealed class SolverInterface<TKey> : IDisposable
     {
         IndexManager.Dispose();
         RoutingModel.Dispose();
+        DimensionRegistry.Dispose();
     }
 }

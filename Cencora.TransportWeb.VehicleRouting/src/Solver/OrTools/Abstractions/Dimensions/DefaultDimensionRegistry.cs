@@ -94,4 +94,17 @@ internal sealed class DefaultDimensionRegistry<TKey> : IDimensionRegistry<TKey>
     /// Gets the number of registered dimensions.
     /// </summary>
     public int DimensionCount => _dimensions.Count;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        // Dispose all dimensions.
+        foreach (var dimension in _dimensions.Values)
+        {
+            dimension.Dispose();
+        }
+        
+        // Clear the dictionary.
+        _dimensions.Clear();
+    }
 }
