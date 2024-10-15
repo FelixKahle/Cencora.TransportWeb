@@ -4,6 +4,9 @@
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 
+/// <summary>
+/// Represents a dimension with multiple capacities.
+/// </summary>
 internal interface IMultiCapacityDimension : IDimension
 {
     /// <summary>

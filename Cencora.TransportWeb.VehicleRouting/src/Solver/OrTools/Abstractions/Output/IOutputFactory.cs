@@ -11,6 +11,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Output
 /// <summary>
 /// Factory for creating solver outputs.
 /// </summary>
+/// <typeparam name="TKey">The type of the key.</typeparam>
 internal interface IOutputFactory<TKey>
     where TKey : notnull
 {

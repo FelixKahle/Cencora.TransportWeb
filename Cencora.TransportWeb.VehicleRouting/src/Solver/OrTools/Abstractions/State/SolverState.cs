@@ -7,6 +7,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 /// <summary>
 /// The state of the solver.
 /// </summary>
+/// <typeparam name="TKey">The type of the key.</typeparam>
 internal readonly struct SolverState<TKey> : IDisposable
     where TKey : notnull
 {

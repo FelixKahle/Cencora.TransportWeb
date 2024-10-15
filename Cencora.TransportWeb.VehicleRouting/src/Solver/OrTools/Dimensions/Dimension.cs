@@ -5,7 +5,7 @@
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
 
 /// <summary>
-/// Enumerates all dimensions.
+/// Enumerates all dimensions used in this vehicle routing problem.
 /// </summary>
 internal enum Dimension
 {

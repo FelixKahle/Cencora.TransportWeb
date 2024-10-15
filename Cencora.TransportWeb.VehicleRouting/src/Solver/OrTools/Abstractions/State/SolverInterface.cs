@@ -12,6 +12,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 /// <summary>
 /// Represents the internal interface of the solver.
 /// </summary>
+/// <typeparam name="TKey">The type of the key.</typeparam>
 internal sealed class SolverInterface<TKey> : IDisposable
     where TKey : notnull
 {

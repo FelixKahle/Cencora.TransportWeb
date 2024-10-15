@@ -10,6 +10,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimens
 /// <summary>
 /// Registers dimensions with the solver.
 /// </summary>
+/// <typeparam name="TKey">The type of the key.</typeparam>
 internal sealed class DefaultDimensionRegistry<TKey> : IDimensionRegistry<TKey>
     where TKey : notnull
 {
@@ -92,5 +93,5 @@ internal sealed class DefaultDimensionRegistry<TKey> : IDimensionRegistry<TKey>
     /// <summary>
     /// Gets the number of registered dimensions.
     /// </summary>
-    internal int DimensionCount => _dimensions.Count;
+    public int DimensionCount => _dimensions.Count;
 }

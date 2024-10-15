@@ -9,6 +9,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Config
 /// <summary>
 /// Interface for a configurator.
 /// </summary>
+/// <typeparam name="TKey">The type of the key.</typeparam>
 internal interface IConfigurator<TKey>
     where TKey : notnull
 {
