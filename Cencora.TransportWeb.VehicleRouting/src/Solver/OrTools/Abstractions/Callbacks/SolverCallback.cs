@@ -10,6 +10,11 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callba
 internal readonly struct SolverCallback : IEquatable<SolverCallback>
 {
     /// <summary>
+    /// Gets the callback function provider.
+    /// </summary>
+    internal ICallback Callback { get; }
+    
+    /// <summary>
     /// Gets the index of the solver callback.
     /// </summary>
     internal int Index { get; } = -1;
@@ -17,12 +22,15 @@ internal readonly struct SolverCallback : IEquatable<SolverCallback>
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverCallback"/> struct.
     /// </summary>
+    /// <param name="callback">The callback function</param>
     /// <param name="index">The callback function</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative.</exception>
-    internal SolverCallback(int index)
+    internal SolverCallback(ICallback callback, int index)
     {
+        ArgumentNullException.ThrowIfNull(callback, nameof(callback));
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
         
+        Callback = callback;
         Index = index;
     }
 
@@ -58,16 +66,6 @@ internal readonly struct SolverCallback : IEquatable<SolverCallback>
     public static implicit operator int (SolverCallback solverCallback)
     {
         return solverCallback.Index;
-    }
-    
-    /// <summary>
-    /// Implicitly converts an <see cref="int"/> to a <see cref="SolverCallback"/>.
-    /// </summary>
-    /// <param name="index">The index of the callback.</param>
-    /// <returns>The callback.</returns>
-    public static implicit operator SolverCallback (int index)
-    {
-        return new SolverCallback(index);
     }
     
     /// <summary>

@@ -10,10 +10,10 @@ using Cencora.TransportWeb.VehicleRouting.Model.Places;
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Model.Shipments;
 using Cencora.TransportWeb.VehicleRouting.Model.Vehicles;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Output;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Vehicles;
 using Google.OrTools.ConstraintSolver;
 
@@ -22,27 +22,10 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Implementation;
 /// <summary>
 /// Represents the default implementation of the output factory.
 /// </summary>
-internal class DefaultSolverOutputFactory : IOutputFactory
+internal class DefaultSolverOutputFactory : IOutputFactory<Dimension>
 {
-    /// <summary>
-    /// The time dimension.
-    /// </summary>
-    private SolverDimension TimeDimension { get; }
-    
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultSolverOutputFactory"/> class.
-    /// </summary>
-    /// <param name="timeDimension">The time dimension.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="timeDimension"/> is <see langword="null"/>.</exception>
-    internal DefaultSolverOutputFactory(SolverDimension timeDimension)
-    {
-        ArgumentNullException.ThrowIfNull(timeDimension, nameof(timeDimension));
-        
-        TimeDimension = timeDimension;
-    }
-    
     /// <inheritdoc/>
-    public SolverOutput CreateOutput(Problem problem, SolverState state, Assignment? assignment)
+    public SolverOutput CreateOutput(Problem problem, SolverState<Dimension> state, Assignment? assignment)
     {
         // If the assignment is null, we did not find a solution.
         if (assignment is null)
@@ -97,7 +80,7 @@ internal class DefaultSolverOutputFactory : IOutputFactory
     /// <param name="vehicleIndex">The index of the vehicle.</param>
     /// <param name="currentVehicle">The current vehicle.</param>
     /// <returns>The stops for the vehicle.</returns>
-    private List<VehicleStop> CollectStopsForVehicle(SolverState state, Assignment assignment, int vehicleIndex, Vehicle currentVehicle)
+    private List<VehicleStop> CollectStopsForVehicle(SolverState<Dimension> state, Assignment assignment, int vehicleIndex, Vehicle currentVehicle)
     {
         ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
         ArgumentOutOfRangeException.ThrowIfNegative(vehicleIndex, nameof(vehicleIndex));
@@ -198,7 +181,7 @@ internal class DefaultSolverOutputFactory : IOutputFactory
     /// <returns>The next routing index.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> or <paramref name="assignment"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="currentIndex"/> is negative.</exception>
-    private long GetNextRoutingIndex(SolverState state, Assignment assignment, long currentIndex)
+    private long GetNextRoutingIndex(SolverState<Dimension> state, Assignment assignment, long currentIndex)
     {
         ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
         ArgumentNullException.ThrowIfNull(state, nameof(state));
@@ -210,22 +193,26 @@ internal class DefaultSolverOutputFactory : IOutputFactory
     /// <summary>
     /// Gets the time windows for a given index.
     /// </summary>
+    /// <param name="state">The state.</param>
     /// <param name="index">The index.</param>
     /// <param name="assignment">The assignment.</param>
     /// <returns>The time windows.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="assignment"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="index"/> is negative.</exception>
-    private (ValueRange arrival, ValueRange waiting, ValueRange departure) GetTimeWindows(SolverState state, Assignment assignment, long index)
+    private (ValueRange arrival, ValueRange waiting, ValueRange departure) GetTimeWindows(SolverState<Dimension> state, Assignment assignment, long index)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
         ArgumentNullException.ThrowIfNull(assignment, nameof(assignment));
         ArgumentOutOfRangeException.ThrowIfNegative(index, nameof(index));
+
+        // Get the time dimension and the routing dimension.
+        var timeDimension = state.SolverInterface.GetDimension(Dimension.TimeDimension);
         
-        var arrivalTimeVar = TimeDimension.Dimension.CumulVar(index);
+        var arrivalTimeVar = timeDimension.RoutingDimension.CumulVar(index);
         var earliestArrival = assignment.Min(arrivalTimeVar);
         var latestArrival = assignment.Max(arrivalTimeVar);
 
-        var waitingTimeVar = TimeDimension.Dimension.SlackVar(index);
+        var waitingTimeVar = timeDimension.RoutingDimension.SlackVar(index);
         var minimumWaitingTime = assignment.Min(waitingTimeVar);
         var maximumWaitingTime = assignment.Max(waitingTimeVar);
         

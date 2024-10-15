@@ -3,8 +3,10 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Model;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Implementation;
 using Google.OrTools.ConstraintSolver;
 using Google.Protobuf.WellKnownTypes;
@@ -28,29 +30,67 @@ public class OrToolsSolver : ISolver
         _options = options;
     }
     
-    /// <inheritdoc/>
-    public SolverOutput Solve(Problem problem)
+    /// <summary>
+    /// Gets the configurators.
+    /// </summary>
+    /// <param name="problem">The problem.</param>
+    /// <param name="state">The state.</param>
+    /// <returns>The configurators.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="problem"/> or <paramref name="state"/> is null.</exception>
+    private IReadOnlyList<IConfigurator<Dimension>> GetConfigurators(Problem problem, SolverState<Dimension> state)
     {
-        var model = _solverModelFactory.Create(problem);
-        var state = new SolverState(model);
-
-        var timeConfigurator = new TimeConfigurator(state, problem.DirectedRouteMatrix);
-        var vehicleConfigurator = new VehicleConfigurator();
-        var nodeConfigurator = new NodeConfigurator(state);
-        var arcCostConfigurator = new ArcCostEvaluatorConfigurator(problem.DirectedRouteMatrix);
+        ArgumentNullException.ThrowIfNull(problem, nameof(problem));
+        ArgumentNullException.ThrowIfNull(state, nameof(state));
         
-        timeConfigurator.Configure(state);
-        vehicleConfigurator.Configure(state);
-        nodeConfigurator.Configure(state);
-        arcCostConfigurator.Configure(state);
+        return new List<IConfigurator<Dimension>>()
+        {
+            new TimeConfigurator(state, problem.DirectedRouteMatrix),
+            new VehicleConfigurator(),
+            new NodeConfigurator(state),
+            new ArcCostEvaluatorConfigurator(problem.DirectedRouteMatrix)
+        };
+    }
+    
+    /// <summary>
+    /// Configures the solver.
+    /// </summary>
+    /// <param name="state">The state.</param>
+    /// <param name="configurators">The configurators.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> or <paramref name="configurators"/> is null.</exception>
+    private void Configure(SolverState<Dimension> state, IReadOnlyList<IConfigurator<Dimension>> configurators)
+    {
+        ArgumentNullException.ThrowIfNull(state, nameof(state));
+        ArgumentNullException.ThrowIfNull(configurators, nameof(configurators));
         
+        foreach (var configurator in configurators)
+        {
+            configurator.Configure(state);
+        }
+    }
+    
+    /// <summary>
+    /// Gets the search parameters.
+    /// </summary>
+    /// <returns>The search parameters.</returns>
+    private RoutingSearchParameters GetSearchParameters()
+    {
         var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
         searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
         searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
         searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
+        return searchParameters;
+    }
+    
+    /// <inheritdoc/>
+    public SolverOutput Solve(Problem problem)
+    {
+        var model = _solverModelFactory.Create(problem);
+        var state = new SolverState<Dimension>(model);
+        var configurators = GetConfigurators(problem, state);
+        Configure(state, configurators);
+        var searchParameters = GetSearchParameters();
         using var solution = state.SolverInterface.RoutingModel.SolveWithParameters(searchParameters);
-
-        var outputFactory = new DefaultSolverOutputFactory(timeConfigurator.TimeDimension);
+        var outputFactory = new DefaultSolverOutputFactory();
         return outputFactory.CreateOutput(problem, state, solution);
     }
 }

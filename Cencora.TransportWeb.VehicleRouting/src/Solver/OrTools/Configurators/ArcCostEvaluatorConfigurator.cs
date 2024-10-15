@@ -5,6 +5,7 @@
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
 using ArcCostEvaluatorCallback = Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Callbacks.ArcCostEvaluatorCallback;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
@@ -12,7 +13,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 /// <summary>
 /// Represents a configurator that sets up the arc cost evaluator.
 /// </summary>
-internal sealed class ArcCostEvaluatorConfigurator : IConfigurator
+internal sealed class ArcCostEvaluatorConfigurator : IConfigurator<Dimension>
 {
     private readonly IReadOnlyDirectedRouteMatrix _routeMatrix;
     
@@ -29,7 +30,7 @@ internal sealed class ArcCostEvaluatorConfigurator : IConfigurator
     }
     
     /// <inheritdoc/>
-    public void Configure(SolverState state)
+    public void Configure(SolverState<Dimension> state)
     {
         state.SolverInterface.SetArcCostEvaluator(new ArcCostEvaluatorCallback(_routeMatrix));
     }

@@ -7,7 +7,8 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 /// <summary>
 /// The state of the solver.
 /// </summary>
-internal readonly struct SolverState : IDisposable
+internal readonly struct SolverState<TKey> : IDisposable
+    where TKey : notnull
 {
     /// <summary>
     /// The solver model.
@@ -17,19 +18,19 @@ internal readonly struct SolverState : IDisposable
     /// <summary>
     /// The solver interface.
     /// </summary>
-    internal SolverInterface SolverInterface { get; }
+    internal SolverInterface<TKey> SolverInterface { get; }
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="SolverState"/> struct.
+    /// Initializes a new instance of the <see cref="SolverState{T}"/> struct.
     /// </summary>
     /// <param name="solverModel">The solver model.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="solverModel"/> is <see langword="null"/>.</exception>
-    public SolverState(SolverModel solverModel)
+    internal SolverState(SolverModel solverModel)
     {
         ArgumentNullException.ThrowIfNull(solverModel, nameof(solverModel));
         
         SolverModel = solverModel;
-        SolverInterface = new SolverInterface(solverModel);
+        SolverInterface = new SolverInterface<TKey>(solverModel);
     }
 
     /// <inheritdoc/>

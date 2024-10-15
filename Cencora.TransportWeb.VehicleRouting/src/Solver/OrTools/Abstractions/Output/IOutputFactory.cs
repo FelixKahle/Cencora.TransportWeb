@@ -11,7 +11,8 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Output
 /// <summary>
 /// Factory for creating solver outputs.
 /// </summary>
-internal interface IOutputFactory
+internal interface IOutputFactory<TKey>
+    where TKey : notnull
 {
     /// <summary>
     /// Creates a new solver output.
@@ -19,5 +20,5 @@ internal interface IOutputFactory
     /// <param name="problem">The problem.</param>
     /// <param name="state">The state.</param>
     /// <param name="assignment">The assignment.</param>
-    SolverOutput CreateOutput(Problem problem, SolverState state, Assignment? assignment);
+    SolverOutput CreateOutput(Problem problem, SolverState<TKey> state, Assignment? assignment);
 }

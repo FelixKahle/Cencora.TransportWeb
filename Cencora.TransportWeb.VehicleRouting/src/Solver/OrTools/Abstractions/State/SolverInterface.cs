@@ -12,7 +12,8 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 /// <summary>
 /// Represents the internal interface of the solver.
 /// </summary>
-internal sealed class SolverInterface : IDisposable
+internal sealed class SolverInterface<TKey> : IDisposable
+    where TKey : notnull
 {
     /// <summary>
     /// Gets the index manager of the solver.
@@ -37,7 +38,7 @@ internal sealed class SolverInterface : IDisposable
     /// <summary>
     /// The dimension registrant of the solver.
     /// </summary>
-    internal IDimensionRegistrant DimensionRegistrant { get; }
+    internal IDimensionRegistry<TKey> DimensionRegistry { get; }
 
     /// <summary>
     /// The solver of the model.
@@ -45,7 +46,7 @@ internal sealed class SolverInterface : IDisposable
     internal Google.OrTools.ConstraintSolver.Solver Solver => RoutingModel.solver() ?? throw new VehicleRoutingSolverException("Failed to get solver.");
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SolverInterface"/> class.
+    /// Initializes a new instance of the <see cref="SolverInterface{T}"/> class.
     /// </summary>
     /// <param name="model">The model of the solver.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="model"/> is <see langword="null"/>.</exception>
@@ -56,14 +57,12 @@ internal sealed class SolverInterface : IDisposable
         // Compute the vehicle node indices.
         var vehicleNodeIndices = new VehicleNodeIndices(model.Vehicles, model.VehicleNodeStores);
         
-        Console.WriteLine("VehicleNodeIndices: " + string.Join(", ", vehicleNodeIndices.StartNodeIndices));
-        
         // Assign the values to the properties.
         SolverModel = model;
         IndexManager = new RoutingIndexManager(model.NodeCount, model.VehicleCount, vehicleNodeIndices.StartNodeIndices, vehicleNodeIndices.EndNodeIndices);
         RoutingModel = new RoutingModel(IndexManager);
         CallbackRegistrant = new DefaultCallbackRegistrant(model, IndexManager, RoutingModel);
-        DimensionRegistrant = new DefaultDimensionRegistrant(model, RoutingModel);
+        DimensionRegistry = new DefaultDimensionRegistry<TKey>(model, RoutingModel);
     }
 
     /// <summary>
@@ -164,27 +163,40 @@ internal sealed class SolverInterface : IDisposable
     /// <summary>
     /// Registers the specified dimension.
     /// </summary>
+    /// <param name="key">The key.</param>
     /// <param name="dimension">The dimension.</param>
     /// <returns>The internal solver dimension.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="dimension"/> is <see langword="null"/>.</exception>
-    internal SolverDimension RegisterDimension(ISingleCapacityDimension dimension)
+    internal SolverDimension RegisterDimension(TKey key, ISingleCapacityDimension dimension)
     {
         ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
         
-        return DimensionRegistrant.RegisterDimension(dimension);
+        return DimensionRegistry.RegisterDimension(key, dimension);
     }
     
     /// <summary>
     /// Registers the specified dimension.
     /// </summary>
+    /// <param name="key">The key.</param>
     /// <param name="dimension">The dimension.</param>
     /// <returns>The internal solver dimension.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="dimension"/> is <see langword="null"/>.</exception>
-    internal SolverDimension RegisterDimension(IMultiCapacityDimension dimension)
+    internal SolverDimension RegisterDimension(TKey key, IMultiCapacityDimension dimension)
     {
         ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
         
-        return DimensionRegistrant.RegisterDimension(dimension);
+        return DimensionRegistry.RegisterDimension(key, dimension);
+    }
+    
+    /// <summary>
+    /// Gets the dimension from the given key.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The dimension.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown when the key is not found.</exception>
+    internal SolverDimension GetDimension(TKey key)
+    {
+        return DimensionRegistry.GetDimension(key);
     }
 
     /// <inheritdoc/>

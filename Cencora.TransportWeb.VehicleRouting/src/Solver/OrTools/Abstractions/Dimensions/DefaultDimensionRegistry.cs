@@ -10,18 +10,19 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimens
 /// <summary>
 /// Registers dimensions with the solver.
 /// </summary>
-internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
+internal sealed class DefaultDimensionRegistry<TKey> : IDimensionRegistry<TKey>
+    where TKey : notnull
 {
     private readonly SolverModel _model;
     private readonly RoutingModel _routingModel;
-    private readonly Dictionary<IDimension, SolverDimension> _dimensions = new();
+    private readonly Dictionary<TKey, SolverDimension> _dimensions = new();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DefaultDimensionRegistrant"/> class.
+    /// Initializes a new instance of the <see cref="DefaultDimensionRegistry{T}"/> class.
     /// </summary>
     /// <param name="model">The model.</param>
     /// <param name="routingModel">The routing model.</param>
-    internal DefaultDimensionRegistrant(SolverModel model, RoutingModel routingModel)
+    internal DefaultDimensionRegistry(SolverModel model, RoutingModel routingModel)
     {
         ArgumentNullException.ThrowIfNull(model, nameof(model));
         ArgumentNullException.ThrowIfNull(routingModel, nameof(routingModel));
@@ -31,7 +32,7 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
     }
 
     /// <inheritdoc/>
-    public SolverDimension RegisterDimension(ISingleCapacityDimension dimension)
+    public SolverDimension RegisterDimension(TKey key, ISingleCapacityDimension dimension)
     {
         ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
 
@@ -48,13 +49,13 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
             throw new VehicleRoutingSolverException($"The dimension '{name}' could not be registered.");
         }
 
-        var createdDimension = new SolverDimension(name, _routingModel.GetMutableDimension(name));
-        _dimensions.TryAdd(dimension, createdDimension);
+        var createdDimension = new SolverDimension(name, dimension, _routingModel.GetMutableDimension(name));
+        _dimensions.TryAdd(key, createdDimension);
         return createdDimension;
     }
 
     /// <inheritdoc/>
-    public SolverDimension RegisterDimension(IMultiCapacityDimension dimension)
+    public SolverDimension RegisterDimension(TKey key, IMultiCapacityDimension dimension)
     {
         ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
 
@@ -77,9 +78,15 @@ internal sealed class DefaultDimensionRegistrant : IDimensionRegistrant
             throw new VehicleRoutingSolverException($"The dimension '{name}' could not be registered.");
         }
 
-        var createdDimension = new SolverDimension(name, _routingModel.GetMutableDimension(name));
-        _dimensions.TryAdd(dimension, createdDimension);
+        var createdDimension = new SolverDimension(name, dimension, _routingModel.GetMutableDimension(name));
+        _dimensions.TryAdd(key, createdDimension);
         return createdDimension;
+    }
+    
+    /// <inheritdoc/>
+    public SolverDimension GetDimension(TKey key)
+    {
+        return _dimensions[key];
     }
 
     /// <summary>

@@ -7,19 +7,30 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimens
 /// <summary>
 /// Represents a dimension registrant.
 /// </summary>
-internal interface IDimensionRegistrant
+internal interface IDimensionRegistry<TKey>
+    where TKey : notnull
 {
     /// <summary>
     /// Registers the specified dimension.
     /// </summary>
+    /// <param name="key">The key.</param>
     /// <param name="dimension">The dimension.</param>
     /// <returns>The registered dimension.</returns>
-    SolverDimension RegisterDimension(ISingleCapacityDimension dimension);
+    SolverDimension RegisterDimension(TKey key, ISingleCapacityDimension dimension);
     
     /// <summary>
     /// Registers the specified dimension.
     /// </summary>
+    /// <param name="key">The key.</param>
     /// <param name="dimension">The dimension.</param>
     /// <returns>The registered dimension.</returns>
-    SolverDimension RegisterDimension(IMultiCapacityDimension dimension);
+    SolverDimension RegisterDimension(TKey key, IMultiCapacityDimension dimension);
+    
+    /// <summary>
+    /// Gets the dimension.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The dimension.</returns>
+    /// <exception cref="KeyNotFoundException">The key was not found.</exception>
+    SolverDimension GetDimension(TKey key);
 }

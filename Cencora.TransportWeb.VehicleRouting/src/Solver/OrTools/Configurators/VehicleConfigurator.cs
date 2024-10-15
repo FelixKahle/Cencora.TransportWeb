@@ -4,16 +4,17 @@
 
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 
 /// <summary>
 /// Vehicle configurator.
 /// </summary>
-internal sealed class VehicleConfigurator : IConfigurator
+internal sealed class VehicleConfigurator : IConfigurator<Dimension>
 {
     /// <inheritdoc/>
-    public void Configure(SolverState state)
+    public void Configure(SolverState<Dimension> state)
     {
         for (var i = 0; i < state.SolverModel.VehicleCount; i++)
         {

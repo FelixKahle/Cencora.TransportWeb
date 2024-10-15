@@ -14,7 +14,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 /// <summary>
 /// Node configurator.
 /// </summary>
-internal sealed class NodeConfigurator : ConfiguratorBase
+internal sealed class NodeConfigurator : ConfiguratorBase<Dimension>
 {
     /// <summary>
     /// The node callback.
@@ -30,15 +30,15 @@ internal sealed class NodeConfigurator : ConfiguratorBase
     /// Initializes a new instance of the <see cref="NodeConfigurator"/> class.
     /// </summary>
     /// <param name="state">The state.</param>
-    internal NodeConfigurator(SolverState state) :
+    internal NodeConfigurator(SolverState<Dimension> state) :
         base(state)
     {
         NodeCallback = State.SolverInterface.RegisterCallback(new NodeCallback());
-        NodeDimension = State.SolverInterface.RegisterDimension(new NodeDimension(NodeCallback));
+        NodeDimension = State.SolverInterface.RegisterDimension(Dimension.NodeDimension, new NodeDimension(NodeCallback));
     }
 
     /// <inheritdoc/>
-    public override void Configure(SolverState state)
+    public override void Configure(SolverState<Dimension> state)
     {
         foreach (var store in state.SolverModel.ShipmentNodeStores.Values)
         {
@@ -52,7 +52,7 @@ internal sealed class NodeConfigurator : ConfiguratorBase
             // The following line adds the requirement that each item must be picked up and delivered by the same vehicle.
             state.SolverInterface.Solver.Add(state.SolverInterface.Solver.MakeEquality(state.SolverInterface.RoutingModel.VehicleVar(pickupIndex), state.SolverInterface.RoutingModel.VehicleVar(deliveryIndex)));
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
-            state.SolverInterface.Solver.Add(state.SolverInterface.Solver.MakeLessOrEqual(NodeDimension.Dimension.CumulVar(pickupIndex), NodeDimension.Dimension.CumulVar(deliveryIndex)));
+            state.SolverInterface.Solver.Add(state.SolverInterface.Solver.MakeLessOrEqual(NodeDimension.RoutingDimension.CumulVar(pickupIndex), NodeDimension.RoutingDimension.CumulVar(deliveryIndex)));
         }
     }
 }

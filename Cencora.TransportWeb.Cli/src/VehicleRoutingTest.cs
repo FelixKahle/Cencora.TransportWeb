@@ -34,29 +34,12 @@ public class VehicleRoutingTest
         { 7, 14, 9, 16, 14, 8, 5, 10, 6, 5, 4, 10, 8, 6, 2, 9, 0 },
     };
 
-    public void RunTwo()
+    // This is the main method of the class
+    public void Run()
     {
         var problem = BuildProblem();
 
         var solver = new OrToolsSolver(new SolverOptions(TimeSpan.FromSeconds(2)));
-        var solution = solver.Solve(problem);
-        
-        Console.WriteLine($"Has solution: {solution.HasSolution}");
-
-        if (solution.HasSolution)
-        {
-            var vehiclePlans = solution.Solution?.VehiclePlans ?? throw new InvalidOperationException("Solution is null");
-            foreach (var plan in vehiclePlans)
-            {
-                Console.WriteLine(plan.ToDebugString());
-            }
-        }
-    }
-
-    public void Run()
-    {
-        var problem = BuildProblem();
-        using var solver = new GoogleOrToolsSolver(new SolverOptions(TimeSpan.FromSeconds(2)), new ConsoleLogger<GoogleOrToolsSolver>());
         var solution = solver.Solve(problem);
         
         Console.WriteLine($"Has solution: {solution.HasSolution}");

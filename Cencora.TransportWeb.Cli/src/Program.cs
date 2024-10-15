@@ -9,8 +9,6 @@ public static class Program
     public static void Main(string[] args)
     {
         var test = new VehicleRoutingTest();
-        test.RunTwo();
-        
-        //test.Run();
+        test.Run();
     }
 }

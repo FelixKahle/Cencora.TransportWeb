@@ -9,10 +9,11 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Config
 /// <summary>
 /// Interface for a configurator.
 /// </summary>
-internal interface IConfigurator
+internal interface IConfigurator<TKey>
+    where TKey : notnull
 {
     /// <summary>
     /// Configures the specified state.
     /// </summary>
-    void Configure(SolverState state);
+    void Configure(SolverState<TKey> state);
 }

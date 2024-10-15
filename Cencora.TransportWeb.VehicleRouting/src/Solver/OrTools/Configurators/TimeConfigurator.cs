@@ -17,7 +17,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 /// <summary>
 /// Time configurator.
 /// </summary>
-internal sealed class TimeConfigurator : ConfiguratorBase
+internal sealed class TimeConfigurator : ConfiguratorBase<Dimension>
 {
     /// <summary>
     /// The time callback.
@@ -35,17 +35,17 @@ internal sealed class TimeConfigurator : ConfiguratorBase
     /// <param name="state">The state.</param>
     /// <param name="routeMatrix">The route matrix.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="routeMatrix"/> is <see langword="null"/>.</exception>
-    internal TimeConfigurator(SolverState state, IReadOnlyDirectedRouteMatrix routeMatrix) 
+    internal TimeConfigurator(SolverState<Dimension> state, IReadOnlyDirectedRouteMatrix routeMatrix) 
         : base(state)
     {
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
 
         TimeCallback = State.SolverInterface.RegisterCallback(new TimeCallback(routeMatrix));
-        TimeDimension = State.SolverInterface.RegisterDimension(new TimeDimension(state.SolverModel, TimeCallback));
+        TimeDimension = State.SolverInterface.RegisterDimension(Dimension.TimeDimension, new TimeDimension(state.SolverModel, TimeCallback));
     }
     
     /// <inheritdoc/>
-    public override void Configure(SolverState state)
+    public override void Configure(SolverState<Dimension> state)
     {
         SetupVehicleTimeCosts(state);
         AddTimeWindowConstraints(state);
@@ -58,7 +58,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
     /// </summary>
     /// <param name="state">The state.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    private void SetupVehicleTimeCosts(SolverState state)
+    private void SetupVehicleTimeCosts(SolverState<Dimension> state)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
         
@@ -67,7 +67,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
             var vehicle = state.SolverModel.Vehicles[i];
             var timeCost = vehicle.TimeCost;
             
-            TimeDimension.Dimension.SetSpanCostCoefficientForVehicle(timeCost, i);
+            TimeDimension.RoutingDimension.SetSpanCostCoefficientForVehicle(timeCost, i);
         }
     }
     
@@ -76,7 +76,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
     /// </summary>
     /// <param name="state">The state.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    private void AddTimeWindowConstraints(SolverState state)
+    private void AddTimeWindowConstraints(SolverState<Dimension> state)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
         
@@ -88,7 +88,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
             
             // Copy the slack var to the assignment,
             // so we can later retrieve the slack time of the node.
-            state.SolverInterface.RoutingModel.AddToAssignment(TimeDimension.Dimension.SlackVar(nodeIndex));
+            state.SolverInterface.RoutingModel.AddToAssignment(TimeDimension.RoutingDimension.SlackVar(nodeIndex));
             
             // Skip the start and end nodes.
             // Start nodes get their time windows from the vehicles
@@ -104,7 +104,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
                 continue;
             }
             
-            TimeDimension.Dimension.CumulVar(nodeIndex).SetRange(range.Value.Min, range.Value.Max);
+            TimeDimension.RoutingDimension.CumulVar(nodeIndex).SetRange(range.Value.Min, range.Value.Max);
         }
         
         // Add time window constraints for the vehicles.
@@ -114,8 +114,8 @@ internal sealed class TimeConfigurator : ConfiguratorBase
             var shiftTimeWindow = vehicle.AvailableTimeWindow;
             
             var index = state.SolverInterface.RoutingModel.Start(i);
-            TimeDimension.Dimension.CumulVar(index).SetRange(shiftTimeWindow.Min, shiftTimeWindow.Max);
-            state.SolverInterface.RoutingModel.AddToAssignment(TimeDimension.Dimension.SlackVar(index));
+            TimeDimension.RoutingDimension.CumulVar(index).SetRange(shiftTimeWindow.Min, shiftTimeWindow.Max);
+            state.SolverInterface.RoutingModel.AddToAssignment(TimeDimension.RoutingDimension.SlackVar(index));
         }
     }
     
@@ -124,7 +124,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
     /// </summary>
     /// <param name="state">The state.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    private void SetupVehicleBreaks(SolverState state)
+    private void SetupVehicleBreaks(SolverState<Dimension> state)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
         
@@ -153,7 +153,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
                 intervalVars.Add(intervalVar);
             }
             
-            TimeDimension.Dimension.SetBreakIntervalsOfVehicle(intervalVars, i, nodeTimeDemands);
+            TimeDimension.RoutingDimension.SetBreakIntervalsOfVehicle(intervalVars, i, nodeTimeDemands);
         }
     }
     
@@ -162,7 +162,7 @@ internal sealed class TimeConfigurator : ConfiguratorBase
     /// </summary>
     /// <returns>The node time demands.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    private long[] GetNodeTimeDemands(SolverState state)
+    private long[] GetNodeTimeDemands(SolverState<Dimension> state)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
         
@@ -181,14 +181,14 @@ internal sealed class TimeConfigurator : ConfiguratorBase
     /// <summary>
     /// Sets the objective functions for the vehicles.
     /// </summary>
-    private void SetupVehicleObjectiveFunctions(SolverState state)
+    private void SetupVehicleObjectiveFunctions(SolverState<Dimension> state)
     {
         // We want to maximize the start time to start as late as possible
         // and minimize the end time to finish as early as possible.
         for (var i = 0; i < state.SolverModel.VehicleCount; i++)
         {
-            state.SolverInterface.RoutingModel.AddVariableMaximizedByFinalizer(TimeDimension.Dimension.CumulVar(state.SolverInterface.RoutingModel.Start(i)));
-            state.SolverInterface.RoutingModel.AddVariableMinimizedByFinalizer(TimeDimension.Dimension.CumulVar(state.SolverInterface.RoutingModel.End(i)));
+            state.SolverInterface.RoutingModel.AddVariableMaximizedByFinalizer(TimeDimension.RoutingDimension.CumulVar(state.SolverInterface.RoutingModel.Start(i)));
+            state.SolverInterface.RoutingModel.AddVariableMinimizedByFinalizer(TimeDimension.RoutingDimension.CumulVar(state.SolverInterface.RoutingModel.End(i)));
         }
     }
 }

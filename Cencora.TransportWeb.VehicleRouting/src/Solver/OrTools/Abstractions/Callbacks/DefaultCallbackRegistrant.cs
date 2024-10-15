@@ -16,7 +16,6 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     private readonly SolverModel _model;
     private readonly RoutingIndexManager _indexManager;
     private readonly RoutingModel _routingModel;
-    private readonly Dictionary<ICallback, SolverCallback> _callbacks = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCallbackRegistrant"/> class.
@@ -41,7 +40,7 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     {
         ArgumentNullException.ThrowIfNull(callback, nameof(callback));
 
-        var createdCallback = _routingModel.RegisterTransitCallback((fromIndex, toIndex) =>
+        var createdCallbackIndex = _routingModel.RegisterTransitCallback((fromIndex, toIndex) =>
         {
             var fromNode = _indexManager.IndexToNode(_model, fromIndex);
             var toNode = _indexManager.IndexToNode(_model, toIndex);
@@ -49,8 +48,7 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
             return callback.GetTransit(fromNode, toNode);
         });
 
-        _callbacks.TryAdd(callback, createdCallback);
-        return createdCallback;
+        return new SolverCallback(callback, createdCallbackIndex);
     }
 
     /// <inheritdoc/>
@@ -58,19 +56,13 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     {
         ArgumentNullException.ThrowIfNull(callback, nameof(callback));
 
-        var createdCallback = _routingModel.RegisterUnaryTransitCallback(index =>
+        var createdCallbackIndex = _routingModel.RegisterUnaryTransitCallback(index =>
         {
             var node = _indexManager.IndexToNode(_model, index);
 
             return callback.GetTransit(node);
         });
-
-        _callbacks.TryAdd(callback, createdCallback);
-        return createdCallback;
+        
+        return new SolverCallback(callback, createdCallbackIndex);
     }
-
-    /// <summary>
-    /// Gets the number of registered callbacks.
-    /// </summary>
-    internal int CallbackCount => _callbacks.Count;
 }

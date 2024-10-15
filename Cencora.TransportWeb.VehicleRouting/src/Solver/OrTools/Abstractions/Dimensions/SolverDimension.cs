@@ -19,22 +19,30 @@ internal readonly struct SolverDimension : IEquatable<SolverDimension>, IDisposa
     /// <summary>
     /// Gets the dimension.
     /// </summary>
-    internal RoutingDimension Dimension { get; }
+    internal IDimension Dimension { get; }
+    
+    /// <summary>
+    /// Gets the dimension.
+    /// </summary>
+    internal RoutingDimension RoutingDimension { get; }
     
     /// <summary>
     /// Initializes a new instance of the <see cref="SolverDimension"/> struct.
     /// </summary>
-    /// <param name="name">The name of the dimension.</param>
+    /// <param name="name">The name of the routingDimension.</param>
     /// <param name="dimension">The dimension.</param>
+    /// <param name="routingDimension">The routingDimension.</param>
     /// <exception cref="ArgumentException">Thrown if <paramref name="name"/> is null or whitespace.</exception>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="dimension"/> is null.</exception>
-    public SolverDimension(string name, RoutingDimension dimension)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="routingDimension"/> is null.</exception>
+    public SolverDimension(string name, IDimension dimension, RoutingDimension routingDimension)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
         ArgumentNullException.ThrowIfNull(dimension, nameof(dimension));
+        ArgumentNullException.ThrowIfNull(routingDimension, nameof(routingDimension));
         
         Name = name;
         Dimension = dimension;
+        RoutingDimension = routingDimension;
     }
 
     /// <inheritdoc/>
@@ -58,7 +66,7 @@ internal readonly struct SolverDimension : IEquatable<SolverDimension>, IDisposa
     /// <inheritdoc/>
     public void Dispose()
     {
-        Dimension.Dispose();
+        RoutingDimension.Dispose();
     }
 
     /// <summary>
@@ -72,13 +80,13 @@ internal readonly struct SolverDimension : IEquatable<SolverDimension>, IDisposa
     }
     
     /// <summary>
-    /// Converts the specified <see cref="SolverDimension"/> to a <see cref="RoutingDimension"/>.
+    /// Converts the specified <see cref="SolverDimension"/> to a <see cref="Google.OrTools.ConstraintSolver.RoutingDimension"/>.
     /// </summary>
     /// <param name="dimension">The dimension to convert.</param>
     /// <returns>The dimension.</returns>
     public static implicit operator RoutingDimension (SolverDimension dimension)
     {
-        return dimension.Dimension;
+        return dimension.RoutingDimension;
     }
     
     /// <summary>

@@ -9,19 +9,20 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Config
 /// <summary>
 /// Base class for configurators.
 /// </summary>
-internal abstract class ConfiguratorBase : IConfigurator
+internal abstract class ConfiguratorBase<TKey> : IConfigurator<TKey>
+    where TKey : notnull
 {
     /// <summary>
     /// The state.
     /// </summary>
-    private protected SolverState State { get; }
+    private protected SolverState<TKey> State { get; }
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConfiguratorBase"/> class.
+    /// Initializes a new instance of the <see cref="ConfiguratorBase{T}"/> class.
     /// </summary>
     /// <param name="state">The state.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    private protected ConfiguratorBase(SolverState state)
+    private protected ConfiguratorBase(SolverState<TKey> state)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
         
@@ -29,5 +30,5 @@ internal abstract class ConfiguratorBase : IConfigurator
     }
 
     /// <inheritdoc/>
-    public abstract void Configure(SolverState state);
+    public abstract void Configure(SolverState<TKey> state);
 }
