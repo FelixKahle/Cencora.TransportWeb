@@ -56,6 +56,8 @@ internal sealed class SolverInterface : IDisposable
         // Compute the vehicle node indices.
         var vehicleNodeIndices = new VehicleNodeIndices(model.Vehicles, model.VehicleNodeStores);
         
+        Console.WriteLine("VehicleNodeIndices: " + string.Join(", ", vehicleNodeIndices.StartNodeIndices));
+        
         // Assign the values to the properties.
         SolverModel = model;
         IndexManager = new RoutingIndexManager(model.NodeCount, model.VehicleCount, vehicleNodeIndices.StartNodeIndices, vehicleNodeIndices.EndNodeIndices);
@@ -88,18 +90,6 @@ internal sealed class SolverInterface : IDisposable
     }
     
     /// <summary>
-    /// Gets the index from the given node index.
-    /// </summary>
-    /// <param name="nodeIndex">The node index.</param>
-    /// <returns>The index.</returns>
-    internal long NodeToIndex(int nodeIndex)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(nodeIndex, nameof(nodeIndex));
-        
-        return IndexManager.NodeToIndex(nodeIndex);
-    }
-    
-    /// <summary>
     /// Gets the index from the given node.
     /// </summary>
     /// <param name="node">The node.</param>
@@ -108,7 +98,7 @@ internal sealed class SolverInterface : IDisposable
     {
         ArgumentNullException.ThrowIfNull(node, nameof(node));
         
-        return NodeToIndex(node.Index);
+        return IndexManager.NodeToIndex(node.Index);
     }
     
     /// <summary>

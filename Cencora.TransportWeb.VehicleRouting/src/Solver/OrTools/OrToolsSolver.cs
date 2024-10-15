@@ -7,6 +7,8 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurat
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Implementation;
+using Google.OrTools.ConstraintSolver;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
@@ -15,55 +17,41 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 /// </summary>
 public class OrToolsSolver : ISolver
 {
-    /// <summary>
-    /// The model factory.
-    /// </summary>
+    private readonly SolverOptions _options;
     private readonly ISolverModelFactory _solverModelFactory = new DefaultSolverModelFactory();
+    
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OrToolsSolver"/> class.
+    /// </summary>
+    /// <param name="options">The options.</param>
+    public OrToolsSolver(SolverOptions options)
+    {
+        _options = options;
+    }
     
     /// <inheritdoc/>
     public SolverOutput Solve(Problem problem)
     {
         var model = _solverModelFactory.Create(problem);
         var state = new SolverState(model);
-        
-        var configurators = GetConfigurators(state, problem);
-        Configure(state, configurators);
 
-        return new SolverOutput();
-    }
-    
-    /// <summary>
-    /// Configures the solver.
-    /// </summary>
-    /// <param name="state">The state.</param>
-    /// <param name="configurators">The configurators.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> or <paramref name="configurators"/> is <see langword="null"/>.</exception>
-    private void Configure(SolverState state, IReadOnlyList<IConfigurator> configurators)
-    {
-        ArgumentNullException.ThrowIfNull(state, nameof(state));
-        ArgumentNullException.ThrowIfNull(configurators, nameof(configurators));
+        var timeConfigurator = new TimeConfigurator(state, problem.DirectedRouteMatrix);
+        var vehicleConfigurator = new VehicleConfigurator();
+        var nodeConfigurator = new NodeConfigurator(state);
+        var arcCostConfigurator = new ArcCostEvaluatorConfigurator(problem.DirectedRouteMatrix);
         
-        foreach (var configurator in configurators)
-        {
-            configurator.Configure(state);
-        }
-    }
-    
-    /// <summary>
-    /// Gets the configurators.
-    /// </summary>
-    /// <param name="state">The state.</param>
-    /// <param name="problem">The problem.</param>
-    /// <returns>The configurators.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> or <paramref name="problem"/> is <see langword="null"/>.</exception>
-    private List<IConfigurator> GetConfigurators(SolverState state, Problem problem)
-    {
-        ArgumentNullException.ThrowIfNull(state, nameof(state));
-        ArgumentNullException.ThrowIfNull(problem, nameof(problem));
+        timeConfigurator.Configure(state);
+        vehicleConfigurator.Configure(state);
+        nodeConfigurator.Configure(state);
+        arcCostConfigurator.Configure(state);
         
-        return new List<IConfigurator>
-        {
-            new TimeConfigurator(state, problem.DirectedRouteMatrix)
-        };
+        var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
+        searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
+        searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
+        searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
+        using var solution = state.SolverInterface.RoutingModel.SolveWithParameters(searchParameters);
+
+        var outputFactory = new DefaultSolverOutputFactory(timeConfigurator.TimeDimension);
+        return outputFactory.CreateOutput(problem, state, solution);
     }
 }

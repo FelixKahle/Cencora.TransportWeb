@@ -60,11 +60,11 @@ internal sealed class DefaultSolverModelFactory : ISolverModelFactory
                 vehicles.Add(dummyVehicle);
                 
                 // Create the start node and add it to the list.
-                var vehicleNode = CreateVehicleNode(nodes.Count, CreateDummyVehicle(vehicles.Count, vehicle, shift), null, VehicleNodeType.Start);
+                var vehicleNode = CreateVehicleNode(nodes.Count, CreateDummyVehicle(vehicles.Count, vehicle, shift), shift.StartLocation, VehicleNodeType.Start);
                 nodes.Add(vehicleNode);
                 
                 // Create the end node and add it to the list.
-                var endNode = CreateVehicleNode(nodes.Count, CreateDummyVehicle(vehicles.Count, vehicle, shift), null, VehicleNodeType.End);
+                var endNode = CreateVehicleNode(nodes.Count, CreateDummyVehicle(vehicles.Count, vehicle, shift), shift.EndLocation, VehicleNodeType.End);
                 nodes.Add(endNode);
                 
                 // Add the vehicle node stores.

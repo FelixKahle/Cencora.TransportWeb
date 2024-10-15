@@ -38,8 +38,19 @@ public class VehicleRoutingTest
     {
         var problem = BuildProblem();
 
-        var solver = new OrToolsSolver();
+        var solver = new OrToolsSolver(new SolverOptions(TimeSpan.FromSeconds(2)));
         var solution = solver.Solve(problem);
+        
+        Console.WriteLine($"Has solution: {solution.HasSolution}");
+
+        if (solution.HasSolution)
+        {
+            var vehiclePlans = solution.Solution?.VehiclePlans ?? throw new InvalidOperationException("Solution is null");
+            foreach (var plan in vehiclePlans)
+            {
+                Console.WriteLine(plan.ToDebugString());
+            }
+        }
     }
 
     public void Run()

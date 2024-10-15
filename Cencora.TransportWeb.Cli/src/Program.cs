@@ -10,5 +10,7 @@ public static class Program
     {
         var test = new VehicleRoutingTest();
         test.RunTwo();
+        
+        //test.Run();
     }
 }

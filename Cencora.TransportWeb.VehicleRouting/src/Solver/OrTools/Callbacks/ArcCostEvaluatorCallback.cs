@@ -10,36 +10,76 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Callbacks;
 
 /// <summary>
-/// Represents a callback that calculates the transit time between two nodes.
+/// Arc cost evaluator callback.
 /// </summary>
-internal class TimeCallback : ITransitCallback
+internal sealed class ArcCostEvaluatorCallback : ITransitCallback
 {
     private readonly IReadOnlyDirectedRouteMatrix _routeMatrix;
+    private readonly long _distanceCost;
+    private readonly long _timeCost;
     
     /// <summary>
-    /// Initializes a new instance of the <see cref="TimeCallback"/> class.
+    /// Initializes a new instance of the <see cref="ArcCostEvaluatorCallback"/> class.
     /// </summary>
     /// <param name="routeMatrix">The route matrix.</param>
+    /// <param name="distanceCost">The distance cost.</param>
+    /// <param name="timeCost">The time cost.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="routeMatrix"/> is <see langword="null"/>.</exception>
-    public TimeCallback(IReadOnlyDirectedRouteMatrix routeMatrix)
+    internal ArcCostEvaluatorCallback(IReadOnlyDirectedRouteMatrix routeMatrix, long distanceCost, long timeCost)
     {
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
         
         _routeMatrix = routeMatrix;
+        _distanceCost = distanceCost;
+        _timeCost = timeCost;
     }
     
-    /// <inheritdoc/>
+    
     public long GetTransit(Node fromNode, Node toNode)
+    {
+        var distance = GetDistance(fromNode, toNode);
+        var duration = GetDuration(fromNode, toNode);
+                
+        var totalDistanceCost = MathUtils.MultiplyOrDefault(distance, _distanceCost, long.MaxValue);
+        var totalTimeCost = MathUtils.MultiplyOrDefault(duration, _timeCost, long.MaxValue);
+                
+        return MathUtils.AddOrDefault(totalDistanceCost, totalTimeCost, long.MaxValue);
+    }
+
+    /// <summary>
+    /// Gets the distance between two nodes.
+    /// </summary>
+    /// <param name="fromNode">The from node.</param>
+    /// <param name="toNode">The to node.</param>
+    /// <returns>The distance between the two nodes.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="fromNode"/> is <see langword="null"/>.</exception>
+    private long GetDistance(Node fromNode, Node toNode)
     {
         ArgumentNullException.ThrowIfNull(fromNode, nameof(fromNode));
         ArgumentNullException.ThrowIfNull(toNode, nameof(toNode));
         
-        var duration = GetDuration(fromNode, toNode);
-        var nodeTime = fromNode.GetTimeDemand();
+        var fromLocation = fromNode.GetLocation();
+        var toLocation = toNode.GetLocation();
         
-        return MathUtils.AddOrDefault(duration, nodeTime, long.MaxValue);
+        // Arbitrary nodes have a distance of 0.
+        if (fromLocation is null || toLocation is null)
+        {
+            return 0;
+        }
+        
+        // The distance between the same location is 0.
+        if (fromLocation.Equals(toLocation))
+        {
+            return 0;
+        }
+        
+        return _routeMatrix.GetEdge(fromLocation, toLocation) switch
+        {
+            DefinedRouteEdge definedRouteEdge => definedRouteEdge.Distance,
+            _ => long.MaxValue
+        };
     }
-    
+
     /// <summary>
     /// Gets the duration between two nodes.
     /// </summary>

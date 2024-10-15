@@ -148,16 +148,16 @@ public sealed class GoogleOrToolsSolver : SolverBase, ISolver
         // Setup all the solver callbacks.
         SetupArcCostEvaluators();
         SetupTimeCallback();
-        SetupDistanceCallback();
-        SetupWeightCallback();
-        SetupCumulativeWeightCallback();
+        //SetupDistanceCallback();
+        //SetupWeightCallback();
+        //SetupCumulativeWeightCallback();
         SetupIndexCallback();
         
         // Set up the dimensions of the solver.
         SetupTimeDimension();
-        SetupDistanceDimension(); 
-        SetupWeightDimension();
-        SetupCumulativeWeightDimension();
+        //SetupDistanceDimension(); 
+        //SetupWeightDimension();
+        //SetupCumulativeWeightDimension();
         SetupIndexDimension();
         
         // Add time window constraints to the solver.
