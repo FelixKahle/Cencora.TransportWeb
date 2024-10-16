@@ -47,6 +47,7 @@ public class OrToolsSolver : ISolver
             new TimeConfigurator(state, problem.DirectedRouteMatrix),
             new VehicleConfigurator(),
             new NodeConfigurator(state),
+            new DistanceConfigurator(state, problem.DirectedRouteMatrix),
             new ArcCostEvaluatorConfigurator(problem.DirectedRouteMatrix)
         };
     }

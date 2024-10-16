@@ -99,7 +99,6 @@ internal sealed class TimeConfigurator : ConfiguratorBase<Dimension>
             state.SolverInterface.RoutingModel.AddToAssignment(TimeDimension.RoutingDimension.SlackVar(nodeIndex));
             
             // Skip nodes without time windows.
-            // TODO: Maybe we need to set a default time window here?
             if (range is null)
             {
                 continue;

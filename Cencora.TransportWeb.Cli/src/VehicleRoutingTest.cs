@@ -121,8 +121,6 @@ public class VehicleRoutingTest
             .WithId("123")
             .WithPickupHandlingTime(3)
             .WithDeliveryHandlingTime(5)
-            .WithPickupTimeWindow(new ValueRange(7, 12))
-            .WithDeliveryTimeWindow(new ValueRange(9, 20))
             .WithWeight(10)
             .Build();
         

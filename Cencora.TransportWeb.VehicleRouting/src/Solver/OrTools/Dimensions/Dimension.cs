@@ -18,4 +18,9 @@ internal enum Dimension
     /// The node dimension used to keep track of the order of the nodes.
     /// </summary>
     NodeDimension,
+    
+    /// <summary>
+    /// The distance dimension.
+    /// </summary>
+    DistanceDimension
 }
