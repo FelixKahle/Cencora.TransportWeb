@@ -16,6 +16,10 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     private readonly SolverModel _model;
     private readonly RoutingIndexManager _indexManager;
     private readonly RoutingModel _routingModel;
+    
+    // We need to keep track of the callbacks to prevent
+    // them from being garbage collected.
+    private readonly List<SolverCallback> _callbacks = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultCallbackRegistrant"/> class.
@@ -48,7 +52,9 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
             return callback.GetTransit(fromNode, toNode);
         });
 
-        return new SolverCallback(callback, createdCallbackIndex);
+        var callbackInstance = new SolverCallback(callback, createdCallbackIndex);
+        _callbacks.Add(callbackInstance);
+        return callbackInstance;
     }
 
     /// <inheritdoc/>
@@ -63,6 +69,11 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
             return callback.GetTransit(node);
         });
         
-        return new SolverCallback(callback, createdCallbackIndex);
+        var callbackInstance = new SolverCallback(callback, createdCallbackIndex);
+        _callbacks.Add(callbackInstance);
+        return callbackInstance;
     }
+    
+    /// <inheritdoc/>
+    public int CallbackCount => _callbacks.Count;
 }

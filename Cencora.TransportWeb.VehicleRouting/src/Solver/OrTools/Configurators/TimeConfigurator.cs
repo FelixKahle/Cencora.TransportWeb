@@ -86,10 +86,6 @@ internal sealed class TimeConfigurator : ConfiguratorBase<Dimension>
             var range = node.GetTimeWindow();
             var nodeIndex = state.SolverInterface.NodeToIndex(node);
             
-            // Copy the slack var to the assignment,
-            // so we can later retrieve the slack time of the node.
-            state.SolverInterface.RoutingModel.AddToAssignment(TimeDimension.RoutingDimension.SlackVar(nodeIndex));
-            
             // Skip the start and end nodes.
             // Start nodes get their time windows from the vehicles
             // and end nodes do not have time windows.
@@ -98,7 +94,12 @@ internal sealed class TimeConfigurator : ConfiguratorBase<Dimension>
                 continue;
             }
             
+            // Copy the slack var to the assignment,
+            // so we can later retrieve the slack time of the node.
+            state.SolverInterface.RoutingModel.AddToAssignment(TimeDimension.RoutingDimension.SlackVar(nodeIndex));
+            
             // Skip nodes without time windows.
+            // TODO: Maybe we need to set a default time window here?
             if (range is null)
             {
                 continue;

@@ -20,4 +20,9 @@ internal interface ICallbackRegistrant
     /// </summary>
     /// <param name="callback">The callback.</param>
     SolverCallback RegisterCallback(IUnaryTransitCallback callback);
+    
+    /// <summary>
+    /// Gets the number of registered callbacks.
+    /// </summary>
+    int CallbackCount { get; }
 }
