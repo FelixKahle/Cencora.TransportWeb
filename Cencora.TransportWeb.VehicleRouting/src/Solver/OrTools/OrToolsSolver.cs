@@ -19,7 +19,6 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 public class OrToolsSolver : ISolver
 {
     private readonly SolverOptions _options;
-    private readonly ISolverModelFactory _solverModelFactory = new DefaultSolverModelFactory();
     
     /// <summary>
     /// Initializes a new instance of the <see cref="OrToolsSolver"/> class.
@@ -34,20 +33,18 @@ public class OrToolsSolver : ISolver
     /// Gets the configurators.
     /// </summary>
     /// <param name="problem">The problem.</param>
-    /// <param name="state">The state.</param>
     /// <returns>The configurators.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="problem"/> or <paramref name="state"/> is null.</exception>
-    private IReadOnlyList<IConfigurator<Dimension>> GetConfigurators(Problem problem, SolverState<Dimension> state)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="problem"/> is null.</exception>
+    private IReadOnlyList<IConfigurator<Dimension>> GetConfigurators(Problem problem)
     {
         ArgumentNullException.ThrowIfNull(problem, nameof(problem));
-        ArgumentNullException.ThrowIfNull(state, nameof(state));
         
         return new List<IConfigurator<Dimension>>()
         {
-            new TimeConfigurator(state, problem.DirectedRouteMatrix),
+            new TimeConfigurator(problem.DirectedRouteMatrix),
             new VehicleConfigurator(),
-            new NodeConfigurator(state),
-            new DistanceConfigurator(state, problem.DirectedRouteMatrix),
+            new NodeConfigurator(),
+            new DistanceConfigurator(problem.DirectedRouteMatrix),
             new ArcCostEvaluatorConfigurator(problem.DirectedRouteMatrix)
         };
     }
@@ -85,12 +82,18 @@ public class OrToolsSolver : ISolver
     /// <inheritdoc/>
     public SolverOutput Solve(Problem problem)
     {
-        var model = _solverModelFactory.Create(problem);
-        using var state = new SolverState<Dimension>(model);
-        var configurators = GetConfigurators(problem, state);
+        // Create the solver state.
+        using var state = new SolverState<Dimension>(new DefaultSimpleSolverModelFactory(problem));
+        
+        // Get the configurators and configure the solver.
+        var configurators = GetConfigurators(problem);
         Configure(state, configurators);
+        
+        // Solve the problem.
         var searchParameters = GetSearchParameters();
         using var solution = state.SolverInterface.RoutingModel.SolveWithParameters(searchParameters);
+        
+        // Create the output.
         var outputFactory = new DefaultSolverOutputFactory();
         return outputFactory.CreateOutput(problem, state, solution);
     }

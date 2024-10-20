@@ -3,7 +3,6 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
@@ -15,53 +14,51 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 /// <summary>
 /// Distance configurator.
 /// </summary>
-internal sealed class DistanceConfigurator : ConfiguratorBase<Dimension>
+internal sealed class DistanceConfigurator : IConfigurator<Dimension>
 {
-    /// <summary>
-    /// The distance callback.
-    /// </summary>
-    internal SolverCallback DistanceCallback { get; }
-    
-    /// <summary>
-    /// The distance dimension.
-    /// </summary>
-    internal SolverDimension DistanceDimension { get; }
+    private readonly IReadOnlyDirectedRouteMatrix _routeMatrix;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="DistanceConfigurator"/> class.
     /// </summary>
-    /// <param name="state">The state.</param>
     /// <param name="routeMatrix">The route matrix.</param>
-    internal DistanceConfigurator(SolverState<Dimension> state, IReadOnlyDirectedRouteMatrix routeMatrix) 
-        : base(state)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="routeMatrix"/> is <see langword="null"/>.</exception>
+    internal DistanceConfigurator(IReadOnlyDirectedRouteMatrix routeMatrix) 
     {
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
         
-        DistanceCallback = State.SolverInterface.RegisterCallback(new DistanceCallback(routeMatrix));
-        DistanceDimension = State.SolverInterface.RegisterDimension(Dimension.DistanceDimension, new DistanceDimension(state.SolverModel, DistanceCallback));
+        _routeMatrix = routeMatrix;
     }
 
     /// <inheritdoc/>
-    public override void Configure(SolverState<Dimension> state)
+    public void Configure(SolverState<Dimension> state)
     {
-        SetupVehicleDistanceCosts(state);
+        ArgumentNullException.ThrowIfNull(state, nameof(state));
+        
+        // Setup distance callback and dimension
+        var callback = state.SolverInterface.RegisterCallback(new DistanceCallback(_routeMatrix));
+        var distanceDimension = state.SolverInterface.RegisterDimension(Dimension.DistanceDimension, new DistanceDimension(state.SolverModel, callback));
+        
+        SetupVehicleDistanceCosts(state, distanceDimension);
     }
     
     /// <summary>
     /// Sets up the vehicle distance costs.
     /// </summary>
     /// <param name="state">The state.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> is <see langword="null"/>.</exception>
-    private void SetupVehicleDistanceCosts(SolverState<Dimension> state)
+    /// <param name="distanceDimension">The distance dimension.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> or <paramref name="distanceDimension"/> is <see langword="null"/>.</exception>
+    private void SetupVehicleDistanceCosts(SolverState<Dimension> state, SolverDimension distanceDimension)
     {
         ArgumentNullException.ThrowIfNull(state, nameof(state));
+        ArgumentNullException.ThrowIfNull(distanceDimension, nameof(distanceDimension));
 
         for (var i = 0; i < state.SolverModel.VehicleCount; i++)
         {
             var vehicle = state.SolverModel.Vehicles[i];
             var distanceCost = vehicle.DistanceCost;
             
-            DistanceDimension.RoutingDimension.SetSpanCostCoefficientForVehicle(distanceCost, i);
+            distanceDimension.RoutingDimension.SetSpanCostCoefficientForVehicle(distanceCost, i);
         }
     }
 }

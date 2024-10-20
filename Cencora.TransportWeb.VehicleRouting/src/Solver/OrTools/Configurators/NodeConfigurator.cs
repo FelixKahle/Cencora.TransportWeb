@@ -2,9 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
-using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Callbacks;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
@@ -14,32 +12,14 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 /// <summary>
 /// Node configurator.
 /// </summary>
-internal sealed class NodeConfigurator : ConfiguratorBase<Dimension>
+internal sealed class NodeConfigurator : IConfigurator<Dimension>
 {
-    /// <summary>
-    /// The node callback.
-    /// </summary>
-    internal SolverCallback NodeCallback { get; }
-    
-    /// <summary>
-    /// The node dimension.
-    /// </summary>
-    internal SolverDimension NodeDimension { get; }
-    
-    /// <summary>
-    /// Initializes a new instance of the <see cref="NodeConfigurator"/> class.
-    /// </summary>
-    /// <param name="state">The state.</param>
-    internal NodeConfigurator(SolverState<Dimension> state) :
-        base(state)
-    {
-        NodeCallback = State.SolverInterface.RegisterCallback(new NodeCallback());
-        NodeDimension = State.SolverInterface.RegisterDimension(Dimension.NodeDimension, new NodeDimension(NodeCallback));
-    }
-
     /// <inheritdoc/>
-    public override void Configure(SolverState<Dimension> state)
+    public void Configure(SolverState<Dimension> state)
     {
+        var nodeCallback = state.SolverInterface.RegisterCallback(new NodeCallback());
+        var nodeDimension = state.SolverInterface.RegisterDimension(Dimension.NodeDimension, new NodeDimension(nodeCallback));
+        
         foreach (var store in state.SolverModel.ShipmentNodeStores.Values)
         {
             var pickupNode = store.Pickup;
@@ -52,7 +32,7 @@ internal sealed class NodeConfigurator : ConfiguratorBase<Dimension>
             // The following line adds the requirement that each item must be picked up and delivered by the same vehicle.
             state.SolverInterface.Solver.Add(state.SolverInterface.Solver.MakeEquality(state.SolverInterface.RoutingModel.VehicleVar(pickupIndex), state.SolverInterface.RoutingModel.VehicleVar(deliveryIndex)));
             // Finally, we add the obvious requirement that each item must be picked up before it is delivered. 
-            state.SolverInterface.Solver.Add(state.SolverInterface.Solver.MakeLessOrEqual(NodeDimension.RoutingDimension.CumulVar(pickupIndex), NodeDimension.RoutingDimension.CumulVar(deliveryIndex)));
+            state.SolverInterface.Solver.Add(state.SolverInterface.Solver.MakeLessOrEqual(nodeDimension.RoutingDimension.CumulVar(pickupIndex), nodeDimension.RoutingDimension.CumulVar(deliveryIndex)));
         }
     }
 }

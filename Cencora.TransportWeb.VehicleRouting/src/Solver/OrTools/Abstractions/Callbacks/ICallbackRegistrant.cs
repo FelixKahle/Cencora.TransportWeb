@@ -7,7 +7,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callba
 /// <summary>
 /// Interface for a callback registrant.
 /// </summary>
-internal interface ICallbackRegistrant
+internal interface ICallbackRegistrant : IDisposable
 {
     /// <summary>
     /// Registers the specified callback.

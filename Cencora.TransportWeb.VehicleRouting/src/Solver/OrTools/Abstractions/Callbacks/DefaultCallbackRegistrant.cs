@@ -76,4 +76,14 @@ internal sealed class DefaultCallbackRegistrant : ICallbackRegistrant
     
     /// <inheritdoc/>
     public int CallbackCount => _callbacks.Count;
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        _callbacks.Clear();
+        _callbacks.TrimExcess();
+        
+        // Routing index manager and routing model are managed by the solver interface
+        // and should not be disposed here.
+    }
 }

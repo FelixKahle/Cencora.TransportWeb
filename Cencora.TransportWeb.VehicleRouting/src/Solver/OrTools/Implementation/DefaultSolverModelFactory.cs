@@ -18,7 +18,7 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Implementation;
 /// <summary>
 /// Represents the default implementation of the solver model factory.
 /// </summary>
-internal sealed class DefaultSolverModelFactory : ISolverModelFactory
+internal class DefaultSolverModelFactory : ISolverModelFactory
 {
     /// <inheritdoc/>
     public SolverModel Create(Problem problem)
