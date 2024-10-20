@@ -8,8 +8,6 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Configurators;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Implementation;
-using Google.OrTools.ConstraintSolver;
-using Google.Protobuf.WellKnownTypes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools;
 
@@ -49,32 +47,12 @@ public class OrToolsSolver : ISolver
         };
     }
     
-    /// <summary>
-    /// Configures the solver.
-    /// </summary>
-    /// <param name="state">The state.</param>
-    /// <param name="configurators">The configurators.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="state"/> or <paramref name="configurators"/> is null.</exception>
-    private void Configure(SolverState<Dimension> state, IReadOnlyList<IConfigurator<Dimension>> configurators)
-    {
-        ArgumentNullException.ThrowIfNull(state, nameof(state));
-        ArgumentNullException.ThrowIfNull(configurators, nameof(configurators));
-        
-        foreach (var configurator in configurators)
-        {
-            configurator.Configure(state);
-        }
-    }
-    
     /// <inheritdoc/>
     public SolverOutput Solve(Problem problem)
     {
-        // Create the solver state.
+        // Create the solver state and configure it.
         using var state = new SolverState<Dimension>(new DefaultSimpleSolverModelFactory(problem));
-        
-        // Get the configurators and configure the solver.
-        var configurators = GetConfigurators(problem);
-        Configure(state, configurators);
+        state.Configure(GetConfigurators(problem));
         
         // Solve the problem.
         var solution = state.Solve(_options.MaximumComputeTime);

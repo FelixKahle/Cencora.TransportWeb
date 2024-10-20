@@ -3,6 +3,7 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Model;
+using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Configurators;
 using Google.OrTools.ConstraintSolver;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
@@ -60,6 +61,21 @@ internal readonly struct SolverState<TKey> : IDisposable
     internal Assignment? Solve(TimeSpan timeLimit)
     {
         return SolverInterface.Solve(timeLimit);
+    }
+
+    /// <summary>
+    /// Configures the state.
+    /// </summary>
+    /// <param name="configurators">The configurators.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="configurators"/> is <see langword="null"/>.</exception>
+    internal void Configure(IReadOnlyList<IConfigurator<TKey>> configurators)
+    {
+        ArgumentNullException.ThrowIfNull(configurators, nameof(configurators));
+        
+        foreach (var configurator in configurators)
+        {
+            configurator.Configure(this);
+        }
     }
 
     /// <inheritdoc/>
