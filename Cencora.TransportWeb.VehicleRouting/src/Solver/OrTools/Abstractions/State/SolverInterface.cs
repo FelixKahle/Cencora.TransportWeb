@@ -6,6 +6,7 @@ using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Callbacks;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Dimensions;
 using Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.Nodes;
 using Google.OrTools.ConstraintSolver;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 
@@ -198,6 +199,31 @@ internal sealed class SolverInterface<TKey> : IDisposable
     internal SolverDimension GetDimension(TKey key)
     {
         return DimensionRegistry.GetDimension(key);
+    }
+    
+    /// <summary>
+    /// Solves the model with the specified time limit.
+    /// </summary>
+    /// <param name="timeLimit">The time limit.</param>
+    /// <returns>The internal assignment.</returns>
+    internal Assignment? Solve(TimeSpan timeLimit)
+    {
+        RoutingSearchParameters searchParameters = GetSearchParameters(timeLimit);
+        return RoutingModel.SolveWithParameters(searchParameters);
+    }
+    
+    /// <summary>
+    /// Gets the search parameters.
+    /// </summary>
+    /// <param name="timeLimit">The time limit.</param>
+    /// <returns>The search parameters.</returns>
+    private RoutingSearchParameters GetSearchParameters(TimeSpan timeLimit)
+    {
+        var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
+        searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
+        searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
+        searchParameters.TimeLimit = new Duration { Seconds = timeLimit.Seconds };
+        return searchParameters;
     }
 
     /// <inheritdoc/>

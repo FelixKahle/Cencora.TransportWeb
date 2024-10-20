@@ -66,19 +66,6 @@ public class OrToolsSolver : ISolver
         }
     }
     
-    /// <summary>
-    /// Gets the search parameters.
-    /// </summary>
-    /// <returns>The search parameters.</returns>
-    private RoutingSearchParameters GetSearchParameters()
-    {
-        var searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters();
-        searchParameters.FirstSolutionStrategy = FirstSolutionStrategy.Types.Value.PathCheapestArc;
-        searchParameters.LocalSearchMetaheuristic = LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch;
-        searchParameters.TimeLimit = new Duration { Seconds = _options.MaximumComputeTime.Seconds };
-        return searchParameters;
-    }
-    
     /// <inheritdoc/>
     public SolverOutput Solve(Problem problem)
     {
@@ -90,8 +77,7 @@ public class OrToolsSolver : ISolver
         Configure(state, configurators);
         
         // Solve the problem.
-        var searchParameters = GetSearchParameters();
-        using var solution = state.SolverInterface.RoutingModel.SolveWithParameters(searchParameters);
+        var solution = state.Solve(_options.MaximumComputeTime);
         
         // Create the output.
         var outputFactory = new DefaultSolverOutputFactory();

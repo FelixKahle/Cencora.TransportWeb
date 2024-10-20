@@ -3,6 +3,7 @@
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
 using Cencora.TransportWeb.VehicleRouting.Model;
+using Google.OrTools.ConstraintSolver;
 
 namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Abstractions.State;
 
@@ -49,6 +50,16 @@ internal readonly struct SolverState<TKey> : IDisposable
 
         SolverModel = factory.Create(problem);
         SolverInterface = new SolverInterface<TKey>(SolverModel);
+    }
+    
+    /// <summary>
+    /// Solves the internal model.
+    /// </summary>
+    /// <param name="timeLimit">The time limit.</param>
+    /// <returns>The internal assignment.</returns>
+    internal Assignment? Solve(TimeSpan timeLimit)
+    {
+        return SolverInterface.Solve(timeLimit);
     }
 
     /// <inheritdoc/>
