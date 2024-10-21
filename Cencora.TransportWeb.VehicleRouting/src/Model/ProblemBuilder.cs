@@ -17,7 +17,7 @@ public sealed class ProblemBuilder
     private readonly HashSet<Location> _locations = new HashSet<Location>();
     private readonly HashSet<Vehicle> _vehicles = new HashSet<Vehicle>();
     private readonly HashSet<Shipment> _shipments = new HashSet<Shipment>();
-    private DirectedRouteMatrix? _routeMatrix;
+    private ImmutableRouteMatrix? _routeMatrix;
     private long? _maxVehicleWaitingTime;
 
     /// <summary>
@@ -308,7 +308,7 @@ public sealed class ProblemBuilder
     /// <param name="routeMatrix">The route matrix.</param>
     /// <returns>The current instance of the <see cref="ProblemBuilder"/> class.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="routeMatrix"/> is <c>null</c>.</exception>
-    public ProblemBuilder WithRouteMatrix(DirectedRouteMatrix routeMatrix)
+    public ProblemBuilder WithRouteMatrix(ImmutableRouteMatrix routeMatrix)
     {
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
 
@@ -322,11 +322,11 @@ public sealed class ProblemBuilder
     /// <param name="factory">The factory that creates the route matrix.</param>
     /// <returns>The current instance of the <see cref="ProblemBuilder"/> class.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="factory"/> is <c>null</c>.</exception>
-    public ProblemBuilder WithRouteMatrix(Func<DirectedRouteMatrixBuilder, DirectedRouteMatrix> factory)
+    public ProblemBuilder WithRouteMatrix(Func<RouteMatrixBuilder, ImmutableRouteMatrix> factory)
     {
         ArgumentNullException.ThrowIfNull(factory, nameof(factory));
 
-        var builder = new DirectedRouteMatrixBuilder();
+        var builder = new RouteMatrixBuilder();
         var routeMatrix = factory(builder);
         return WithRouteMatrix(routeMatrix);
     }
@@ -337,7 +337,7 @@ public sealed class ProblemBuilder
     /// <param name="factory">The factory that creates the route matrix.</param>
     /// <returns>The current instance of the <see cref="ProblemBuilder"/> class.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="factory"/> is <c>null</c>.</exception>
-    public ProblemBuilder WithRouteMatrix(Func<DirectedRouteMatrix> factory)
+    public ProblemBuilder WithRouteMatrix(Func<ImmutableRouteMatrix> factory)
     {
         ArgumentNullException.ThrowIfNull(factory, nameof(factory));
 
@@ -376,7 +376,7 @@ public sealed class ProblemBuilder
     /// <returns>The problem.</returns>
     public Problem Build()
     {
-        var matrix = _routeMatrix ?? new DirectedRouteMatrix();
+        var matrix = _routeMatrix ?? new ImmutableRouteMatrix();
         return new Problem(_locations, _vehicles, _shipments, matrix, _maxVehicleWaitingTime);
     }
 

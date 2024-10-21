@@ -39,11 +39,11 @@ public class OrToolsSolver : ISolver
         
         return new List<IConfigurator<Dimension>>()
         {
-            new TimeConfigurator(problem.DirectedRouteMatrix),
+            new TimeConfigurator(problem.RouteMatrix),
             new VehicleConfigurator(),
             new NodeConfigurator(),
-            new DistanceConfigurator(problem.DirectedRouteMatrix),
-            new ArcCostEvaluatorConfigurator(problem.DirectedRouteMatrix)
+            new DistanceConfigurator(problem.RouteMatrix),
+            new ArcCostEvaluatorConfigurator(problem.RouteMatrix)
         };
     }
     

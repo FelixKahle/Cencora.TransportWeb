@@ -170,9 +170,9 @@ public class VehicleRoutingTest
         return locations;
     }
     
-    private DirectedRouteMatrix BuildRouteMatrix(List<Location> locations)
+    private ImmutableRouteMatrix BuildRouteMatrix(List<Location> locations)
     {
-        var builder = new DirectedRouteMatrixBuilder();
+        var builder = new RouteMatrixBuilder();
         for (var i = 0; i < _distanceTimeMatrix.GetLength(0); i++)
         {
             var firstLocation = locations[i];
@@ -184,6 +184,6 @@ public class VehicleRoutingTest
             }
         }
         
-        return builder.Build();
+        return builder.BuildImmutable();
     }
 }

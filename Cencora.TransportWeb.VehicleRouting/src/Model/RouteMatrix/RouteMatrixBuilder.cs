@@ -2,6 +2,7 @@
 //
 // Written by Felix Kahle, A123234, felix.kahle@worldcourier.de
 
+using System.Collections.Immutable;
 using Cencora.TransportWeb.VehicleRouting.Model.Places;
 
 namespace Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
@@ -9,23 +10,23 @@ namespace Cencora.TransportWeb.VehicleRouting.Model.RouteMatrix;
 /// <summary>
 /// A builder for creating a directed route matrix.
 /// </summary>
-public sealed class DirectedRouteMatrixBuilder
+public sealed class RouteMatrixBuilder
 {
     private readonly Dictionary<LocationPair, IRouteEdge> _edges;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DirectedRouteMatrixBuilder"/> class.
+    /// Initializes a new instance of the <see cref="RouteMatrixBuilder"/> class.
     /// </summary>
-    public DirectedRouteMatrixBuilder()
+    public RouteMatrixBuilder()
     {
         _edges = new Dictionary<LocationPair, IRouteEdge>();
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DirectedRouteMatrixBuilder"/> class with the specified capacity.
+    /// Initializes a new instance of the <see cref="RouteMatrixBuilder"/> class with the specified capacity.
     /// </summary>
     /// <param name="capacity">The initial capacity of the route matrix.</param>
-    public DirectedRouteMatrixBuilder(int capacity)
+    public RouteMatrixBuilder(int capacity)
     {
         var adjustedCapacity = Math.Max(0, capacity);
         _edges = new Dictionary<LocationPair, IRouteEdge>(adjustedCapacity);
@@ -39,7 +40,7 @@ public sealed class DirectedRouteMatrixBuilder
     /// <param name="edge">The edge to add.</param>
     /// <returns>The builder.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="fromLocation"/>, <paramref name="toLocation"/>, or <paramref name="edge"/> is <see langword="null"/>.</exception>
-    public DirectedRouteMatrixBuilder WithEdge(Location fromLocation, Location toLocation, IRouteEdge edge)
+    public RouteMatrixBuilder WithEdge(Location fromLocation, Location toLocation, IRouteEdge edge)
     {
         ArgumentNullException.ThrowIfNull(fromLocation, nameof(fromLocation));
         ArgumentNullException.ThrowIfNull(toLocation, nameof(toLocation));
@@ -56,7 +57,7 @@ public sealed class DirectedRouteMatrixBuilder
     /// <param name="edge">The edge to add.</param>
     /// <returns>The builder.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="pair"/> or <paramref name="edge"/> is <see langword="null"/>.</exception>
-    public DirectedRouteMatrixBuilder WithEdge(LocationPair pair, IRouteEdge edge)
+    public RouteMatrixBuilder WithEdge(LocationPair pair, IRouteEdge edge)
     {
         ArgumentNullException.ThrowIfNull(edge, nameof(edge));
 
@@ -70,7 +71,7 @@ public sealed class DirectedRouteMatrixBuilder
     /// <param name="toLocation">The location to which the edge leads.</param>
     /// <returns>The builder.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="fromLocation"/> or <paramref name="toLocation"/> is <see langword="null"/>.</exception>
-    public DirectedRouteMatrixBuilder WithoutEdge(Location fromLocation, Location toLocation)
+    public RouteMatrixBuilder WithoutEdge(Location fromLocation, Location toLocation)
     {
         ArgumentNullException.ThrowIfNull(fromLocation, nameof(fromLocation));
         ArgumentNullException.ThrowIfNull(toLocation, nameof(toLocation));
@@ -84,23 +85,23 @@ public sealed class DirectedRouteMatrixBuilder
     /// </summary>
     /// <param name="pair">The pair of locations that the edge connects.</param>
     /// <returns>The builder.</returns>
-    public DirectedRouteMatrixBuilder WithoutEdge(LocationPair pair)
+    public RouteMatrixBuilder WithoutEdge(LocationPair pair)
     {
         return WithoutEdge(pair.From, pair.To);
     }
-
+    
     /// <summary>
     /// Builds the route matrix.
     /// </summary>
     /// <returns>The route matrix.</returns>
-    public DirectedRouteMatrix Build()
+    public ImmutableRouteMatrix BuildImmutable()
     {
-        return new DirectedRouteMatrix(_edges);
+        return new ImmutableRouteMatrix(_edges.ToImmutableDictionary());
     }
 
     /// <inheritdoc/>
     public override string ToString()
     {
-        return "DirectedRouteMatrixBuilder";
+        return "RouteMatrixBuilder";
     }
 }

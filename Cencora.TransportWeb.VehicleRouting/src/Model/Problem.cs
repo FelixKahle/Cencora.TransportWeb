@@ -47,7 +47,7 @@ public sealed class Problem
     /// <summary>
     /// The directed route matrix that contains the travel information between locations.
     /// </summary>
-    public IReadOnlyDirectedRouteMatrix DirectedRouteMatrix { get; }
+    public ImmutableRouteMatrix RouteMatrix { get; }
 
     /// <summary>
     /// The maximum time a vehicle is allowed to wait at a location.
@@ -67,7 +67,7 @@ public sealed class Problem
     /// <param name="shipments">All shipments that are part of the problem.</param>
     /// <param name="matrix">The directed route matrix that contains the travel information between locations.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="locations"/>, <paramref name="vehicles"/>, <paramref name="shipments"/> or <paramref name="matrix"/> is <see langword="null"/>.</exception>
-    public Problem(IReadOnlySet<Location> locations, IReadOnlySet<Vehicle> vehicles, IReadOnlySet<Shipment> shipments, IReadOnlyDirectedRouteMatrix matrix)
+    public Problem(IReadOnlySet<Location> locations, IReadOnlySet<Vehicle> vehicles, IReadOnlySet<Shipment> shipments, ImmutableRouteMatrix matrix)
     {
         ArgumentNullException.ThrowIfNull(locations, nameof(locations));
         ArgumentNullException.ThrowIfNull(vehicles, nameof(vehicles));
@@ -77,7 +77,7 @@ public sealed class Problem
         Locations = locations;
         Vehicles = vehicles;
         Shipments = shipments;
-        DirectedRouteMatrix = matrix;
+        RouteMatrix = matrix;
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public sealed class Problem
     /// <param name="maxVehicleWaitingTime">The maximum time a vehicle is allowed to wait at a location.</param>
     /// <param name="matrix">The directed route matrix that contains the travel information between locations.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="locations"/>, <paramref name="vehicles"/>, <paramref name="shipments"/> or <paramref name="matrix"/> is <see langword="null"/>.</exception>
-    public Problem(IReadOnlySet<Location> locations, IReadOnlySet<Vehicle> vehicles, IReadOnlySet<Shipment> shipments, IReadOnlyDirectedRouteMatrix matrix, long? maxVehicleWaitingTime)
+    public Problem(IReadOnlySet<Location> locations, IReadOnlySet<Vehicle> vehicles, IReadOnlySet<Shipment> shipments, ImmutableRouteMatrix matrix, long? maxVehicleWaitingTime)
     {
         ArgumentNullException.ThrowIfNull(locations, nameof(locations));
         ArgumentNullException.ThrowIfNull(vehicles, nameof(vehicles));
@@ -99,7 +99,7 @@ public sealed class Problem
         Locations = locations;
         Vehicles = vehicles;
         Shipments = shipments;
-        DirectedRouteMatrix = matrix;
+        RouteMatrix = matrix;
 
         // Make sure the max vehicle waiting time is not negative.
         MaxVehicleWaitingTime = maxVehicleWaitingTime is not null ? Math.Max(0, maxVehicleWaitingTime.Value) : null;

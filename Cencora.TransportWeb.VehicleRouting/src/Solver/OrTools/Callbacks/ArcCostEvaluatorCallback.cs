@@ -15,14 +15,14 @@ namespace Cencora.TransportWeb.VehicleRouting.Solver.OrTools.Callbacks;
 /// </summary>
 internal sealed class ArcCostEvaluatorCallback : IArcCostEvaluator
 {
-    private readonly IReadOnlyDirectedRouteMatrix _routeMatrix;
+    private readonly ImmutableRouteMatrix _routeMatrix;
     
     /// <summary>
     /// Initializes a new instance of the <see cref="ArcCostEvaluatorCallback"/> class.
     /// </summary>
     /// <param name="routeMatrix">The route matrix.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="routeMatrix"/> is <see langword="null"/>.</exception>
-    internal ArcCostEvaluatorCallback(IReadOnlyDirectedRouteMatrix routeMatrix)
+    internal ArcCostEvaluatorCallback(ImmutableRouteMatrix routeMatrix)
     {
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
         

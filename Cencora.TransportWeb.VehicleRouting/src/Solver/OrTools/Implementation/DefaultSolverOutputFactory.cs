@@ -45,7 +45,7 @@ internal class DefaultSolverOutputFactory : IOutputFactory<Dimension>
             var currentVehicle = currentDummyVehicle.Vehicle;
 
             var stops = CollectStopsForVehicle(state, assignment, i, currentVehicle);
-            var trips = CollectTripsForVehicle(problem.DirectedRouteMatrix, stops, currentVehicle);
+            var trips = CollectTripsForVehicle(problem.RouteMatrix, stops, currentVehicle);
             
             // Make sure the stops and trips are sorted by their index.
             stops.Sort();
@@ -132,7 +132,7 @@ internal class DefaultSolverOutputFactory : IOutputFactory<Dimension>
     /// <param name="currentVehicle">The current vehicle.</param>
     /// <returns>The trips for the vehicle.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="stops"/> or <paramref name="currentVehicle"/> is <see langword="null"/>.</exception>
-    private List<VehicleTrip> CollectTripsForVehicle(IReadOnlyDirectedRouteMatrix routeMatrix, List<VehicleStop> stops, in Vehicle currentVehicle)
+    private List<VehicleTrip> CollectTripsForVehicle(ImmutableRouteMatrix routeMatrix, List<VehicleStop> stops, in Vehicle currentVehicle)
     {
         ArgumentNullException.ThrowIfNull(routeMatrix, nameof(routeMatrix));
         ArgumentNullException.ThrowIfNull(stops, nameof(stops));
